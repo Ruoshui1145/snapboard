@@ -1,6 +1,6 @@
 # SnapBoard 2.0 项目交接说明
 
-更新时间：2026-08-24  
+更新时间：2026-08-28  
 当前应用本体：`D:\自动切片设计软件\snapboard-v2\`
 
 SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前 Studio 应用位于 `snapboard-v2/`，官网/Wiki 位于 `apps/wiki/`；历史原型和外围工具已归档到 `_archive/legacy/`，不属于运行时主链路。
@@ -19,7 +19,7 @@ GitHub 新仓库设置与发布流程：[`docs-internal/GITHUB_SETUP.md`](docs-i
 - [`snapboard-v2/docs/PROJECT_FILE_FORMAT.md`](snapboard-v2/docs/PROJECT_FILE_FORMAT.md)：`.snapboard`、制造清单、3MF 和保存 API；
 - [`snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md`](snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md)：配件包和装配路线。
 
-商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在 `商业运营/`，工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明由 `apps/wiki/` 管理。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
+商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在本地 `商业运营/`，该目录不进入公开 GitHub 仓库；工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明由 `apps/wiki/` 管理。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
 
 ## 当前产品链路
 
@@ -110,6 +110,8 @@ npm run wiki:build   # Wiki 静态构建
 npm run build:all    # Studio + Wiki
 npm run site:build   # 统一公开站点：/ + /community + /docs + /devlog + /design/
 ```
+
+GitHub Actions 也使用 `npm run site:build`，会把 Studio 构建到 `/design/`，再和官网、文档、开发日志合并为一个 Pages 产物。
 
 统一公开站点的路径：
 

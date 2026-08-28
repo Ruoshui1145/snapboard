@@ -4,7 +4,9 @@ title: GitHub 与网站发布
 
 # GitHub 与发布
 
-当前本地仓库还没有配置 GitHub remote，因此 Wiki 已准备 GitHub Pages 工作流，但不会假装已有公开仓库。
+当前公开仓库为 <https://github.com/Ruoshui1145/snapboard>，Wiki 已准备 GitHub Pages 工作流。
+
+商业运营资料、基金预算和个人信息不在公开仓库中。
 
 新建仓库的推荐选项、许可证边界和首推命令见根目录 `docs-internal/GITHUB_SETUP.md`。
 

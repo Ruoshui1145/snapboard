@@ -62,6 +62,23 @@ apps/wiki 不依赖 Studio 运行时代码，只读取公开文档和静态媒�
 6. 历史原型放入 `_archive/legacy`，不得继续被正式应用导入；
 7. 每次路径迁移同时更新 README、Wiki、启动脚本和验证脚本。
 
+## 公开与内部边界
+
+公开 GitHub 仓库和统一站点只包含：
+
+- `snapboard-v2/` 软件本体与必要示例资源；
+- `apps/wiki/` 官网、用户文档、模块架构和开发日志；
+- `modules/` 模块边界说明；
+- `assets/drawings/` 已确认可公开的工程输入；
+- `.github/` 构建与 Pages 部署配置。
+
+本地保留、不进入公开仓库的内容包括：
+
+- `商业运营/` 市场报告、商业计划、基金申请、预算和执行表单；
+- `workspace-data/`、`tmp/`、`output/`、本地项目和测试缓存；
+- `vendor/lumina-studio/source/` 上游源码和 `runtime-reference/` 桌面包；
+- 未授权配件模型、用户照片和私人联系方式。
+
 ## 分阶段迁移
 
 ### Phase A：已实施
