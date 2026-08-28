@@ -108,7 +108,16 @@ npm run build        # Studio 生产构建
 npm run wiki:dev     # Wiki 本地预览
 npm run wiki:build   # Wiki 静态构建
 npm run build:all    # Studio + Wiki
+npm run site:build   # 统一公开站点：/ + /community + /docs + /devlog + /design/
 ```
+
+统一公开站点的路径：
+
+- `/`：消费端官网首页；
+- `/community`：校园方案与母版展示；
+- `/docs`：用户、开发者和制造文档；
+- `/devlog`：带截图的开发日志；
+- `/design/`：在线设计器。
 
 Vite 的 `server.watch.ignored` 不能删除，否则 Windows 编辑器临时目录可能触发 EBUSY 并导致开发服务器退出。
 
