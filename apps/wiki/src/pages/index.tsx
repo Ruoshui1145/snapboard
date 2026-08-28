@@ -39,7 +39,7 @@ export default function Home() {
           <p>SnapBoard 把二维轮廓、自动分板、孔阵、3D 装配、彩色纹理和多盘 3MF 连成一条普通用户可以完成的工作流。</p>
           <div className={styles.actions}>
             <Link className="button button--primary button--lg" to="/docs/getting-started/overview">阅读文档</Link>
-            <Link className="button button--secondary button--lg" to="/devlog">查看开发日志</Link>
+            <Link className="button button--secondary button--lg" to="/community">浏览校园方案</Link>
           </div>
         </div>
         <div className={styles.heroVisual}>

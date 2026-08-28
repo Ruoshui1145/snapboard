@@ -623,6 +623,7 @@ const partBatchApi = () => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), partLibraryWatcher(), partCalibrationApi(), partImportApi(), partBatchApi(), projectLibraryApi(), systemControlApi()],
+  base: process.env.VITE_BASE ?? '/',
   server: {
     watch: {
       // 忽略编辑器原子保存临时目录与本地 Edge 调试用户目录；其中 Cookies 等文件会被

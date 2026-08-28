@@ -21,8 +21,10 @@ title: GitHub 与网站发布
 
 ```powershell
 npm install
-npm run wiki:build
+npm run site:build
 ```
+
+`site:build` 会先以 `/design/` 为基础路径构建 Studio，再把 Studio 的静态文件放入 Wiki 的 `static/design/`，最后构建统一站点。最终路径为：官网 `/`、文档 `/docs`、开发日志 `/devlog`、设计器 `/design/`。
 
 ## 自定义域名
 

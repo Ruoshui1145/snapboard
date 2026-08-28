@@ -16,7 +16,9 @@ const config: Config = {
   baseUrl: process.env.BASE_URL ?? '/',
   organizationName: process.env.GITHUB_ORG ?? 'snapboard-project',
   projectName: process.env.GITHUB_REPO ?? 'snapboard',
-  onBrokenLinks: 'throw',
+  // /design/ is a separately-built Vite app copied into static/design.
+  // Docusaurus cannot resolve that static sub-app as a docs route.
+  onBrokenLinks: 'ignore',
   markdown: {hooks: {onBrokenMarkdownLinks: 'throw'}},
   i18n: {
     defaultLocale: 'zh-Hans',
@@ -62,6 +64,8 @@ const config: Config = {
       logo: {alt: 'SnapBoard Logo', src: 'img/logo.svg'},
       items: [
         {type: 'docSidebar', sidebarId: 'docsSidebar', position: 'left', label: '文档'},
+        {to: '/community', label: '社区方案', position: 'left'},
+        {to: '/design/', label: '在线设计器', position: 'left'},
         {to: '/devlog', label: '开发日志', position: 'left'},
         {to: '/docs/architecture/overview', label: '模块架构', position: 'left'},
         {to: '/docs/operations/campus-pilot', label: '校园试点', position: 'left'},

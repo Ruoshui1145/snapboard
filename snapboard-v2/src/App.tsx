@@ -4,10 +4,11 @@ import { SiteApp, type SiteRoute } from './components/site/SiteApp'
 const DesignerApp = lazy(() => import('./components/designer/DesignerApp'))
 
 const normalizeRoute = (pathname: string): SiteRoute => {
-  if (pathname === '/design') return '/design'
-  if (pathname === '/community') return '/community'
-  if (pathname === '/guide') return '/guide'
-  if (pathname === '/print') return '/print'
+  const route = pathname.replace(/\/+$/, '') || '/'
+  if (route === '/design') return '/design'
+  if (route === '/community') return '/community'
+  if (route === '/guide') return '/guide'
+  if (route === '/print') return '/print'
   return '/'
 }
 

@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'apps/wiki/**'
+      - 'snapboard-v2/**'
+      - 'scripts/build-public-site.ps1'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/wiki-pages.yml'
@@ -36,7 +38,7 @@ jobs:
           GITHUB_ORG: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: npm run wiki:build
+        run: npm run site:build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

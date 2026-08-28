@@ -2,6 +2,7 @@ node_modules/
 **/node_modules/
 **/dist/
 apps/wiki/build/
+apps/wiki/static/design/
 tmp/
 output/
 .exe/
