@@ -19,7 +19,7 @@ GitHub 新仓库设置与发布流程：[`docs-internal/GITHUB_SETUP.md`](docs-i
 - [`snapboard-v2/docs/PROJECT_FILE_FORMAT.md`](snapboard-v2/docs/PROJECT_FILE_FORMAT.md)：`.snapboard`、制造清单、3MF 和保存 API；
 - [`snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md`](snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md)：配件包和装配路线。
 
-商业运营、定价、校园社区和打印履约资料在 `商业运营/`，工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明由 `apps/wiki/` 管理。
+商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在 `商业运营/`，工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明由 `apps/wiki/` 管理。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
 
 ## 当前产品链路
 

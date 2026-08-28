@@ -75,6 +75,7 @@ VITE_PROJECT_STORAGE_API_BASE=https://your-api.example.com/api/project-library
 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | 版本更新与制造格式兼容说明 |
 | [`docs/AI交接提示词.md`](docs/AI交接提示词.md) | 开发交接提示词(技术侧,已被文档体系覆盖,仅供参考) |
 | [`../商业运营/`](../商业运营/) | 商业侧资料包:报告书/商业模式/市场调研/演示讲稿等 |
+| [`../商业运营/08-科创主线与商业验证决策指南.md`](../商业运营/08-科创主线与商业验证决策指南.md) | 科创主线、商业验证、竞赛、知识产权、投入边界与开发记录规范 |
 
 ## 主要代码入口
 
