@@ -13,7 +13,7 @@
     "wiki:dev": "npm --workspace apps-wiki run start",
     "wiki:build": "npm --workspace apps-wiki run build",
     "wiki:serve": "npm --workspace apps-wiki run serve",
-    "site:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-public-site.ps1",
+    "site:build": "node scripts/build-public-site.mjs",
     "build:all": "npm run build && npm run wiki:build"
   }
 }

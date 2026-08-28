@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+# Windows convenience wrapper. CI uses the cross-platform build-public-site.mjs.
 $root = Split-Path -Parent $PSScriptRoot
 $studio = Join-Path $root 'snapboard-v2'
 $wikiStatic = Join-Path $root 'apps\wiki\static\design'

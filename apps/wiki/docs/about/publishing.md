@@ -24,7 +24,7 @@ npm install
 npm run site:build
 ```
 
-`site:build` 会先以 `/design/` 为基础路径构建 Studio，再把 Studio 的静态文件放入 Wiki 的 `static/design/`，最后构建统一站点。最终路径为：官网 `/`、文档 `/docs`、开发日志 `/devlog`、设计器 `/design/`。
+`site:build` 会先以 `/design/` 为基础路径构建 Studio，再把 Studio 的静态文件放入 Wiki 的 `static/design/`，最后构建统一站点。该命令使用跨平台 Node 脚本，兼容 Windows 和 GitHub Actions 的 Ubuntu runner。最终路径为：官网 `/`、文档 `/docs`、开发日志 `/devlog`、设计器 `/design/`。
 
 ## 自定义域名
 
