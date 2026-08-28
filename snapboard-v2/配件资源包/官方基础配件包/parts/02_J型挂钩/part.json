@@ -1,0 +1,18 @@
+{
+  "id": "j-hook",
+  "name": "J 型挂钩",
+  "category": "hook",
+  "description": "固定尺寸 J 型挂钩",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "single",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "slot"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 10
+}

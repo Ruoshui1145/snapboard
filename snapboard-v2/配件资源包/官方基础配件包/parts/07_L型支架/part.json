@@ -1,0 +1,18 @@
+{
+  "id": "l-bracket",
+  "name": "L 型支架",
+  "category": "bracket",
+  "description": "层板和承托部件使用的固定支架",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "multi",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "slot"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 20
+}

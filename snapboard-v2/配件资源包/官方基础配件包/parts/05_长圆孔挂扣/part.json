@@ -1,0 +1,18 @@
+{
+  "id": "slot-clip",
+  "name": "长圆孔挂扣",
+  "category": "fastener",
+  "description": "插入洞洞板长圆孔的挂扣/紧固件",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "single",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "slot"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 20
+}

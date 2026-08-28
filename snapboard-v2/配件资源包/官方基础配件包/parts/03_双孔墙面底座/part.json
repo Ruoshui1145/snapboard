@@ -1,0 +1,95 @@
+{
+  "id": "wall-base-dual",
+  "name": "双孔墙面底座",
+  "category": "base",
+  "description": "同时使用长圆孔与圆形固定孔的墙面底座",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          10,
+          10,
+          -4.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          -10,
+          -10,
+          -4.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          -10,
+          10,
+          -4.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          10,
+          -10,
+          -4.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false
+  },
+  "defaultRotation": 0,
+  "model": {
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sortOrder": 10
+}

@@ -1,0 +1,18 @@
+{
+  "id": "round-hole-fastener",
+  "name": "圆孔紧固件",
+  "category": "fastener",
+  "description": "从背面安装到圆形固定孔",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "single",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "round"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 20
+}

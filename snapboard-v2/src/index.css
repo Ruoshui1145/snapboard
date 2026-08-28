@@ -1,0 +1,57 @@
+:root {
+  /* SnapBoard Aurora：深色工程底 + 克制的极光强调色 */
+  --bg: #090d16;
+  --panel: rgba(17, 23, 37, 0.86);
+  --panel-2: rgba(26, 33, 51, 0.9);
+  --panel-3: rgba(37, 46, 69, 0.94);
+  --border: rgba(158, 176, 216, 0.16);
+  --text: #e7ecf7;
+  --text-dim: #8995aa;
+  --accent: #51dfcf;
+  --accent-soft: rgba(81, 223, 207, 0.12);
+  --accent-border: rgba(81, 223, 207, 0.46);
+  --aurora-cyan: #51dfcf;
+  --aurora-blue: #718bff;
+  --aurora-violet: #a67df2;
+  --aurora-pink: #ef83b1;
+  --glass-highlight: rgba(255, 255, 255, 0.055);
+  --glass-shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+  --danger: #ff6b6b;
+  --gold: #ffd166;
+
+  font-family: system-ui, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* 通用过渡 */
+button {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease, transform 0.18s cubic-bezier(.22, 1, .36, 1), box-shadow 0.18s ease;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #4a5060; }

@@ -1,0 +1,66 @@
+{
+  "id": "双圆孔平链接-mtcl8dhi",
+  "name": "双圆孔平链接",
+  "category": "fastener",
+  "sortOrder": 5,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "双圆孔平链接.STL",
+    "print": "双圆孔平链接.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          22.567,
+          1022.45,
+          -8.959
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          2.567,
+          1002.45,
+          -8.959
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -4.059
+  },
+  "defaultRotation": 0
+}

@@ -1,0 +1,102 @@
+{
+  "id": "四孔30圆带孔镜像-mtcl8ds4",
+  "name": "四孔30圆带孔镜像",
+  "category": "fastener",
+  "sortOrder": 40,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "四孔30圆带孔镜像.STL",
+    "print": "四孔30圆带孔镜像.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          65.019,
+          27.405,
+          -16.92
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          45.019,
+          7.405,
+          -16.92
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          45.019,
+          27.405,
+          -16.92
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          65.019,
+          7.405,
+          -16.92
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -12.02
+  },
+  "defaultRotation": 0
+}

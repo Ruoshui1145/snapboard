@@ -1,0 +1,47 @@
+{
+  "name": "snapboard-v2",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "parts:sync": "node scripts/sync-part-library.mjs",
+    "pack:export": "node scripts/export-sbpack.mjs",
+    "pack:import": "node scripts/import-sbpack.mjs",
+    "verify:3mf": "node scripts/verify-manufacturing-3mf.mjs",
+    "verify:texture": "node scripts/verify-texture-project.mjs",
+    "verify:assembly": "node scripts/verify-assembly-snap.mjs",
+    "verify:dimensions": "node scripts/verify-smart-dimensions.mjs",
+    "verify:split": "node scripts/verify-split-performance.mjs",
+    "verify:holes": "node scripts/verify-hole-standard.mjs",
+    "verify:parts": "node scripts/verify-part-library.mjs",
+    "verify:textured-3mf": "node scripts/verify-textured-3mf.mjs",
+    "predev": "npm run parts:sync",
+    "dev": "vite",
+    "prebuild": "npm run parts:sync",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@salusoft89/planegcs": "^1.2.0",
+    "@types/three": "^0.185.1",
+    "fflate": "^0.8.3",
+    "polygon-clipping": "^0.15.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "three": "^0.185.1",
+    "three-csg": "^1.0.0",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0"
+  }
+}

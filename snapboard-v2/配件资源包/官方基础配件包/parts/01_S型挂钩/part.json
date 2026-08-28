@@ -1,0 +1,18 @@
+{
+  "id": "s-hook",
+  "name": "S 型挂钩",
+  "category": "hook",
+  "description": "固定尺寸 S 型挂钩",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "single",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "slot"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 10
+}

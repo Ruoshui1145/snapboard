@@ -1,0 +1,21 @@
+origin:
+  label: 项目起点
+  permalink: /origin
+sketch:
+  label: 二维草图
+  permalink: /sketch
+splitting:
+  label: 自动分板
+  permalink: /splitting
+assembly:
+  label: 3D装配
+  permalink: /assembly
+manufacturing:
+  label: 3MF制造
+  permalink: /manufacturing
+texture:
+  label: 彩色纹理
+  permalink: /texture
+community:
+  label: 校园与社区
+  permalink: /community

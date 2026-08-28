@@ -1,0 +1,15 @@
+---
+title: 二维和三维必须共享同一个孔
+authors: [snapboard]
+tags: [assembly, splitting]
+description: 手动开孔、3D 重建和相机状态。
+---
+
+早期 3D 视图中，圆孔可能落进长圆孔，候选孔可能渲染成实体，点击孔位后相机还会跳回初始位置。
+
+<img src={require('@site/static/img/devlog/01-早期3D孔位渲染.png').default} alt="早期3D孔位渲染" />
+
+修正的核心不是给 2D 和 3D 各写一套逻辑，而是让两者读取同一个孔位状态：虚线候选孔不参与制造，用户点击后才变成真实贯通孔。网格重建只更新板件，不重置相机。
+
+圆孔默认直径也统一为 5 mm，并开始用 SVG/DXF 权威图纸校对底边孔距和长圆孔相位。
+

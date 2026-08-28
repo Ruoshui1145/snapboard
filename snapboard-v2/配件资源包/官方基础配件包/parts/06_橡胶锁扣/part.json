@@ -1,0 +1,19 @@
+{
+  "id": "rubber-lock",
+  "name": "背面橡胶锁扣",
+  "category": "fastener",
+  "description": "背面固定与防松用橡胶卡扣",
+  "kind": "fixed",
+  "params": [],
+  "mount": {
+    "mode": "single",
+    "anchors": [],
+    "calibrationRequired": true,
+    "expected": [
+      "round",
+      "slot"
+    ]
+  },
+  "defaultRotation": 0,
+  "sortOrder": 20
+}

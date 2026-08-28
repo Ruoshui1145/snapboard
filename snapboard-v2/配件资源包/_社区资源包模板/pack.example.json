@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "author.unique-pack-id",
+  "name": "我的 SnapBoard 资源包",
+  "version": "1.0.0",
+  "author": "作者名称",
+  "license": "CC-BY-4.0",
+  "description": "资源包说明"
+}

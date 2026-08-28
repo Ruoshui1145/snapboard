@@ -1,0 +1,27 @@
+node_modules/
+**/node_modules/
+**/dist/
+apps/wiki/build/
+tmp/
+output/
+.exe/
+*.log
+
+# Local projects and browser/test output
+保存测试/
+workspace-data/
+snapboard-v2/已保存项目/
+snapboard-v2/.edge-debug2/
+**/.tmp-3d-test/
+.claude/
+.vscode/
+
+# Third-party upstream repos and desktop preview package. The minimal runtime
+# template required by SnapBoard remains tracked in runtime-template/.
+vendor/lumina-studio/source/
+vendor/lumina-studio/runtime-reference/
+
+# Internal commercial research, funding drafts, private budgets and contact data.
+# Public-facing documentation lives in apps/wiki/ instead.
+商业运营/
+_archive/

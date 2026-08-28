@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "snapboard.official-starter",
+  "name": "SnapBoard 官方基础配件包",
+  "version": "0.1.0",
+  "author": "SnapBoard",
+  "license": "All-Rights-Reserved",
+  "description": "项目首批挂钩、底座、紧固件和支架上传槽位"
+}

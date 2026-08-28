@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "snapboard.user-imports",
+  "name": "我的配件",
+  "version": "1.0.0",
+  "author": "Local User",
+  "license": "Private",
+  "description": "从 SnapBoard 网页导入的本地模型。"
+}

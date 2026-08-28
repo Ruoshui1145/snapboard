@@ -1,0 +1,102 @@
+{
+  "id": "四孔平连接-mtcl8dx9",
+  "name": "四孔平连接",
+  "category": "fastener",
+  "sortOrder": 10,
+  "description": "用于四块板子的角落拼接，采用自攻螺丝固定",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "四孔平连接.STL",
+    "print": "四孔平连接.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          2.567,
+          1027.4,
+          -8.929
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          22.567,
+          1007.4,
+          -8.929
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          22.567,
+          1027.4,
+          -8.929
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          2.567,
+          1007.4,
+          -8.929
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -4.029
+  },
+  "defaultRotation": 0
+}

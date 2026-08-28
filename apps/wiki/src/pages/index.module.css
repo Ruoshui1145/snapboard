@@ -1,0 +1,27 @@
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(420px, 1.1fr);
+  gap: 4rem;
+  align-items: center;
+  max-width: 1420px;
+  margin: 0 auto;
+  padding: 7rem 2rem 5rem;
+}
+.heroCopy h1 {font-size: clamp(3rem, 6vw, 6.4rem); line-height: .96; letter-spacing: -.055em; margin: 1rem 0 1.5rem;}
+.heroCopy p {font-size: 1.15rem; line-height: 1.8; max-width: 660px; color: var(--sb-muted);}
+.eyebrow {color: var(--ifm-color-primary); font-size: .78rem; letter-spacing: .18em; font-weight: 800;}
+.actions {display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem;}
+.heroVisual {position: relative; padding: 1px; border-radius: 24px; background: linear-gradient(135deg, rgba(68,230,210,.7), rgba(139,92,246,.45), transparent); box-shadow: 0 30px 90px rgba(0,0,0,.4);}
+.heroVisual img {display: block; width: 100%; min-height: 360px; object-fit: cover; object-position: top; border-radius: 23px; background: #0d111b;}
+.statement {max-width: 1080px; margin: 0 auto; padding: 5rem 2rem 3rem; text-align: center;}
+.statement span {font-size: .72rem; color: var(--ifm-color-primary); letter-spacing: .2em; font-weight: 800;}
+.statement h2 {font-size: clamp(2rem, 4vw, 4rem); margin: 1rem 0;}
+.statement p {color: var(--sb-muted); font-size: 1.05rem; line-height: 1.8;}
+.cards {max-width: 1280px; margin: 0 auto; padding: 2rem 2rem 7rem; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1rem;}
+.card {position: relative; min-height: 190px; padding: 1.6rem; border: 1px solid var(--sb-border); border-radius: 18px; background: var(--sb-panel); color: inherit; transition: .2s ease;}
+.card:hover {text-decoration: none; color: inherit; transform: translateY(-4px); border-color: var(--ifm-color-primary); box-shadow: 0 18px 50px rgba(0,0,0,.22);}
+.card h3 {margin-top: 2.2rem;}
+.card p {color: var(--sb-muted); line-height: 1.65;}
+.dot {position: absolute; top: 1.5rem; left: 1.5rem; width: 10px; height: 10px; border-radius: 50%; background: var(--ifm-color-primary); box-shadow: 0 0 20px var(--ifm-color-primary);}
+@media (max-width: 996px) {.hero{grid-template-columns:1fr;padding-top:4rem}.heroVisual img{min-height:260px}.cards{grid-template-columns:1fr 1fr}}
+@media (max-width: 640px) {.cards{grid-template-columns:1fr}.hero{padding-inline:1.25rem}.heroCopy h1{font-size:3.2rem}}

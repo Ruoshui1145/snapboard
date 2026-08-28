@@ -1,0 +1,102 @@
+{
+  "id": "四孔30圆带孔-mtcl8dmz",
+  "name": "四孔30圆带孔",
+  "category": "fastener",
+  "sortOrder": 30,
+  "description": "两个椭圆孔与两个圆孔，同时呢，底部是30mm的圆形底座，可以用胶贴固定",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "四孔30圆带孔.STL",
+    "print": "四孔30圆带孔.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          5.155,
+          1027.499,
+          -16.974
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          25.155,
+          1007.5,
+          -16.974
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          25.155,
+          1027.499,
+          -16.974
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          5.155,
+          1007.5,
+          -16.974
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -12.074
+  },
+  "defaultRotation": 0
+}

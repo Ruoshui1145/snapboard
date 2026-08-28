@@ -1,0 +1,15 @@
+---
+title: 彩色纹理不是盖在板子上的一张图片
+authors: [snapboard]
+tags: [texture, manufacturing]
+description: Lumina 表层负模、对象参数和上下倒角。
+---
+
+纹理工作室最初解决了网页预览，但导出后彩色层像额外盖上的平板，孔洞和顶部倒角无法保持。
+
+<img src={require('@site/static/img/devlog/09-彩色层截面问题.png').default} alt="彩色层截面问题" />
+
+正确逻辑改为：从完整 5 mm 板体切出约 1 mm 表层负模，再用它裁切 Lumina 版画。这样彩色层继承外轮廓、圆孔、长圆孔和上下倒角。
+
+4 mm 左右的 PETG 基层与表层共同移动，却使用独立层高、壁数、填充和材料。下一步是打印基础、质感、四色和八槽材料池样板，把网页效果变成真实证据。
+

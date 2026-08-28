@@ -1,0 +1,102 @@
+{
+  "id": "四孔平连接镜像-mtcl8e24",
+  "name": "四孔平连接镜像",
+  "category": "fastener",
+  "sortOrder": 20,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "四孔平连接镜像.STL",
+    "print": "四孔平连接镜像.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          62.45,
+          27.4,
+          -8.903
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          42.45,
+          7.4,
+          -8.903
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          42.45,
+          27.4,
+          -8.903
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          62.45,
+          7.4,
+          -8.903
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -4.003
+  },
+  "defaultRotation": 0
+}

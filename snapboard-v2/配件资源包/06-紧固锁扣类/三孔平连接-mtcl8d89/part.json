@@ -1,0 +1,84 @@
+{
+  "id": "三孔平连接-mtcl8d89",
+  "name": "三孔平连接",
+  "category": "fastener",
+  "sortOrder": 100,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "三孔平连接.STL",
+    "print": "三孔平连接.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          22.557,
+          1007.4,
+          -8.935
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          2.557,
+          1027.4,
+          -8.935
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          22.557,
+          1027.4,
+          -8.935
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -4.035
+  },
+  "defaultRotation": 0
+}

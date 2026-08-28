@@ -1,0 +1,18 @@
+{
+  "name": "snapboard-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "snapboard-v2",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace snapboard-v2 run dev",
+    "build": "npm --workspace snapboard-v2 run build",
+    "lint": "npm --workspace snapboard-v2 run lint",
+    "wiki:dev": "npm --workspace apps-wiki run start",
+    "wiki:build": "npm --workspace apps-wiki run build",
+    "wiki:serve": "npm --workspace apps-wiki run serve",
+    "build:all": "npm run build && npm run wiki:build"
+  }
+}

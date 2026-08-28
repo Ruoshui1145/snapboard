@@ -1,0 +1,76 @@
+# GitHub 仓库设置建议
+
+## 截图中的当前状态
+
+| 项目 | 当前选择 | 建议 |
+|---|---|---|
+| Owner | `Ruoshui1145` | 保持 |
+| Repository name | `SnapBoard` 可用 | 可保持；如果想统一 URL，推荐 `snapboard` 小写 |
+| Description | 空白 | 填写项目简介 |
+| Visibility | Public | 保持 Public，便于社区、Wiki 和 GitHub Pages |
+| Add README | On | **改为 Off**，本地已有完整 README |
+| Add .gitignore | No .gitignore | **保持 No**，使用本地已经整理好的版本 |
+| Add license | No license | **建议 Apache-2.0 或 MIT**，不要留空 |
+
+## 推荐描述
+
+```text
+SnapBoard - an open-source browser-to-print system for custom modular pegboards, with 2D sketching, automatic splitting, 3D assembly, textures and multi-plate 3MF export.
+```
+
+## License 选择
+
+推荐先选 `Apache License 2.0`：它允许社区修改、分发和商业使用，并提供更明确的专利授权条款。如果希望许可证文字更短、更容易被个人创作者理解，可以选择 `MIT License`。
+
+注意：根目录许可证只覆盖 SnapBoard 自有代码，不自动覆盖：
+
+- `vendor/lumina-studio/source/` 中的 Lumina 上游代码；
+- 配件资源包里的第三方模型；
+- 用户上传的图片、纹理和模型；
+- 具有独立许可证的字体、图标和示例资产。
+
+这些内容必须在对应目录保留原许可证，并在后续添加 `THIRD_PARTY_NOTICES.md`。
+
+## 创建仓库后的 Git 操作
+
+创建空仓库后，在项目根目录执行：
+
+```powershell
+git add .
+git commit -m "chore: initialize SnapBoard workspace"
+git remote add origin https://github.com/Ruoshui1145/SnapBoard.git
+git push -u origin main
+```
+
+如果仓库名使用小写，则将 URL 中的 `SnapBoard` 改为 `snapboard`。
+
+## GitHub Pages
+
+推送后：
+
+1. 打开仓库 `Settings → Pages`；
+2. `Build and deployment → Source` 选择 `GitHub Actions`；
+3. 工作流 `.github/workflows/wiki-pages.yml` 会构建 `apps/wiki`；
+4. 页面地址通常为 `https://ruoshui1145.github.io/SnapBoard/`；
+5. 如果绑定自定义域名，再把 `SITE_URL`、`BASE_URL` 和 CNAME 一起调整。
+
+## 仓库中不应提交的内容
+
+- `node_modules/`、`dist/`、`apps/wiki/build/`；
+- `tmp/`、`output/`、本地项目和浏览器缓存；
+- Lumina Windows 桌面运行包和大型预览输出；
+- 未获许可的配件模型、用户照片和个人联系方式；
+- 基金申请中的私人信息和未公开预算。
+
+当前根 `.gitignore` 已覆盖这些大部分路径。公开前应再执行一次 `git status --short` 检查。
+
+特别注意：`商业运营/` 已被整体忽略，市场报告、基金申请、预算和私人联系方式不会进入公开仓库。若未来需要公开其中一部分，应复制经过脱敏的版本到 `apps/wiki/docs/`，不要取消整个目录的忽略。
+
+## GitHub 仓库功能建议
+
+- GitHub Wiki：关闭，避免与 `apps/wiki` 形成两套文档；
+- Issues：开启，用于公开 Bug 和功能建议；
+- Discussions：达到首批用户后再开启；
+- Actions：保持最小权限，Pages 工作流只需要 contents read、pages write、id-token write；
+- Security：开启 Dependabot，后续再加入 CodeQL；
+- Topics：`3d-printing`、`pegboard`、`3mf`、`bambu`、`petg`、`webgl`、`react`、`vite`。

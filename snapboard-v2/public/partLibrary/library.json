@@ -1,0 +1,14 @@
+{
+  "version": "0.2.1",
+  "categories": [
+    { "id": "hook", "name": "挂钩" },
+    { "id": "bracket", "name": "支架/托架" },
+    { "id": "shelf", "name": "搁板/层板" },
+    { "id": "bin", "name": "收纳容器" },
+    { "id": "organizer", "name": "整理件" },
+    { "id": "fastener", "name": "紧固/锁扣" },
+    { "id": "base", "name": "底座/安装" },
+    { "id": "cable", "name": "线缆整理" },
+    { "id": "custom", "name": "自定义" }
+  ]
+}

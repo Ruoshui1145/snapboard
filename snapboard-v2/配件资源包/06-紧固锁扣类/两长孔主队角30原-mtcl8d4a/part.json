@@ -1,0 +1,28 @@
+{
+  "id": "两长孔主队角30原-mtcl8d4a",
+  "name": "两长孔主队角30原",
+  "category": "fastener",
+  "sortOrder": 6,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "两长孔主队角30原.stl",
+    "print": "两长孔主队角30原.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}
