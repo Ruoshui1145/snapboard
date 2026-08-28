@@ -2,7 +2,8 @@ node_modules/
 **/node_modules/
 **/dist/
 apps/wiki/build/
-apps/wiki/static/design/
+# The checked-in static/design/ bundle is the public Pages entry for Studio.
+# Refresh it with npm run site:build after changing snapboard-v2.
 tmp/
 output/
 .exe/

@@ -5,8 +5,7 @@ on:
     branches: [main]
     paths:
       - 'apps/wiki/**'
-      - 'snapboard-v2/**'
-      - 'scripts/build-public-site.ps1'
+      - 'apps/wiki/static/design/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/wiki-pages.yml'
@@ -38,7 +37,9 @@ jobs:
           GITHUB_ORG: ${{ github.repository_owner }}
           GITHUB_REPO: ${{ github.event.repository.name }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: npm run site:build
+        # Studio is checked in under apps/wiki/static/design. The local
+        # site:build command refreshes it; Pages only builds the docs shell.
+        run: npm run wiki:build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

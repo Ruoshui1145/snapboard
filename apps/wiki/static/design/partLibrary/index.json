@@ -1,0 +1,1093 @@
+{
+  "version": "0.2.1",
+  "categories": [
+    {
+      "id": "hook",
+      "name": "挂钩"
+    },
+    {
+      "id": "bracket",
+      "name": "支架/托架"
+    },
+    {
+      "id": "shelf",
+      "name": "搁板/层板"
+    },
+    {
+      "id": "bin",
+      "name": "收纳容器"
+    },
+    {
+      "id": "organizer",
+      "name": "整理件"
+    },
+    {
+      "id": "fastener",
+      "name": "紧固/锁扣"
+    },
+    {
+      "id": "base",
+      "name": "底座/安装"
+    },
+    {
+      "id": "cable",
+      "name": "线缆整理"
+    },
+    {
+      "id": "custom",
+      "name": "自定义"
+    }
+  ],
+  "generatedAt": "2026-08-28T13:38:16.314Z",
+  "packages": [
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-06-紧固锁扣类",
+      "name": "06-紧固锁扣类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“06-紧固锁扣类”大类目录：把模型文件拖入本文件夹（或子文件夹）即可自动收录。"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.official-starter",
+      "name": "SnapBoard 官方基础配件包",
+      "version": "0.1.0",
+      "author": "SnapBoard",
+      "license": "All-Rights-Reserved",
+      "description": "项目首批挂钩、底座、紧固件和支架上传槽位"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.user-imports",
+      "name": "我的配件",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "从 SnapBoard 网页导入的本地模型。"
+    }
+  ],
+  "parts": [
+    {
+      "id": "snapboard.category-06-紧固锁扣类:三孔平连接-mtcl8d89",
+      "localId": "三孔平连接-mtcl8d89",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 100,
+      "name": "三孔平连接",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/三孔平连接-mtcl8d89/三孔平连接.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/三孔平连接-mtcl8d89/三孔平连接.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              22.557,
+              1007.4,
+              -8.935
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              2.557,
+              1027.4,
+              -8.935
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              22.557,
+              1027.4,
+              -8.935
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -4.035
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:两长孔主队角30原-mtcl8d4a",
+      "localId": "两长孔主队角30原-mtcl8d4a",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 6,
+      "name": "两长孔主队角30原",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/两长孔主队角30原-mtcl8d4a/两长孔主队角30原.stl",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/两长孔主队角30原-mtcl8d4a/两长孔主队角30原.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:两长孔副对角30圆形-mtcl8cx5",
+      "localId": "两长孔副对角30圆形-mtcl8cx5",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 60,
+      "name": "两长孔副对角30圆形",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/两长孔副对角30圆形-mtcl8cx5/两长孔副对角30圆形.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/两长孔副对角30圆形-mtcl8cx5/两长孔副对角30圆形.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:两长孔平链接-mtcl8d0p",
+      "localId": "两长孔平链接-mtcl8d0p",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 80,
+      "name": "两长孔平链接",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/两长孔平链接-mtcl8d0p/两长孔平链接.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/两长孔平链接-mtcl8d0p/两长孔平链接.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              22.45,
+              27.4,
+              -8.9
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              2.45,
+              7.4,
+              -8.9
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -4
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:两长空平链接镜像-mtcl8ctz",
+      "localId": "两长空平链接镜像-mtcl8ctz",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 50,
+      "name": "两长空平链接镜像",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/两长空平链接镜像-mtcl8ctz/两长空平链接镜像.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/两长空平链接镜像-mtcl8ctz/两长空平链接镜像.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:双圆孔30圆-mtcl8dcp",
+      "localId": "双圆孔30圆-mtcl8dcp",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 70,
+      "name": "双圆孔30圆",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/双圆孔30圆-mtcl8dcp/双圆孔30圆.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/双圆孔30圆-mtcl8dcp/双圆孔30圆.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              25.169,
+              25.168,
+              -17.025
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -12.125
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:双圆孔平链接-mtcl8dhi",
+      "localId": "双圆孔平链接-mtcl8dhi",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 5,
+      "name": "双圆孔平链接",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/双圆孔平链接-mtcl8dhi/双圆孔平链接.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/双圆孔平链接-mtcl8dhi/双圆孔平链接.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              22.567,
+              1022.45,
+              -8.959
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              2.567,
+              1002.45,
+              -8.959
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -4.059
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:四孔30圆带孔-mtcl8dmz",
+      "localId": "四孔30圆带孔-mtcl8dmz",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 30,
+      "name": "四孔30圆带孔",
+      "description": "两个椭圆孔与两个圆孔，同时呢，底部是30mm的圆形底座，可以用胶贴固定",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/四孔30圆带孔-mtcl8dmz/四孔30圆带孔.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/四孔30圆带孔-mtcl8dmz/四孔30圆带孔.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              5.155,
+              1027.499,
+              -16.974
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              25.155,
+              1007.5,
+              -16.974
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              25.155,
+              1027.499,
+              -16.974
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              5.155,
+              1007.5,
+              -16.974
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -12.074
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:四孔30圆带孔镜像-mtcl8ds4",
+      "localId": "四孔30圆带孔镜像-mtcl8ds4",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 40,
+      "name": "四孔30圆带孔镜像",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/四孔30圆带孔镜像-mtcl8ds4/四孔30圆带孔镜像.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/四孔30圆带孔镜像-mtcl8ds4/四孔30圆带孔镜像.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              65.019,
+              27.405,
+              -16.92
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              45.019,
+              7.405,
+              -16.92
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              45.019,
+              27.405,
+              -16.92
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              65.019,
+              7.405,
+              -16.92
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -12.02
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:四孔平连接-mtcl8dx9",
+      "localId": "四孔平连接-mtcl8dx9",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 10,
+      "name": "四孔平连接",
+      "description": "用于四块板子的角落拼接，采用自攻螺丝固定",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/四孔平连接-mtcl8dx9/四孔平连接.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/四孔平连接-mtcl8dx9/四孔平连接.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              2.567,
+              1027.4,
+              -8.929
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              22.567,
+              1007.4,
+              -8.929
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              22.567,
+              1027.4,
+              -8.929
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              2.567,
+              1007.4,
+              -8.929
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -4.029
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-06-紧固锁扣类:四孔平连接镜像-mtcl8e24",
+      "localId": "四孔平连接镜像-mtcl8e24",
+      "pack": "06-紧固锁扣类",
+      "packageId": "snapboard.category-06-紧固锁扣类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "fastener",
+      "sortOrder": 20,
+      "name": "四孔平连接镜像",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-06-紧固锁扣类/四孔平连接镜像-mtcl8e24/四孔平连接镜像.STL",
+        "print": "community-assets/snapboard.category-06-紧固锁扣类/四孔平连接镜像-mtcl8e24/四孔平连接镜像.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              62.45,
+              27.4,
+              -8.903
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              42.45,
+              7.4,
+              -8.903
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              42.45,
+              27.4,
+              -8.903
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              62.45,
+              7.4,
+              -8.903
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -4.003
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.official-starter:wall-base-dual",
+      "localId": "wall-base-dual",
+      "pack": "官方基础配件包",
+      "packageId": "snapboard.official-starter",
+      "packageVersion": "0.1.0",
+      "author": "SnapBoard",
+      "category": "base",
+      "sortOrder": 10,
+      "name": "双孔墙面底座",
+      "description": "同时使用长圆孔与圆形固定孔的墙面底座",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.official-starter/wall-base-dual/底座四孔.3MF",
+        "print": "community-assets/snapboard.official-starter/wall-base-dual/底座四孔.3MF",
+        "format": "3mf",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              10,
+              10,
+              -4.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -10,
+              -10,
+              -4.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              -10,
+              10,
+              -4.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              10,
+              -10,
+              -4.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:40直钩子-mt5n0uxc",
+      "localId": "40直钩子-mt5n0uxc",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "sortOrder": 10,
+      "name": "40直钩子",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/40直钩子-mt5n0uxc/40直钩子.stl",
+        "print": "community-assets/snapboard.user-imports/40直钩子-mt5n0uxc/40直钩子.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -180,
+          0
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              20,
+              27.75,
+              -2.99
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.1310496772432974,
+              0.991375802657311
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -20,
+              27.75,
+              -2.99
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.1310496772432974,
+              0.991375802657311
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -1.356,
+              7.75,
+              -2.655
+            ],
+            "normal": [
+              -0.556,
+              0,
+              -0.831
+            ],
+            "required": true,
+            "axis": [
+              -0.10900452378160735,
+              -0.9940412535680524
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 7
+      },
+      "defaultRotation": 0
+    }
+  ],
+  "designs": [],
+  "warnings": []
+}

@@ -1,0 +1,24 @@
+{
+  "id": "wall-base-30",
+  "name": "30mm 墙面底座",
+  "category": "base",
+  "description": "一个长圆孔锚点加一个圆孔锚点",
+  "kind": "fixed",
+  "model": {
+    "preview": "model.3mf",
+    "print": "model.3mf",
+    "source": "source.step",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      { "id": "slot-main", "label": "主挂钩", "accepts": ["slot"], "position": [0, 0, 0], "normal": [0, 0, -1], "required": true },
+      { "id": "round-lock", "label": "圆孔锁点", "accepts": ["round"], "position": [20, 40, 0], "normal": [0, 0, -1], "required": true }
+    ]
+  },
+  "params": [],
+  "defaultRotation": 0
+}
