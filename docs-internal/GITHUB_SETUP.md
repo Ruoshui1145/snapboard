@@ -50,7 +50,7 @@ git push -u origin main
 
 1. 打开仓库 `Settings → Pages`；
 2. `Build and deployment → Source` 选择 `GitHub Actions`；
-3. 工作流 `.github/workflows/wiki-pages.yml` 会构建 `snapboard-v2` 的统一官网；
+3. 工作流 `.github/workflows/wiki-pages.yml` 会构建不含设计器的 `snapboard-v2` 官网；
 4. 页面地址通常为 `https://ruoshui1145.github.io/SnapBoard/`；
 5. 如果绑定自定义域名，再把 `SITE_URL`、`BASE_URL` 和 CNAME 一起调整。
 
@@ -75,3 +75,9 @@ git push -u origin main
 - Release：推送 `vX.Y.Z` 标签会触发 `.github/workflows/release.yml`，先运行构建和分割/孔位/装配/3MF 回归，再生成公开测试预览 Release 并附带 `snapboard-v2/dist` 网站压缩包；Release 分类配置在 `.github/release.yml`。
 - Security：开启 Dependabot，后续再加入 CodeQL；
 - Topics：`3d-printing`、`pegboard`、`3mf`、`bambu`、`petg`、`webgl`、`react`、`vite`。
+
+## Vercel 双网页部署
+
+仓库根目录的 `vercel.json` 对应官网项目：构建命令为 `npm run site:build:public`，输出目录为 `snapboard-v2/dist`。另建一个 Vercel 项目，将 Root Directory 设置为 `snapboard-v2`，它会读取子目录 `vercel.json` 并执行 `npm run build:designer`，只发布设计器。
+
+官网项目设置 `VITE_DESIGNER_URL` 为设计器地址；设计器项目设置 `VITE_WEBSITE_URL` 为官网地址。两边都连接同一个 GitHub 仓库即可，官网按钮会在新标签页打开设计器，不需要把设计器打进官网首屏。

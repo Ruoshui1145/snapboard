@@ -1,10 +1,11 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { SiteApp, type SiteRoute } from './components/site/SiteApp'
+import type { SiteRoute } from './components/site/SiteApp'
 
 const publicSiteOnly = import.meta.env.VITE_PUBLIC_SITE_ONLY === '1'
 const designerOnly = import.meta.env.VITE_DESIGNER_ONLY === '1'
 const websiteUrl = (import.meta.env.VITE_WEBSITE_URL as string | undefined)?.trim() || '/'
 const DesignerApp = publicSiteOnly ? null : lazy(() => import('./components/designer/DesignerApp'))
+const SiteApp = designerOnly ? null : lazy(() => import('./components/site/SiteApp').then(module => ({ default: module.SiteApp })))
 
 const publicBase = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '')
 
@@ -55,7 +56,7 @@ function App() {
     )
   }
 
-  return <SiteApp route={route} navigate={navigate} />
+  return SiteApp ? <Suspense fallback={<div className="designer-loading"><span>S</span><b>正在加载官网……</b></div>}><SiteApp route={route} navigate={navigate} /></Suspense> : null
 }
 
 export default App
