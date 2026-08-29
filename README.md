@@ -3,7 +3,7 @@
 更新时间：2026-08-28  
 当前应用本体：`D:\自动切片设计软件\snapboard-v2\`
 
-SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前唯一对外网站和 Studio 应用都由 `snapboard-v2/` 提供：官网、校园方案、使用指南、项目资料和在线设计器共用 `http://127.0.0.1:5173/`。`apps/wiki/` 保留公开 Markdown 文档与开发日志源文件，供贡献者维护和 GitHub 查阅，不再作为第二个用户入口；历史原型和外围工具已归档到 `_archive/legacy/`。
+SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前采用“双网页、单仓库”：官网负责宣传、校园方案、使用指南和项目资料；设计器负责实际建模和制造导出。两者都由 `snapboard-v2/` 维护，但可分别部署，官网的“开始设计”会在新标签页打开设计器。`apps/wiki/` 保留公开 Markdown 文档与开发日志源文件，供贡献者维护和 GitHub 查阅；历史原型和外围工具已归档到 `_archive/legacy/`。
 
 ## 文档入口
 
@@ -55,7 +55,7 @@ Three.js 3D 板件/配件装配预览
 D:\自动切片设计软件\
 ├── README.md                         # 本项目索引
 ├── PROJECT_STRUCTURE.md              # 模块化结构和迁移规则
-├── start-wiki.bat                    # 兼容名称：启动统一官网
+├── start-wiki.bat                    # 兼容名称：启动本地官网+设计器开发服务
 ├── apps/wiki/                        # 公开文档与开发日志源文件（非第二入口）
 ├── modules/                          # 领域模块边界说明
 ├── assets/drawings/                  # DXF/SVG 权威规格
@@ -110,13 +110,15 @@ node .tmp-3d-test/verify-manufacturing-export.mjs
 npm install
 npm run dev          # Studio
 npm run build        # Studio 生产构建
-npm run wiki:dev     # 兼容命令：启动统一官网（5173）
+npm run wiki:dev     # 兼容命令：启动本地官网+设计器开发服务（5173）
 npm run wiki:build   # 校验/构建文档源（贡献者使用）
 npm run build:all    # Studio + 文档源
-npm run site:build   # 构建统一官网与设计器
+npm run site:build   # 构建包含设计器入口的本地整合产物
+npm run site:build:public # 官网部署产物（不包含设计器）
+npm --workspace snapboard-v2 run build:designer # 独立设计器部署产物
 ```
 
-GitHub Actions 使用 `npm run site:build`，直接发布 `snapboard-v2` 的统一官网；公开文档与开发日志从官网“项目资料”页链接到仓库中的 Markdown 源文件。这样部署只维护一个面向用户的网站，不再同时发布两个首页。
+官网和设计器共用代码仓库，但由两个 Vercel 项目分别发布：根目录项目执行 `npm run site:build:public`，`snapboard-v2` 子目录项目执行 `npm run build:designer`。官网需要配置 `VITE_DESIGNER_URL` 指向设计器部署地址，设计器需要配置 `VITE_WEBSITE_URL` 指向官网地址。
 
 公开测试 Release：推送符合 `vX.Y.Z` 的标签会运行 `.github/workflows/release.yml`，先构建官网/设计器并执行分割、孔位、装配和 3MF 回归，再创建 GitHub Release；第三方测试资源边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
@@ -124,9 +126,9 @@ GitHub Actions 使用 `npm run site:build`，直接发布 `snapboard-v2` 的统�
 
 - `/`：消费端官网首页；
 - `/community`：校园方案与母版展示；
-- `/guide`：测量、画板、自动分割、装配和导出的交互式指南；
+- `/guide`：官网中的测量、画板、自动分割、装配和导出指南；
 - `/project`：公开文档、开发日志、开源仓库和公开边界的统一入口；
-- `/design`：在线设计器。
+- 设计器：独立部署地址（官网通过新标签页打开），本地开发时仍可用 `http://127.0.0.1:5173/design`。
 
 Vite 的 `server.watch.ignored` 不能删除，否则 Windows 编辑器临时目录可能触发 EBUSY 并导致开发服务器退出。
 

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import './site.css'
 
-const DESIGNER_URL = (import.meta.env.VITE_DESIGNER_URL as string | undefined)?.trim() || '/design'
+const PUBLIC_SITE_ONLY = import.meta.env.VITE_PUBLIC_SITE_ONLY === '1'
+const configuredDesignerUrl = (import.meta.env.VITE_DESIGNER_URL as string | undefined)?.trim()
+// 官网部署前应配置 VITE_DESIGNER_URL；未配置时回到项目资料页，避免产生一个失效的 /design 链接。
+const DESIGNER_URL = configuredDesignerUrl || (PUBLIC_SITE_ONLY ? '/project' : '/design')
 
 export type SiteRoute = '/' | '/community' | '/guide' | '/print' | '/project' | '/design'
 
@@ -113,13 +116,13 @@ export function SiteApp({ route, navigate }: SiteAppProps) {
   }
 
   const page = route === '/community'
-    ? <CommunityPage navigate={go} notify={setNotice} />
+    ? <CommunityPage notify={setNotice} />
     : route === '/guide'
-      ? <GuidePage navigate={go} />
+      ? <GuidePage />
       : route === '/project'
         ? <ProjectPage navigate={go} />
       : route === '/print'
-        ? <PrintPage navigate={go} notify={setNotice} />
+        ? <PrintPage notify={setNotice} />
         : <HomePage navigate={go} notify={setNotice} />
 
   return (
@@ -183,7 +186,7 @@ function HomePage({ navigate, notify }: { navigate: (route: SiteRoute) => void; 
         </div>
       </section>
 
-      <IrregularShowcase navigate={navigate} />
+      <IrregularShowcase />
 
       <section className="site-section featured-section">
         <SectionHeading eyebrow="本周精选" title="真实宿舍里，正在被使用的方案" description="每个“已试装”标记背后，都有一次真实打印与安装反馈。先复制可靠母版，再做属于自己的版本。" action="浏览全部方案" onAction={() => navigate('/community')} />
@@ -227,7 +230,7 @@ function HomePage({ navigate, notify }: { navigate: (route: SiteRoute) => void; 
   )
 }
 
-function CommunityPage({ navigate, notify }: { navigate: (route: SiteRoute) => void; notify: (message: string) => void }) {
+function CommunityPage({ notify }: { notify: (message: string) => void }) {
   const [query, setQuery] = useState('')
   const [scene, setScene] = useState('全部')
   const [school, setSchool] = useState('全部学校')
@@ -260,7 +263,7 @@ function CommunityPage({ navigate, notify }: { navigate: (route: SiteRoute) => v
   )
 }
 
-function GuidePage({ navigate }: { navigate: (route: SiteRoute) => void }) {
+function GuidePage() {
   const [active, setActive] = useState(0)
   const steps = [
     {
@@ -411,7 +414,7 @@ function ProjectPage({ navigate }: { navigate: (route: SiteRoute) => void }) {
   )
 }
 
-function PrintPage({ navigate, notify }: { navigate: (route: SiteRoute) => void; notify: (message: string) => void }) {
+function PrintPage({ notify }: { notify: (message: string) => void }) {
   const [submitted, setSubmitted] = useState(false)
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSubmitted(true); notify('合作意向已记录；正式后台接入后将发送确认') }
   return (
@@ -442,7 +445,7 @@ function BoardPreview({ shape }: { shape: TemplateCardData['shape'] }) {
   return <div className="board-stage"><div className={className}><div className="board-holes" /><span className="shelf shelf-a"/><span className="shelf shelf-b"/><span className="hook hook-a"/><span className="hook hook-b"/><span className="cup"/><span className="plant">✦</span></div><div className="desk-line" /></div>
 }
 
-function IrregularShowcase({ navigate }: { navigate: (route: SiteRoute) => void }) {
+function IrregularShowcase() {
   const shapes = [
     { kind: 'l', name: 'L 型', use: '绕开侧柜' },
     { kind: 'step', name: '阶梯型', use: '贴合床架' },

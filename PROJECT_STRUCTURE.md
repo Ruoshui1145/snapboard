@@ -8,7 +8,7 @@ SnapBoard 采用“应用、领域模块、文档运营、第三方参考、归�
 SnapBoard/
 ├── apps/
 │   └── wiki/                      # 公开 Markdown 文档与开发日志源文件（非第二入口）
-├── snapboard-v2/                  # 当前 Studio 应用与统一官网（迁移期保持路径）
+├── snapboard-v2/                  # 当前官网与独立 Studio 应用源码（迁移期保持路径）
 ├── modules/                       # 领域模块边界和迁移说明
 │   ├── sketch-engine/
 │   ├── split-engine/
@@ -48,7 +48,7 @@ Sketch Engine ──→ Split Engine ──→ Manufacturing Engine
                   Texture Engine
 
 apps/studio 只负责组合模块，不承载领域算法。
-主站与 Studio 当前由 `snapboard-v2` 统一提供；`apps/wiki` 不参与运行时，只保存公开文档和开发日志源文件。
+官网与 Studio 共用 `snapboard-v2` 源码，但支持两个独立构建模式：官网模式不打包设计器，设计器模式只提供 Studio；`apps/wiki` 不参与运行时，只保存公开文档和开发日志源文件。
 商业运营与 vendor 不得被浏览器运行时代码直接导入；运行必需模板需要复制到明确的 runtime 资源目录。
 ```
 

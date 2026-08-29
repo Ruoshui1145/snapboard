@@ -8,6 +8,7 @@ SnapBoard 是一个面向 3D 打印洞洞板的网页设计、自动分割、3D 
 npm install
 npm run dev       # http://localhost:5173
 npm run build     # 生产构建
+npm run build:designer # 以独立设计器模式构建
 npm run lint      # oxlint
 npm run verify:3mf
 npm run verify:texture
@@ -17,7 +18,7 @@ npm run verify:assembly
 npm run verify:textured-3mf -- path/to/generated.3mf
 ```
 
-统一官网入口：`http://localhost:5173/`；设计器入口：`http://localhost:5173/design`。官网的“项目资料”页集中链接公开文档、开发日志和 GitHub 仓库。
+本地开发时官网入口为 `http://127.0.0.1:5173/`，设计器入口为 `http://127.0.0.1:5173/design`。生产环境建议拆成两个网页：官网构建使用根目录的 `npm run site:build:public`，独立设计器构建使用 `npm run build:designer`；官网的“开始设计”按钮通过 `VITE_DESIGNER_URL` 在新标签页打开设计器。
 
 Windows 用户可直接双击项目目录中的 [`SnapBoard Studio.lnk`](SnapBoard%20Studio.lnk)，或运行 [`一键启动 SnapBoard.bat`](一键启动%20SnapBoard.bat)。脚本会等待 5173 服务真正就绪后再打开设计器，首次运行会自动安装依赖。
 

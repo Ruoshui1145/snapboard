@@ -1,6 +1,6 @@
 # Public documentation source
 
-这里保存 SnapBoard 对外公开的 Markdown 文档、模块说明和开发日志。面向普通用户的唯一入口是 `snapboard-v2` 官网（本地 `http://127.0.0.1:5173/`）的“项目资料”页；本目录不再作为第二个官网运行。
+这里保存 SnapBoard 对外公开的 Markdown 文档、模块说明和开发日志。面向普通用户的官网由 `snapboard-v2` 提供（本地 `http://127.0.0.1:5173/`），设计器可作为第二个独立网页部署；本目录不再作为第二个官网运行。
 
 如需维护文档源或检查 Markdown 结构，仍可以使用 Docusaurus 本地构建：
 
