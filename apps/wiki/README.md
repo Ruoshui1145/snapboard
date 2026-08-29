@@ -26,20 +26,24 @@ npm run start
 npm run build
 ```
 
-This command generates a documentation-only static preview into the `build` directory. The public Pages workflow publishes `snapboard-v2/dist` instead, so the marketing pages, guide, project hub and designer share one entry point.
+This command generates a documentation-only static preview into the `build` directory. EdgeOne Pages publishes the marketing site and the designer as two separate projects: the root project uses `npm run site:build:public`, while the `snapboard-v2` project uses `npm run build:designer`.
 
 ## Deployment
 
-Using SSH:
+公开官网与设计器目前使用 EdgeOne Pages / EdgeOne Makers 的两个项目部署，不在此目录执行 `gh-pages` 推送。项目配置和上线步骤见 [`snapboard-v2/docs/DEVELOPMENT_GUIDE.md`](../../snapboard-v2/docs/DEVELOPMENT_GUIDE.md) 与 [`docs-internal/GITHUB_SETUP.md`](../../docs-internal/GITHUB_SETUP.md)。
+
+如需单独预览文档源，仍可以使用：
+
+```bash
+npm run build
+```
+
+该命令只生成文档源静态预览，不是官网生产产物。
+
+历史上的 GitHub Pages 部署命令仅保留作迁移参考：
 
 ```bash
 USE_SSH=true npm run deploy
 ```
 
-Not using SSH:
-
-```bash
-GIT_USER=<Your GitHub username> npm run deploy
-```
-
-If you are using GitHub Pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+不建议新项目继续使用该路径；EdgeOne 项目应从 Git 仓库导入并读取仓库根目录或 `snapboard-v2/` 下的 `edgeone.json`。

@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build:designer",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist",
+  "nodeVersion": "22.11.0",
+  "rewrites": [
+    {
+      "source": "/*",
+      "destination": "/index.html"
+    }
+  ]
+}

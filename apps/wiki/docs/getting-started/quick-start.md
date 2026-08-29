@@ -23,12 +23,14 @@ npm run dev
 
 也可以双击项目根目录的 `start-dev.bat` 或 `snapboard-v2/一键启动 SnapBoard.bat`。
 
-## 启动 Wiki
+## 预览公开文档源（可选）
 
 ```powershell
 npm install
-npm run wiki:dev
+npm run wiki:build
 ```
+
+普通用户不需要启动 Wiki。官网与设计器使用根目录 `npm run dev` 在本地联调；生产环境使用 `npm run site:build:public` 和 `npm --workspace snapboard-v2 run build:designer` 分别部署到两个 EdgeOne Pages 项目。
 
 ## 构建全部项目
 
@@ -46,4 +48,3 @@ npm run verify:assembly
 npm run verify:3mf
 npm run verify:textured-3mf
 ```
-

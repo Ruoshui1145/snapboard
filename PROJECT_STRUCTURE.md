@@ -26,6 +26,8 @@ SnapBoard/
 └── tmp/                           # 临时文件，不作为源码
 ```
 
+开发与部署总览见 `snapboard-v2/docs/DEVELOPMENT_GUIDE.md`：官网与设计器共用仓库，但在 EdgeOne Pages 上分别构建和发布。
+
 ## 应用与模块边界
 
 | 边界 | 负责内容 | 当前实现位置 |

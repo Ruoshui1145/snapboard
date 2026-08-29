@@ -152,3 +152,19 @@ interface AssemblyTarget {
   - 占用:第二件不得复用第一件 targetIds,指向空闲孔组可正常吸附。
   - 接触面:zOffset = target.z − contactZ(正面)/ 翻转公式(背面)。
 - 三维/射线逻辑(deriveSlotAxis)可用 three.js 无头(Node 可 import three)构造几何验证。
+
+---
+
+## 6. 持续开发与发布记录（每次修改必须执行）
+
+后续 AI 或开发者接手时，先阅读 [`DEVELOPMENT_GUIDE.md`](DEVELOPMENT_GUIDE.md)，再开始改代码。每次修改都必须同时留下“问题 → 假设 → 代码/数据 → 验证 → 限制”的证据链：
+
+1. 记录用户问题、可验收标准、输入样本和影响模块；
+2. 修改 `Split`、孔位、装配或 3MF 时，运行对应 `verify-*.mjs`，保存数量、间距、覆盖率、接缝、占孔和导出结果；
+3. 修改 3D、纹理或配件库时，记录模型格式、材质/颜色、锚点/接触面、预览视角和前后截图；
+4. 更新 [`TECHNICAL_EVOLUTION.md`](TECHNICAL_EVOLUTION.md)、[`CHANGELOG.md`](CHANGELOG.md) 和受影响的 `apps/wiki/docs/` 指南；
+5. 新增第三方模型/图片时，先登记 [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md) 的来源、作者/页面、许可证状态、测试用途和下架责任人；
+6. 发布前运行 `npm run lint`、官网/设计器构建和专项回归，并记录 EdgeOne 预览地址、环境变量是否更新、生产部署结果和回滚提交；
+7. 不把 EdgeOne API Token、个人联系方式、商业预算或未授权素材写入代码、`.env.example` 或公开文档。
+
+当前线上架构是两个 EdgeOne Pages / Makers 项目：仓库根目录的 `edgeone.json` 发布官网，`snapboard-v2/edgeone.json` 发布独立设计器。官网与设计器的 `VITE_*_URL` 只填写公开地址；配件导入、项目库写回等 `/api/*` 能力仍依赖本地 Vite middleware，未部署后端前不得描述为云端协作功能。

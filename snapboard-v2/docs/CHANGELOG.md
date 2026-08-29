@@ -3,6 +3,8 @@
 ## 2026-08-29 · 防细条分割、特征对齐与孔边安全域
 
 - 官网与设计器支持独立部署：官网模式不打包设计器，按钮通过新标签页打开 `VITE_DESIGNER_URL`；设计器模式由 `VITE_DESIGNER_ONLY` 直接进入 Studio。
+- 新增 EdgeOne Pages 配置：根目录 `edgeone.json` 发布官网，`snapboard-v2/edgeone.json` 发布独立设计器，均固定 Node.js 22.11.0 与构建输出目录。
+- 完善 `DEVELOPMENT_GUIDE.md`、`AI交接提示词.md` 和公开发布文档：补充 EdgeOne 控制台/CLI、环境变量安全、自定义域名、预览验收、回滚和每次迭代的证据记录要求。
 - 公开测试资源随首个预览 Release 上传，并新增根目录 `THIRD_PARTY_NOTICES.md`：MakeWorld 等来源的模型/图片仅用于软件测试，不用于商业化，商业化前需逐项取得授权或移除。
 - 新增 [`MECHANICAL_VALIDATION_PLAN.md`](MECHANICAL_VALIDATION_PLAN.md)：把 PETG/FDM 材料基线、孔阵净截面、接缝、装配、疲劳和蠕变试验接入分割算法的风险校准；在试验完成前不宣称强度或寿命保证。
 - 增加 `.github/workflows/release.yml` 和 `.github/release.yml`：推送 `vX.Y.Z` 标签时执行生产构建与核心回归，并生成带网站构建包和第三方测试资源声明的 GitHub Release。

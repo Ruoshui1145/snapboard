@@ -15,3 +15,4 @@ title: 模块边界
 
 模块只能依赖公开类型和 API，不得跨目录深层导入内部实现。
 
+运行时边界：配件新增、移动、删除和装配旋转只改变 `placedParts`，不会触发 Split Worker；只有 `affectsSketch=true` 的草图/约束命令会同步分割。预览虚线、标签和拖拽辅助对象也不进入 Manufacturing Engine 的制造网格。

@@ -1,5 +1,7 @@
 # Split Engine
 
+当前开发指南：[`docs-internal/architecture/DEVELOPMENT_GUIDE.md`](../../docs-internal/architecture/DEVELOPMENT_GUIDE.md)
+
 ## 当前职责
 
 - 正交轮廓自动分割；
@@ -9,6 +11,7 @@
 - 基于胶囊/圆到轮廓距离的缺口与内孔自动删孔留白；
 - 外轮廓圆角、拼接边和内孔避让；
 - Worker 计算、缓存和性能进度。
+- `syncSplitToSketch()` 只由 `affectsSketch=true` 的草图命令触发；配件装配不能启动或取消分割任务；
 
 ## 当前实现
 

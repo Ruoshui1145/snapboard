@@ -9,9 +9,15 @@ SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装
 
 GitHub 新仓库设置与发布流程：[`docs-internal/GITHUB_SETUP.md`](docs-internal/GITHUB_SETUP.md)
 
+开发者当前实现、模块依赖、Worker 作用域、2D/3D/3MF 边界和提交前检查：[`docs-internal/architecture/DEVELOPMENT_GUIDE.md`](docs-internal/architecture/DEVELOPMENT_GUIDE.md)
+
 详细实现、数据流、存储、3MF 兼容、排障和路线请先读：
 
 [`snapboard-v2/docs/PROJECT_DOCUMENTATION.md`](snapboard-v2/docs/PROJECT_DOCUMENTATION.md)
+
+开发、双网页构建、EdgeOne Pages 部署和线上能力边界请读：
+
+[`snapboard-v2/docs/DEVELOPMENT_GUIDE.md`](snapboard-v2/docs/DEVELOPMENT_GUIDE.md)
 
 专题文档：
 
@@ -118,7 +124,7 @@ npm run site:build:public # 官网部署产物（不包含设计器）
 npm --workspace snapboard-v2 run build:designer # 独立设计器部署产物
 ```
 
-官网和设计器共用代码仓库，但由两个 Vercel 项目分别发布：根目录项目执行 `npm run site:build:public`，`snapboard-v2` 子目录项目执行 `npm run build:designer`。官网需要配置 `VITE_DESIGNER_URL` 指向设计器部署地址，设计器需要配置 `VITE_WEBSITE_URL` 指向官网地址。
+官网和设计器共用代码仓库，但由两个 EdgeOne Pages 项目分别发布：根目录项目执行 `npm run site:build:public`，`snapboard-v2` 子目录项目执行 `npm run build:designer`。官网需要配置 `VITE_DESIGNER_URL` 指向设计器部署地址，设计器需要配置 `VITE_WEBSITE_URL` 指向官网地址。仓库同时保留 `vercel.json` 作为可选的 Vercel 配置。
 
 公开测试 Release：推送符合 `vX.Y.Z` 的标签会运行 `.github/workflows/release.yml`，先构建官网/设计器并执行分割、孔位、装配和 3MF 回归，再创建 GitHub Release；第三方测试资源边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 

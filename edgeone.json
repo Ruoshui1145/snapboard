@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run site:build:public",
+  "installCommand": "npm ci",
+  "outputDirectory": "snapboard-v2/dist",
+  "nodeVersion": "22.11.0",
+  "rewrites": [
+    {
+      "source": "/*",
+      "destination": "/index.html"
+    }
+  ]
+}

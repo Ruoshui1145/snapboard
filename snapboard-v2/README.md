@@ -18,7 +18,7 @@ npm run verify:assembly
 npm run verify:textured-3mf -- path/to/generated.3mf
 ```
 
-本地开发时官网入口为 `http://127.0.0.1:5173/`，设计器入口为 `http://127.0.0.1:5173/design`。生产环境建议拆成两个网页：官网构建使用根目录的 `npm run site:build:public`，独立设计器构建使用 `npm run build:designer`；官网的“开始设计”按钮通过 `VITE_DESIGNER_URL` 在新标签页打开设计器。
+本地开发时官网入口为 `http://127.0.0.1:5173/`，设计器入口为 `http://127.0.0.1:5173/design`。生产环境建议拆成两个 EdgeOne Pages 网页：官网构建使用根目录的 `npm run site:build:public`，独立设计器构建使用 `npm run build:designer`；官网的“开始设计”按钮通过 `VITE_DESIGNER_URL` 在新标签页打开设计器。
 
 Windows 用户可直接双击项目目录中的 [`SnapBoard Studio.lnk`](SnapBoard%20Studio.lnk)，或运行 [`一键启动 SnapBoard.bat`](一键启动%20SnapBoard.bat)。脚本会等待 5173 服务真正就绪后再打开设计器，首次运行会自动安装依赖。
 

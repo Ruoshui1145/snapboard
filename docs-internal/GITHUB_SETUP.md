@@ -7,7 +7,7 @@
 | Owner | `Ruoshui1145` | 保持 |
 | Repository name | `SnapBoard` 可用 | 可保持；如果想统一 URL，推荐 `snapboard` 小写 |
 | Description | 空白 | 填写项目简介 |
-| Visibility | Public | 保持 Public，便于官网、开源软件和 GitHub Pages |
+| Visibility | Public | 保持 Public，便于官网、开源软件和 EdgeOne Pages/GitHub Pages |
 | Add README | On | **改为 Off**，本地已有完整 README |
 | Add .gitignore | No .gitignore | **保持 No**，使用本地已经整理好的版本 |
 | Add license | No license | **建议 Apache-2.0 或 MIT**，不要留空 |
@@ -76,10 +76,20 @@ git push -u origin main
 - Security：开启 Dependabot，后续再加入 CodeQL；
 - Topics：`3d-printing`、`pegboard`、`3mf`、`bambu`、`petg`、`webgl`、`react`、`vite`。
 
-## Vercel 双网页部署
+## EdgeOne Pages 双网页部署
 
-仓库根目录的 `vercel.json` 对应官网项目：构建命令为 `npm run site:build:public`，输出目录为 `snapboard-v2/dist`。另建一个 Vercel 项目，将 Root Directory 设置为 `snapboard-v2`，它会读取子目录 `vercel.json` 并执行 `npm run build:designer`，只发布设计器。
+腾讯 EdgeOne Pages 当前控制台逐步使用 EdgeOne Makers 品牌。官方资料：[`edgeone.json` 配置](https://pages.edgeone.ai/zh/document/edgeone-json)、[`构建指南`](https://pages.edgeone.ai/zh/document/build-guide)、[`EdgeOne CLI`](https://pages.edgeone.ai/zh/document/edgeone-cli)。它支持从 GitHub/Gitee/Coding 导入 Vite 项目，并可通过 `edgeone.json` 指定构建命令、输出目录和 Node 版本。仓库根目录的 `edgeone.json` 对应官网项目：构建命令为 `npm run site:build:public`，输出目录为 `snapboard-v2/dist`。另建一个 EdgeOne Pages 项目，将 Root Directory 设置为 `snapboard-v2`，它会读取子目录 `edgeone.json` 并执行 `npm run build:designer`，只发布设计器。
 
 官网项目设置 `VITE_DESIGNER_URL` 为设计器地址；设计器项目设置 `VITE_WEBSITE_URL` 为官网地址。两边都连接同一个 GitHub 仓库即可，官网按钮会在新标签页打开设计器，不需要把设计器打进官网首屏。
 
-注意：当前设计器的配件导入、默认项目库和标定写回依赖本地 Vite middleware。把设计器静态发布到 Vercel 后，浏览器本地文件选择/下载仍可用，但 `/api/part-library/*` 与 `/api/project-library/*` 需要另行部署后端；在后端完成前，建议把设计器网页作为演示/本地数据验证入口。
+两份 `edgeone.json` 的 `outputDirectory` 都是相对于各自项目根目录解析；官网使用仓库根目录，设计器使用 `snapboard-v2` 子目录，不能互换。变量修改后必须重新构建，`VITE_*` 只放公开 URL，Token 必须放在 EdgeOne/GitHub Secret。
+
+如需在 CI 中手动上传构建产物，EdgeOne CLI 当前推荐 `edgeone makers deploy`：
+
+```powershell
+npx edgeone makers deploy .\snapboard-v2\dist -n <项目名> -e preview -t $env:EDGEONE_API_TOKEN
+```
+
+API Token 应设置过期时间并只通过环境变量或 CI Secret 注入，切勿提交到仓库。
+
+注意：当前设计器的配件导入、默认项目库和标定写回依赖本地 Vite middleware。把设计器静态发布到 EdgeOne 后，浏览器本地文件选择/下载仍可用，但 `/api/part-library/*` 与 `/api/project-library/*` 需要另行部署后端；在后端完成前，建议把设计器网页作为演示/本地数据验证入口。EdgeOne 的自定义域名与备案要求以[官方域名文档](https://pages.edgeone.ai/zh/document/custom-domain)和控制台提示为准。

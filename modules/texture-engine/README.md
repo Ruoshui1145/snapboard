@@ -1,5 +1,7 @@
 # Texture Engine
 
+当前开发指南：[`docs-internal/architecture/DEVELOPMENT_GUIDE.md`](../../docs-internal/architecture/DEVELOPMENT_GUIDE.md)
+
 ## 当前职责
 
 - 内置纹理、材质贴面和自定义图片；
@@ -15,4 +17,3 @@
 ## 第三方边界
 
 Lumina 原始源码和运行参考放在 `vendor/lumina-studio/`。SnapBoard 不直接修改第三方源码来承载自己的产品状态。
-
