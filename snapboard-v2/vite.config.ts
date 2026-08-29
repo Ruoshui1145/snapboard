@@ -857,6 +857,9 @@ const partGroupApi = () => ({
 export default defineConfig({
   plugins: [react(), partLibraryWatcher(), partCalibrationApi(), partImportApi(), partBatchApi(), partGroupApi(), projectLibraryApi(), systemControlApi()],
   base: process.env.VITE_BASE ?? '/',
+  // 官网发布只需要品牌图标和打包后的页面，不把本地配件/模型资产复制到服务器；
+  // 设计器模式仍使用完整 public/，以便本地装配与 3MF 导出。
+  publicDir: process.env.VITE_PUBLIC_SITE_ONLY === '1' ? 'public-site' : 'public',
   server: {
     // 统一启动脚本和文档都使用 127.0.0.1；显式绑定 IPv4，避免 Windows
     // 将 localhost 解析到 ::1 后，浏览器访问 127.0.0.1 得到 Failed to fetch。

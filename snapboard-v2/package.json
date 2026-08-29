@@ -21,6 +21,7 @@
     "dev": "vite",
     "prebuild": "npm run parts:sync",
     "build": "tsc -b && vite build",
+    "build:public": "tsc -b && vite build",
     "build:designer": "node scripts/build-designer-site.mjs",
     "lint": "oxlint",
     "preview": "vite preview"

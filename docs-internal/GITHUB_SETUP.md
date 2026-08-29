@@ -81,3 +81,5 @@ git push -u origin main
 仓库根目录的 `vercel.json` 对应官网项目：构建命令为 `npm run site:build:public`，输出目录为 `snapboard-v2/dist`。另建一个 Vercel 项目，将 Root Directory 设置为 `snapboard-v2`，它会读取子目录 `vercel.json` 并执行 `npm run build:designer`，只发布设计器。
 
 官网项目设置 `VITE_DESIGNER_URL` 为设计器地址；设计器项目设置 `VITE_WEBSITE_URL` 为官网地址。两边都连接同一个 GitHub 仓库即可，官网按钮会在新标签页打开设计器，不需要把设计器打进官网首屏。
+
+注意：当前设计器的配件导入、默认项目库和标定写回依赖本地 Vite middleware。把设计器静态发布到 Vercel 后，浏览器本地文件选择/下载仍可用，但 `/api/part-library/*` 与 `/api/project-library/*` 需要另行部署后端；在后端完成前，建议把设计器网页作为演示/本地数据验证入口。

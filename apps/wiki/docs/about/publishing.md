@@ -28,6 +28,8 @@ npm run site:build:public
 
 本地使用 `site:build:public` 构建不含设计器的官网；使用 `npm --workspace snapboard-v2 run build:designer` 构建独立设计器。官网部署产物为 `snapboard-v2/dist`，最终路径为：官网 `/`、校园方案 `/community`、使用指南 `/guide`、项目资料 `/project`、打印服务 `/print`；设计器使用另一个部署地址。`apps/wiki` 仍可单独执行 `wiki:build` 检查文档源，但不再需要单独启动 3000 端口。
 
+设计器目前包含本地 Vite middleware 用于配件导入、标定写回和默认项目库；若将其作为纯静态网页部署，需在后续接入独立后端后才能开放这些服务器端能力。
+
 ## 自定义域名
 
-后续可将文档站绑定到 `wiki.<你的域名>`，Studio 使用 `app.<你的域名>`，官网使用根域名。不要在获得域名之前把示例地址写进正式材料。
+后续可将官网绑定到根域名，设计器绑定到 `app.<你的域名>` 或 `designer.<你的域名>`。不要在获得域名之前把示例地址写进正式材料；绑定后同步更新官网的 `VITE_DESIGNER_URL` 和设计器的 `VITE_WEBSITE_URL`。

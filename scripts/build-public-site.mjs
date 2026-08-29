@@ -16,19 +16,22 @@ const run = (args, env = process.env) => {
 }
 
 const studioDist = path.join(root, 'snapboard-v2', 'dist')
-// The React site is the single public entry point. `apps/wiki` remains the
-// Markdown authoring source for contributors, but is not a second user-facing
-// server. GitHub Pages passes BASE_URL (for example /snapboard/) so client-side
-// routes keep working when the repository is hosted below a project prefix.
+// This builds the public website portion. `apps/wiki` remains the Markdown
+// authoring source for contributors, while the designer can be built and
+// deployed separately from the snapboard-v2 subdirectory. GitHub Pages passes
+// BASE_URL (for example /snapboard/) so client-side routes keep working below a
+// project prefix.
 const siteBase = process.env.VITE_BASE ?? process.env.BASE_URL ?? '/'
 const publicSiteOnly = process.argv.includes('--public-only') || process.env.PUBLIC_SITE_ONLY === '1'
 
-run(['--workspace', 'snapboard-v2', 'run', 'build'], {
+run(['--workspace', 'snapboard-v2', 'run', publicSiteOnly ? 'build:public' : 'build'], {
   ...process.env,
   VITE_BASE: siteBase,
   ...(publicSiteOnly ? { VITE_PUBLIC_SITE_ONLY: '1' } : {}),
 })
 // GitHub Pages serves 404.html for deep links. Reusing the SPA shell lets
-// /guide, /project and /design resolve through the same client router.
+// /guide and /project resolve through the same client router; /design is only
+// a fallback for local unified development and normally points to the separate
+// VITE_DESIGNER_URL in production.
 copyFileSync(path.join(studioDist, 'index.html'), path.join(studioDist, '404.html'))
 console.log(`Public site built: ${siteBase} (${publicSiteOnly ? '官网模式：不含设计器' : '官网 + 社区 + 指南 + 项目资料 + 设计器'})`)

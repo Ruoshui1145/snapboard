@@ -4,7 +4,5 @@
   "buildCommand": "npm run build:designer",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": []
 }

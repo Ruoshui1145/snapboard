@@ -55,12 +55,12 @@ jobs:
         run: |
           npm run build
           npm run site:build
-          npm run verify:split
-          npm run verify:split-shapes
-          npm run verify:edge-holes
-          npm run verify:holes
-          npm run verify:assembly
-          npm run verify:3mf
+          npm --workspace snapboard-v2 run verify:split
+          npm --workspace snapboard-v2 run verify:split-shapes
+          npm --workspace snapboard-v2 run verify:edge-holes
+          npm --workspace snapboard-v2 run verify:holes
+          npm --workspace snapboard-v2 run verify:assembly
+          npm --workspace snapboard-v2 run verify:3mf
 
       - name: Package public site
         env:
