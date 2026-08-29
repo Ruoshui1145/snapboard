@@ -1,0 +1,76 @@
+{
+  "id": "obj_7_5mm厚三角钩6cm-mtdw9v74",
+  "name": "5mm厚三角钩6cm",
+  "category": "hook",
+  "subcategory": "E类厚三角钩",
+  "sortOrder": 270,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_7_5mm厚三角钩6cm.stl",
+    "print": "obj_7_5mm厚三角钩6cm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -90,
+      -180,
+      90
+    ],
+    "dimensionsMm": [
+      83.7,
+      44.5,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          163.823,
+          8.073,
+          -102.357
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          163.823,
+          -18.575,
+          -98.337
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -92.757
+  },
+  "defaultRotation": 0
+}

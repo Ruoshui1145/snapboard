@@ -189,7 +189,7 @@ export interface HolePatternParams {
   slotGridX0?: number
   /** A 列胶囊中心 Y 零位 mm (工程图 30) */
   slotGridY0?: number
-  /** B 列相对 A 列 X 错位 mm (工程图 22.2648) */
+  /** B 列相对 A 列 X 错位 mm (四板拼接 DXF = 20) */
   slotStaggerX?: number
   /** B 列相对 A 列 Y 错位 mm (工程图 20) */
   slotStaggerY?: number
@@ -408,8 +408,12 @@ export interface SplitConfig {
   minW: number
   /** 最小板高 mm - 小于它放弃切割并合并 (默认 60) */
   minH: number
+  /** 板件允许的最小局部结构宽度 mm；规则分区优先避免产生更窄的长条/细颈 (默认 60) */
+  minFeatureWidth: number
   /** 小/中型内孔与分板接缝的优先安全距离 mm；无法满足时自动降级为跨板孔 (默认 10) */
   holeSeamClearance: number
+  /** 功能长圆孔/固定圆孔与外轮廓、缺口和内孔之间保留的实体边带 mm (默认 2) */
+  holeBoundaryClearance: number
   /** 边缘拼接孔水平偏移 mm (默认 10, 与 SKÅDIS 一致) */
   jointOffsetX: number
   /** 边缘拼接孔垂直偏移 mm (默认 10) */
@@ -430,11 +434,11 @@ export interface SplitConfig {
   slotGridX0: number
   /** A 列槽对中心 Y 零位 mm (工程图 30) */
   slotGridY0: number
-  /** B 列槽对相对 A 列 X 错位 mm (SVG 工程图 22.2648) */
+  /** B 列槽对相对 A 列 X 错位 mm (四板拼接 DXF = 20) */
   slotStaggerX: number
   /** B 列槽对相对 A 列 Y 错位 mm (工程图 20) */
   slotStaggerY: number
-  /** 固定圆孔直径 mm (产品默认 φ5；位置仍按 SVG 中心轴) */
+  /** 固定圆孔直径 mm (用户确认制造规格默认 φ5) */
   jointDiameter: number
   /** 四角圆孔直径 mm (兼容字段, 已不再使用; 工程图网格角无圆孔) */
   cornerHoleDiameter: number
@@ -472,7 +476,7 @@ export interface SplitPanel {
   contour?: Point2D[]
   /** 轮廓顶点中需要圆角的顶点索引 (装配外轮廓凸角; 接缝/内部角直角) */
   roundIdx?: number[]
-  /** 竖向长圆孔(胶囊) 5×15, 晶体错列阵列 (全局坐标, 锚定整板左下角; 跨缝连续) */
+  /** 竖向长圆孔(胶囊) 5×15；坐标为全局 mm，来自原始轮廓唯一 A/B 母阵的板内裁取。 */
   slots: HolePos[]
   /** 通圆孔 (新设计下恒为空; 圆孔以边缘敲落孔形式存在) */
   round_holes: HolePos[]

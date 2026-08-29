@@ -1,11 +1,12 @@
-name: Deploy SnapBoard Wiki
+name: Deploy SnapBoard Public Site
 
 on:
   push:
     branches: [main]
     paths:
+      - 'snapboard-v2/**'
+      - 'scripts/build-public-site.mjs'
       - 'apps/wiki/**'
-      - 'apps/wiki/static/design/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/wiki-pages.yml'
@@ -30,20 +31,14 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Build Wiki
+      - name: Build unified public site
         env:
-          SITE_URL: https://${{ github.repository_owner }}.github.io
           BASE_URL: /${{ github.event.repository.name }}/
-          GITHUB_ORG: ${{ github.repository_owner }}
-          GITHUB_REPO: ${{ github.event.repository.name }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        # Studio is checked in under apps/wiki/static/design. The local
-        # site:build command refreshes it; Pages only builds the docs shell.
-        run: npm run wiki:build
+        run: npm run site:build:public
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: apps/wiki/build
+          path: snapboard-v2/dist
 
   deploy:
     environment:

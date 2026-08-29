@@ -1,0 +1,76 @@
+{
+  "id": "obj_3_5mm厚单线直钩2.5cm-mtdw0nxa",
+  "name": "5mm厚单线直钩2.5cm",
+  "category": "hook",
+  "subcategory": "D类厚单线直钩",
+  "sortOrder": 20,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_3_5mm厚单线直钩2.5cm.stl",
+    "print": "obj_3_5mm厚单线直钩2.5cm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -90,
+      -180,
+      90
+    ],
+    "dimensionsMm": [
+      43.6,
+      49.5,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          114.417,
+          20.573,
+          -174.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          114.417,
+          -5.074,
+          -170.766
+        ],
+        "normal": [
+          0,
+          0.078,
+          -0.997
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -165.2
+  },
+  "defaultRotation": 0
+}

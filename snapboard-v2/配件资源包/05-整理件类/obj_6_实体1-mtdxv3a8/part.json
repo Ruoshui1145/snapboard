@@ -1,0 +1,115 @@
+{
+  "id": "obj_6_实体1-mtdxv3a8",
+  "name": "手电钻批头/钻头支架",
+  "category": "organizer",
+  "sortOrder": 70,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_6_实体1.stl",
+    "print": "obj_6_实体1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      80,
+      31.9,
+      50
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          455.2,
+          39,
+          163.265
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          415.2,
+          39,
+          163.265
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          415.2,
+          11.259,
+          168.799
+        ],
+        "normal": [
+          0,
+          0.131,
+          -0.991
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          455.2,
+          11.759,
+          168.933
+        ],
+        "normal": [
+          0,
+          0.383,
+          -0.924
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 174.015
+  },
+  "defaultRotation": 0
+}

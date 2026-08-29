@@ -1,0 +1,33 @@
+{
+  "id": "obj_1_洞洞板鼠标123.step-mteaii06",
+  "name": "装配体，缺少零件",
+  "category": "organizer",
+  "sortOrder": 320,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_1_洞洞板鼠标123.STEP.stl",
+    "print": "obj_1_洞洞板鼠标123.STEP.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      75,
+      85,
+      50.7
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}

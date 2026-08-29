@@ -1,0 +1,115 @@
+{
+  "id": "数据线夹-mteam0y8",
+  "name": "数据线夹",
+  "category": "cable",
+  "sortOrder": 10,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "数据线夹1.stl",
+    "print": "数据线夹1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -180,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      73.4,
+      30.8,
+      36.6
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          56.262,
+          30.036,
+          -30.834
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          16.261,
+          30.036,
+          -30.834
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          16.261,
+          2.334,
+          -28.234
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          56.262,
+          2.334,
+          -28.234
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -21.634
+  },
+  "defaultRotation": 0
+}

@@ -1,0 +1,75 @@
+{
+  "id": "obj_10_实体1-mtdxv7ik",
+  "name": "68mm内径镂空圆筒",
+  "category": "bin",
+  "sortOrder": 110,
+  "description": "适配360mlWD40",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_10_实体1.stl",
+    "print": "obj_10_实体1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      72,
+      82.8,
+      50
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          95.888,
+          40.5,
+          -169.375
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          95.888,
+          12,
+          -163.875
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -158.625
+  },
+  "defaultRotation": 0
+}

@@ -8,7 +8,7 @@ export interface HolePatternParamsEx extends HolePatternParams {
   slotGridX0?: number
   /** A 列胶囊中心 Y 零位 mm (工程图 30) */
   slotGridY0?: number
-  /** B 列相对 A 列 X 错位 mm (工程图 22.2648) */
+  /** B 列相对 A 列 X 错位 mm (四板拼接 DXF = 20) */
   slotStaggerX?: number
   /** B 列相对 A 列 Y 错位 mm (工程图 20) */
   slotStaggerY?: number
@@ -25,7 +25,7 @@ export const SKADIS_DEFAULTS: HolePatternParamsEx = {
   marginY: 10,
   slotGridX0: 10,
   slotGridY0: 30,
-  slotStaggerX: 22.2648,     // SVG: B 列 = 32.2648+40i
+  slotStaggerX: 20,          // 四板拼接 DXF: B 列 = 30+40i
   slotStaggerY: 20,
   jointHole: { enabled: true, diameter: 5, offsetX: 10, offsetY: 10 },
 }
@@ -37,7 +37,7 @@ export interface SlotHole {
   /** 孔心坐标 (mm, 板子局部) */
   x: number
   y: number
-  /** 晶体列族: A = 零位 (10,30), B = 错位 (+22.2648, -20) */
+  /** 晶体列族: A = 零位 (10,30), B = 错位 (+20, -20) */
   family: 'A' | 'B'
 }
 
@@ -69,7 +69,7 @@ function resolveParams(params: HolePatternParamsEx) {
     pitchY: params.spacingY,                    // 40 (晶体单列纵向周期)
     x0A: params.slotGridX0 ?? 10,
     y0A: params.slotGridY0 ?? 30,
-    dxB: params.slotStaggerX ?? 22.2648,
+    dxB: params.slotStaggerX ?? 20,
     dyB: params.slotStaggerY ?? 20,
   }
 }
@@ -78,7 +78,7 @@ function resolveParams(params: HolePatternParamsEx) {
  * 生成整板 (w×h, 左下角为原点) 的晶体错列长圆孔阵列。
  * 同一个函数供 3D 挖孔 / 2D 预览 / 吸附使用, 保证位置永远一致:
  *   A 列族: (x0A + pitchX*i, y0A + pitchY*j)                 → (10, 30) + 40×40
- *   B 列族: (x0A + dxB + pitchX*i, y0A - dyB + pitchY*j)     → (32.26, 10) + 40×40
+ *   B 列族: (x0A + dxB + pitchX*i, y0A - dyB + pitchY*j)     → (30, 10) + 40×40
  * 仅保留整颗胶囊 (含两端半圆) 完全落在板内的孔。
  */
 export function crystalSlots(width: number, height: number, params: HolePatternParamsEx): SlotHole[] {

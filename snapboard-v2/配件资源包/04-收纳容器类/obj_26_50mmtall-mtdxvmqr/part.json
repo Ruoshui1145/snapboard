@@ -1,0 +1,57 @@
+{
+  "id": "obj_26_50mmtall-mtdxvmqr",
+  "name": "50mm镂空方桶Tall",
+  "category": "bin",
+  "sortOrder": 270,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_26_50mmTall.stl",
+    "print": "obj_26_50mmTall.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      50,
+      60.8,
+      100
+    ]
+  },
+  "mount": {
+    "mode": "single",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          701.318,
+          88.883,
+          506.272
+        ],
+        "normal": [
+          0.382,
+          0.06,
+          -0.922
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 516.871
+  },
+  "defaultRotation": 0
+}

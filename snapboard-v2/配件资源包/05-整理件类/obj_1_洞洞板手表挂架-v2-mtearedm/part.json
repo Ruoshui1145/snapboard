@@ -1,0 +1,75 @@
+{
+  "id": "obj_1_洞洞板手表挂架-v2-mtearedm",
+  "name": "obj_1_洞洞板手表挂架 v2",
+  "category": "organizer",
+  "sortOrder": 30,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_1_洞洞板手表挂架 v2.stl",
+    "print": "obj_1_洞洞板手表挂架 v2.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -105,
+      0,
+      -90
+    ],
+    "dimensionsMm": [
+      52.2,
+      77.7,
+      30.1
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          113.19,
+          31.12,
+          -116.77
+        ],
+        "normal": [
+          -0.001,
+          0.174,
+          -0.985
+        ],
+        "required": true,
+        "axis": [
+          -0.3878782253528581,
+          0.9217106282869463
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          113.19,
+          3.294,
+          -113.295
+        ],
+        "normal": [
+          -0.001,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -108.864
+  },
+  "defaultRotation": 0
+}

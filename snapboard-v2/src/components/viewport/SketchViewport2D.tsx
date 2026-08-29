@@ -145,7 +145,7 @@ export function SketchViewport2D({
         }
       }
 
-      // 分割预览覆盖层: 板块划分 + R角倒角 + 长圆孔 + 6mm拼接孔 + 编号
+      // 分割预览覆盖层: 板块划分 + R角倒角 + 长圆孔 + 5mm拼接孔 + 编号
       if (splitResult && splitResult.panels.length > 0) {
         drawSplitPreview(ctx, splitResult.panels, splitCfg, cameraRef.current)
       }
@@ -425,7 +425,7 @@ export function SketchViewport2D({
         ctx.stroke()
       }
 
-      // ---- 候选圆孔 (φ6): 已启用=真实通孔; 未启用=完整板面上的虚线位置提示 ----
+      // ---- 候选圆孔 (φ5): 已启用=真实通孔; 未启用=完整板面上的虚线位置提示 ----
       const jr = Math.max(0.6, (cfg.jointDiameter / 2 / px) * S)
       ctx.lineWidth = Math.max(0.8, S)
       for (const eh of p.edge_holes) {

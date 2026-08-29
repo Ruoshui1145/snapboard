@@ -4,7 +4,7 @@ title: GitHub 与网站发布
 
 # GitHub 与发布
 
-当前公开仓库为 <https://github.com/Ruoshui1145/snapboard>，Wiki 已准备 GitHub Pages 工作流。
+当前公开仓库为 <https://github.com/Ruoshui1145/snapboard>。普通用户通过统一官网的“项目资料”页进入产品、文档和开发日志；本目录是公开资料的维护源，不再单独发布一个 Wiki 首页。
 
 商业运营资料、基金预算和个人信息不在公开仓库中。
 
@@ -16,8 +16,8 @@ title: GitHub 与网站发布
 2. 将本地仓库添加 remote；
 3. 确认公开内容不包含个人信息、内部预算和未授权模型；
 4. 在 GitHub Pages 中选择 GitHub Actions；
-5. 推送 `main` 分支，工作流构建 `apps/wiki`；
-6. 将 `GITHUB_REPOSITORY` 自动转换为导航中的 GitHub 链接。
+5. 推送 `main` 分支，工作流构建 `snapboard-v2` 的统一官网；
+6. 官网的“项目资料”页链接到本目录中的公开文档和开发日志，GitHub 仓库仍作为源码与完整记录入口。
 
 ## 本地构建
 
@@ -26,7 +26,7 @@ npm install
 npm run site:build
 ```
 
-本地使用 `site:build` 会先以 `/design/` 为基础路径构建 Studio，再把 Studio 的静态文件放入 Wiki 的 `static/design/`，最后构建统一站点。`static/design/` 作为公开部署产物随仓库提交，GitHub Actions 只构建 Wiki 外壳，避免云端 runner 与本地 Studio 依赖产生差异。最终路径为：官网 `/`、文档 `/docs`、开发日志 `/devlog`、设计器 `/design/`。
+本地使用 `site:build` 构建统一官网和设计器。GitHub Pages 会把 `snapboard-v2/dist` 作为唯一站点产物，最终路径为：官网 `/`、校园方案 `/community`、使用指南 `/guide`、项目资料 `/project`、打印服务 `/print`、设计器 `/design`。`apps/wiki` 仍可单独执行 `wiki:build` 检查文档源，但不再需要单独启动 3000 端口。
 
 ## 自定义域名
 

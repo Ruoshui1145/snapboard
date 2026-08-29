@@ -1,0 +1,79 @@
+{
+  "id": "50-50-100-loukong-box-mtea330g",
+  "name": "50-50-100 loukong box",
+  "category": "bin",
+  "sortOrder": 270,
+  "description": "EA哒哒哒",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "50-50-100 loukong box.stl",
+    "print": "50-50-100 loukong box.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      -90,
+      0
+    ],
+    "dimensionsMm": [
+      64.2,
+      54,
+      100
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          -5.1,
+          59,
+          -32.1
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          -5.1,
+          19,
+          -32.1
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -21.9
+  },
+  "defaultRotation": 0
+}

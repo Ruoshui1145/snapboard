@@ -232,17 +232,27 @@ export function RightSidebar() {
                 <input className="prop-num" style={{ width: 54 }} type="number" value={splitConfig.minH}
                   onChange={e => setSplitConfig({ minH: Math.max(1, +e.target.value || 1) })} />
               </div>
+              <div className="prop-item" title="规则分区优先避免出现小于该宽度的细长条、细颈和难固定板件">
+                <span className="plabel">最小结构宽</span>
+                <input className="prop-num" style={{ width: 54 }} type="number" step={5} value={splitConfig.minFeatureWidth}
+                  onChange={e => setSplitConfig({ minFeatureWidth: Math.max(1, +e.target.value || 1) })} />
+              </div>
               <div className="prop-item" title="内孔优先完整归属单板时，与分板接缝保留的安全距离；确实放不下会自动跨板">
                 <span className="plabel">孔缝安全距</span>
                 <input className="prop-num" style={{ width: 54 }} type="number" step={1} value={splitConfig.holeSeamClearance}
                   onChange={e => setSplitConfig({ holeSeamClearance: Math.max(0, +e.target.value || 0) })} />
               </div>
-              <div className="prop-item" title="固定圆孔中心距板边的 X 向距离 (工程图 10)">
+              <div className="prop-item" title="长圆孔和固定圆孔与外边、缺口、内孔之间至少保留的实体材料宽度；冲突孔会自动删除留白">
+                <span className="plabel">孔边留白</span>
+                <input className="prop-num" style={{ width: 54 }} type="number" step={0.5} value={splitConfig.holeBoundaryClearance}
+                  onChange={e => setSplitConfig({ holeBoundaryClearance: Math.max(0, +e.target.value || 0) })} />
+              </div>
+              <div className="prop-item" title="内部垂直接缝圆孔线的默认内缩；非模数外周会对齐最近长孔列">
                 <span className="plabel">固定孔偏移X</span>
                 <input className="prop-num" style={{ width: 54 }} type="number" value={splitConfig.jointOffsetX}
                   onChange={e => setSplitConfig({ jointOffsetX: Math.max(0, +e.target.value || 0) })} />
               </div>
-              <div className="prop-item" title="固定圆孔中心距板边的 Y 向距离 (工程图 10)">
+              <div className="prop-item" title="内部水平接缝圆孔线的默认内缩；非模数外周会对齐最近长孔行">
                 <span className="plabel">固定孔偏移Y</span>
                 <input className="prop-num" style={{ width: 54 }} type="number" value={splitConfig.jointOffsetY}
                   onChange={e => setSplitConfig({ jointOffsetY: Math.max(0, +e.target.value || 0) })} />
@@ -291,7 +301,7 @@ export function RightSidebar() {
                 <input className="prop-num" style={{ width: 54 }} type="number" step={0.5} value={splitConfig.slotStaggerY}
                   onChange={e => setSplitConfig({ slotStaggerY: Math.max(0, +e.target.value || 0) })} />
               </div>
-              <div className="prop-item" title="边缘敲落圆孔直径 (工程图 φ6, 距边 10mm 一排)">
+              <div className="prop-item" title="边缘敲落圆孔直径（用户确认制造规格 φ5）">
                 <span className="plabel">敲落孔直径</span>
                 <input className="prop-num" style={{ width: 54 }} type="number" step={0.5} value={splitConfig.jointDiameter}
                   onChange={e => setSplitConfig({ jointDiameter: Math.max(1, +e.target.value || 1) })} />
@@ -315,7 +325,7 @@ export function RightSidebar() {
                 <div className="split-config-help">
               孔型 = 200×200 工程图 (SKÅDIS 20cm 板, 200.200边缘带孔.DXF): 竖向长圆孔 5.0×15.0、
               晶体错列阵列 (A/B 列族 40×40 周期, B 列错位 20/20, 锚定整板左下角);
-              <strong>边缘 = 候选圆孔 φ6 一排</strong> (每块板每条边距边 10mm、间距 40mm；
+              <strong>边缘 = 候选圆孔 φ5 一排</strong>（内部接缝默认内缩 10mm；外周对齐最近长孔行/列；沿边间距 40mm；
               未启用时只显示虚线位置提示，启用后直接贯穿整块板)。
               板宽=模数X整数倍, 板高=模数Y整数倍; 小于最小板宽/高的切割自动放弃并合并 (防碎边)。
               初始铺板完成后会自动执行<strong>边缘融合</strong>：相邻板的合并包围盒能放进热床时，

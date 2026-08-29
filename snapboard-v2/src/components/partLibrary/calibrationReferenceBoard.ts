@@ -85,6 +85,7 @@ const axisLabel = (text: 'X' | 'Y' | 'Z', color: string, size: number) => {
 const createAxisRing = (axis: 0 | 1 | 2, color: number, radius: number) => {
   const root = new THREE.Group()
   root.name = `rotation-axis-${axis}`
+  root.userData.rotationRadius = radius
   const ring = new THREE.Mesh(
     new THREE.TorusGeometry(radius, Math.max(0.32, radius * 0.012), 8, 128),
     new THREE.MeshBasicMaterial({
@@ -128,9 +129,55 @@ const createAxisRing = (axis: 0 | 1 | 2, color: number, radius: number) => {
   ticks.renderOrder = 43
   root.add(ticks)
 
-  if (axis === 0) root.rotation.y = Math.PI / 2 // YZ 平面，绕 X
-  if (axis === 1) root.rotation.x = Math.PI / 2 // XZ 平面，绕 Y
+  // 每个旋转环增加一个独立的拖动箭头。它跟随当前吸附刻度移动，
+  // 比在三条重叠圆环的交点上找鼠标命中更容易理解。
+  const handleSize = Math.max(1.8, radius * 0.075)
+  const handle = new THREE.Mesh(
+    new THREE.ConeGeometry(handleSize * 0.72, handleSize * 1.55, 4),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.95,
+      depthTest: false,
+      depthWrite: false,
+    }),
+  )
+  handle.name = `rotation-handle-${axis}`
+  handle.userData.rotationAxis = axis
+  handle.userData.rotationHandle = true
+  handle.userData.baseOpacity = 0.95
+  handle.renderOrder = 45 + axis
+  handle.position.set(radius * 1.04, 0, 0)
+  handle.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(1, 0, 0))
+  root.add(handle)
+
+  if (axis === 0) root.rotation.y = Math.PI / 2 // YZ 平面，法向 +X
+  if (axis === 1) root.rotation.x = -Math.PI / 2 // XZ 平面，法向 +Y
   return root
+}
+
+/** 更新某条旋转环上的箭头位置；angle 使用该圆环自身的局部平面角度。 */
+export function setRotationGizmoAngle(gizmo: THREE.Group, axis: 0 | 1 | 2, angle: number): void {
+  const root = gizmo.getObjectByName(`rotation-axis-${axis}`)
+  const handle = root?.getObjectByName(`rotation-handle-${axis}`) as THREE.Mesh | undefined
+  const radius = Number(root?.userData.rotationRadius ?? gizmo.userData.radius ?? 0)
+  if (!handle || !Number.isFinite(radius) || radius <= 0) return
+  const x = Math.cos(angle) * radius * 1.04
+  const y = Math.sin(angle) * radius * 1.04
+  handle.position.set(x, y, 0)
+  handle.quaternion.setFromUnitVectors(
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(Math.cos(angle), Math.sin(angle), 0),
+  )
+  handle.userData.rotationAngle = angle
+}
+
+export function setRotationGizmoAngles(gizmo: THREE.Group, orientation: [number, number, number]): void {
+  // 修正 Y 环法向后，三个局部圆环角度都与 +X/+Y/+Z 右手方向一致。
+  const signs = [1, 1, 1] as const
+  for (const axis of [0, 1, 2] as const) {
+    setRotationGizmoAngle(gizmo, axis, THREE.MathUtils.degToRad(orientation[axis]) * signs[axis])
+  }
 }
 
 /** Bambu Studio 风格三轴旋转环；环上的 rotationAxis 用于射线命中和拖动。 */
@@ -145,9 +192,13 @@ export function createRotationGizmo(radius: number): THREE.Group {
   const x = axisLabel('X', '#ff6b72', labelSize)
   const y = axisLabel('Y', '#65d58a', labelSize)
   const z = axisLabel('Z', '#62a8ff', labelSize)
-  x.position.set(radius * 1.12, 0, 0)
-  y.position.set(0, radius * 1.12, 0)
-  z.position.set(0, 0, radius * 1.12)
+  // 标签不要再放在三个轴的端点：端点是三条圆环的交错区域，容易让人误以为
+  // 那里是“坐标原点/交点”。把每个标签放到对应旋转平面的圆弧中点：
+  // X → YZ 圆弧，Y → XZ 圆弧，Z → XY 圆弧。diag 让标签中心略微落在圆环外侧。
+  const diag = radius * 0.82
+  x.position.set(0, diag, diag)
+  y.position.set(diag, 0, diag)
+  z.position.set(diag, diag, 0)
   group.add(x, y, z)
   group.userData.radius = radius
   return group

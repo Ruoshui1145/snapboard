@@ -1,0 +1,75 @@
+{
+  "id": "数据线夹-mteamwtp",
+  "name": "数据线夹",
+  "category": "cable",
+  "sortOrder": 20,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "未命名.stl",
+    "print": "未命名.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      -180,
+      90
+    ],
+    "dimensionsMm": [
+      74.4,
+      30.8,
+      15
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          37.379,
+          37.754,
+          -30.784
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          37.379,
+          10.052,
+          -28.184
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -21.584
+  },
+  "defaultRotation": 0
+}

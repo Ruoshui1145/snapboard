@@ -10,10 +10,11 @@
     "dev": "npm --workspace snapboard-v2 run dev",
     "build": "npm --workspace snapboard-v2 run build",
     "lint": "npm --workspace snapboard-v2 run lint",
-    "wiki:dev": "npm --workspace apps-wiki run start",
+    "wiki:dev": "npm run dev",
     "wiki:build": "npm --workspace apps-wiki run build",
     "wiki:serve": "npm --workspace apps-wiki run serve",
     "site:build": "node scripts/build-public-site.mjs",
+    "site:build:public": "node scripts/build-public-site.mjs --public-only",
     "build:all": "npm run build && npm run wiki:build"
   }
 }

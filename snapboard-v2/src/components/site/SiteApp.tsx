@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import './site.css'
 
-export type SiteRoute = '/' | '/community' | '/guide' | '/print' | '/design'
+const DESIGNER_URL = (import.meta.env.VITE_DESIGNER_URL as string | undefined)?.trim() || '/design'
+
+export type SiteRoute = '/' | '/community' | '/guide' | '/print' | '/project' | '/design'
 
 interface SiteAppProps {
   route: SiteRoute
@@ -37,6 +39,14 @@ const Icon = ({ name, size = 18 }: { name: IconName; size?: number }) => {
   return <svg className="site-icon" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
+function DesignerLink({ className, children }: { className: string; children: ReactNode }) {
+  return <a className={className} href={DESIGNER_URL} target="_blank" rel="noreferrer">{children}</a>
+}
+
+const openDesigner = () => {
+  window.open(DESIGNER_URL, '_blank', 'noopener,noreferrer')
+}
+
 interface TemplateCardData {
   id: number
   title: string
@@ -67,6 +77,7 @@ const navItems: { label: string; route: SiteRoute }[] = [
   { label: '首页', route: '/' },
   { label: '校园方案', route: '/community' },
   { label: '使用指南', route: '/guide' },
+  { label: '项目资料', route: '/project' },
   { label: '打印服务', route: '/print' },
 ]
 
@@ -74,6 +85,7 @@ const routeMeta: Record<Exclude<SiteRoute, '/design'>, { title: string; descript
   '/': { title: 'SnapBoard — 宿舍异形洞洞板设计与打印', description: '围绕床架、侧柜与插座设计 L 型、阶梯型和凹口型洞洞板，并自动分割为可打印板件。' },
   '/community': { title: '校园方案库 — SnapBoard', description: '按学校、宿舍楼和床位类型发现经过真实试装验证的洞洞板方案。' },
   '/guide': { title: '使用指南 — SnapBoard', description: '从测量、复制母版、自动分割到打印安装的完整指南。' },
+  '/project': { title: '项目资料与开源 — SnapBoard', description: '在一个入口了解 SnapBoard 的产品、公开文档、开发日志与第一版开源仓库。' },
   '/print': { title: '打印服务 — SnapBoard', description: '选择校园打印服务、查看报价流程并申请成为合作打印农场。' },
 }
 
@@ -104,6 +116,8 @@ export function SiteApp({ route, navigate }: SiteAppProps) {
     ? <CommunityPage navigate={go} notify={setNotice} />
     : route === '/guide'
       ? <GuidePage navigate={go} />
+      : route === '/project'
+        ? <ProjectPage navigate={go} />
       : route === '/print'
         ? <PrintPage navigate={go} notify={setNotice} />
         : <HomePage navigate={go} notify={setNotice} />
@@ -120,11 +134,12 @@ export function SiteApp({ route, navigate }: SiteAppProps) {
             {navItems.map(item => (
               <button key={item.route} type="button" className={route === item.route ? 'active' : ''} onClick={() => go(item.route)}>{item.label}</button>
             ))}
-            <button type="button" className="site-nav-mobile-design" onClick={() => go('/design')}>打开设计器</button>
+            <DesignerLink className="site-nav-mobile-design">打开设计器</DesignerLink>
           </nav>
           <div className="site-header-actions">
+            <a className="site-github-link" href="https://github.com/Ruoshui1145/snapboard" target="_blank" rel="noreferrer">GitHub</a>
             <button className="site-login" type="button" onClick={() => setNotice('账号系统将在社区数据接入后开放')}>登录</button>
-            <button className="site-primary compact" type="button" onClick={() => go('/design')}>开始设计 <Icon name="arrow" size={16} /></button>
+            <DesignerLink className="site-primary compact">开始设计 <Icon name="arrow" size={16} /></DesignerLink>
             <button className="site-menu" type="button" onClick={() => setMenuOpen(value => !value)} aria-label="打开导航" aria-expanded={menuOpen}>
               <Icon name={menuOpen ? 'x' : 'menu'} size={22} />
             </button>
@@ -147,7 +162,7 @@ function HomePage({ navigate, notify }: { navigate: (route: SiteRoute) => void; 
           <p className="hero-lead">找到同楼同床型的实测方案，围绕侧柜、床架和插座画出 L 型、阶梯型或带凹口的板面。没有打印机，也能让附近的打印伙伴帮你完成。</p>
           <div className="hero-actions">
             <button className="site-primary large" type="button" onClick={() => navigate('/community')}>寻找我的宿舍方案 <Icon name="arrow" /></button>
-            <button className="site-secondary large" type="button" onClick={() => navigate('/design')}><Icon name="cube" /> 从零开始设计</button>
+            <DesignerLink className="site-secondary large"><Icon name="cube" /> 从零开始设计</DesignerLink>
           </div>
           <div className="hero-proof">
             <div className="avatar-stack"><span>林</span><span>乔</span><span>周</span><span>+8</span></div>
@@ -173,7 +188,7 @@ function HomePage({ navigate, notify }: { navigate: (route: SiteRoute) => void; 
       <section className="site-section featured-section">
         <SectionHeading eyebrow="本周精选" title="真实宿舍里，正在被使用的方案" description="每个“已试装”标记背后，都有一次真实打印与安装反馈。先复制可靠母版，再做属于自己的版本。" action="浏览全部方案" onAction={() => navigate('/community')} />
         <div className="template-grid home-grid">
-          {templates.slice(0, 3).map(item => <TemplateCard key={item.id} item={item} onCopy={() => navigate('/design')} onLike={() => notify('已收藏到你的灵感清单')} />)}
+          {templates.slice(0, 3).map(item => <TemplateCard key={item.id} item={item} onCopy={openDesigner} onLike={() => notify('已收藏到你的灵感清单')} />)}
         </div>
       </section>
 
@@ -239,7 +254,7 @@ function CommunityPage({ navigate, notify }: { navigate: (route: SiteRoute) => v
         </div>
         <div className="filter-tabs">{scenes.map(item => <button key={item} className={scene === item ? 'active' : ''} type="button" onClick={() => setScene(item)}>{item}</button>)}</div>
         <div className="results-heading"><div><h2>{scene === '全部' ? '全部校园方案' : scene}</h2><p>找到 {shown.length} 个可复制方案</p></div><span className="results-note"><Icon name="shield" size={17} /> 平台会标记，但不伪造实物验证</span></div>
-        {shown.length ? <div className="template-grid community-grid">{shown.map(item => <TemplateCard key={item.id} item={item} onCopy={() => navigate('/design')} onLike={() => notify('已收藏到你的灵感清单')} />)}</div> : <div className="empty-state"><Icon name="search" size={30} /><h3>暂时没有匹配方案</h3><p>换一个关键词，或者成为这栋宿舍的第一位测量者。</p><button className="site-primary" type="button" onClick={() => navigate('/design')}>创建首个方案</button></div>}
+        {shown.length ? <div className="template-grid community-grid">{shown.map(item => <TemplateCard key={item.id} item={item} onCopy={openDesigner} onLike={() => notify('已收藏到你的灵感清单')} />)}</div> : <div className="empty-state"><Icon name="search" size={30} /><h3>暂时没有匹配方案</h3><p>换一个关键词，或者成为这栋宿舍的第一位测量者。</p><DesignerLink className="site-primary">创建首个方案</DesignerLink></div>}
       </section>
     </>
   )
@@ -300,7 +315,7 @@ function GuidePage({ navigate }: { navigate: (route: SiteRoute) => void }) {
   const step = steps[active]
   return (
     <>
-      <section className="subpage-hero guide-hero"><div className="subpage-hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> 第一次使用 · 完整流程</div><h1>先画板，再分割，<br /><span>最后放配件。</span></h1><p>从现场测量到导出打印文件，共六步。图中的编号、引线与界面位置都对应现有设计器，不需要先学传统 CAD。</p><div className="guide-sequence"><span>测量</span><i /><span>母版</span><i /><span>画板</span><i /><span>分割</span><i /><span>配件</span><i /><span>导出</span></div><button className="site-primary large" type="button" onClick={() => navigate('/design')}>边看指南边设计 <Icon name="arrow" /></button></div><MeasureIllustration /></section>
+      <section className="subpage-hero guide-hero"><div className="subpage-hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> 第一次使用 · 完整流程</div><h1>先画板，再分割，<br /><span>最后放配件。</span></h1><p>从现场测量到导出打印文件，共六步。图中的编号、引线与界面位置都对应现有设计器，不需要先学传统 CAD。</p><div className="guide-sequence"><span>测量</span><i /><span>母版</span><i /><span>画板</span><i /><span>分割</span><i /><span>配件</span><i /><span>导出</span></div><DesignerLink className="site-primary large">边看指南边设计 <Icon name="arrow" /></DesignerLink></div><MeasureIllustration /></section>
       <section className="site-section guide-layout">
         <aside className="guide-steps" aria-label="教程步骤">{steps.map((item, index) => <button type="button" key={item.title} className={active === index ? 'active' : ''} onClick={() => setActive(index)}><span>{String(index + 1).padStart(2, '0')}</span><div><small>{item.stage}</small><b>{item.title}</b><em>{item.time}</em></div><Icon name="chevron" size={17} /></button>)}</aside>
         <article className="guide-detail">
@@ -313,8 +328,84 @@ function GuidePage({ navigate }: { navigate: (route: SiteRoute) => void }) {
             <aside className="guide-finish"><span>完成标志</span><b>{step.done}</b><div><Icon name="shield" size={18} /><p>{step.warning}</p></div></aside>
           </div>
           <h3>提交下一步前检查</h3><ul>{step.tips.map(tip => <li key={tip}><span><Icon name="check" size={15} /></span>{tip}</li>)}</ul>
-          <div className="guide-nav"><button type="button" disabled={active === 0} onClick={() => setActive(value => Math.max(0, value - 1))}>上一步</button>{active < steps.length - 1 ? <button className="site-primary" type="button" onClick={() => setActive(value => Math.min(steps.length - 1, value + 1))}>下一步：{steps[active + 1].title} <Icon name="arrow" size={16} /></button> : <button className="site-primary" type="button" onClick={() => navigate('/design')}>打开设计器 <Icon name="arrow" size={16} /></button>}</div>
+          <div className="guide-nav"><button type="button" disabled={active === 0} onClick={() => setActive(value => Math.max(0, value - 1))}>上一步</button>{active < steps.length - 1 ? <button className="site-primary" type="button" onClick={() => setActive(value => Math.min(steps.length - 1, value + 1))}>下一步：{steps[active + 1].title} <Icon name="arrow" size={16} /></button> : <DesignerLink className="site-primary">打开设计器 <Icon name="arrow" size={16} /></DesignerLink>}</div>
         </article>
+      </section>
+    </>
+  )
+}
+
+const githubRoot = 'https://github.com/Ruoshui1145/snapboard'
+
+const projectResources = [
+  {
+    eyebrow: '产品',
+    title: '在线设计器',
+    text: '从二维草图、孔位和自动分割，到 3D 双面装配与多盘 3MF 导出。',
+    action: '打开设计器',
+    href: DESIGNER_URL,
+    icon: 'cube' as IconName,
+  },
+  {
+    eyebrow: '文档',
+    title: '公开技术文档',
+    text: '查看模块边界、项目文件、制造导出、打印机预设和校园试点说明。',
+    action: '在 GitHub 阅读文档',
+    href: `${githubRoot}/tree/main/apps/wiki/docs`,
+    icon: 'copy' as IconName,
+  },
+  {
+    eyebrow: '社区',
+    title: '校园方案库',
+    text: '先复用同楼同床型的可靠母版，再创建自己的配件和纹理布局。',
+    action: '浏览方案',
+    href: '',
+    route: '/community' as SiteRoute,
+    icon: 'community' as IconName,
+  },
+]
+
+const publicDevlog = [
+  ['2026-08-28', '统一官网、文档与开发日志入口', '把官网、使用指南、公开文档和第一版开源仓库放入同一套产品导航。'],
+  ['2026-08-20', '纹理层与彩色版画工作流', '明确基层、彩色叠色层和材质贴面的制造边界，并保留低成本打印路径。'],
+  ['2026-08-12', '多板件 3MF 与打印预设', '按热床尺寸生成多盘制造文件，保留板件编号、材料和打印机预设信息。'],
+  ['2026-08-02', '配件锚点与双面装配', '为配件记录端面、朝向和正反面吸附关系，减少导入切片后的装配歧义。'],
+  ['2026-07-20', '3D 孔位与装配预览', '把 2D 孔位状态同步到 3D 板件，先确认结构，再布置配件。'],
+  ['2026-07-06', '自动分板与倒角验证', '围绕异形轮廓、接缝和上下对称倒角建立可打印的验证样板。'],
+]
+
+function ProjectPage({ navigate }: { navigate: (route: SiteRoute) => void }) {
+  return (
+    <>
+      <section className="subpage-hero project-hero">
+        <div className="subpage-hero-copy">
+          <div className="eyebrow"><span className="eyebrow-dot" /> 一个官网 · 一套产品入口</div>
+          <h1>了解项目，<br /><span>然后马上开始设计。</span></h1>
+          <p>这里集中放产品介绍、使用指南、公开技术资料和开发日志。普通用户从官网了解 SnapBoard，开发者从 GitHub 获取第一版源码，不需要在两个网站之间来回寻找。</p>
+          <div className="project-badges"><span>产品官网</span><span>第一版开源</span><span>公开开发记录</span></div>
+          <div className="hero-actions"><DesignerLink className="site-primary large">打开独立设计器 <Icon name="arrow" /></DesignerLink><a className="site-secondary large" href={githubRoot} target="_blank" rel="noreferrer"><Icon name="download" /> 获取开源版本</a></div>
+        </div>
+        <div className="project-overview-card"><div className="project-overview-head"><span className="live-dot" /> SNAPBOARD PUBLIC BUILD</div><div className="project-overview-flow"><span>测量</span><i /><span>画板</span><i /><span>分割</span><i /><span>装配</span><i /><span>导出</span></div><p>一条从真实空间到可打印文件的完整链路</p><div className="project-overview-foot"><span>React + TypeScript</span><span>3MF / Bambu</span><span>MIT / Apache 2.0 兼容发布</span></div></div>
+      </section>
+
+      <section className="site-section project-section">
+        <div className="section-heading"><div><div className="eyebrow"><span className="eyebrow-dot" /> 从这里开始</div><h2>同一个网站，三种使用方式。</h2><p>官网负责解释和引导；设计器负责实际创作；GitHub 负责公开源码与可复现的工程记录。</p></div></div>
+        <div className="project-resource-grid">
+          {projectResources.map(resource => resource.href ? (
+            <a className="project-resource-card" href={resource.href} target="_blank" rel="noreferrer" key={resource.title}><span className="project-card-icon"><Icon name={resource.icon} size={21} /></span><small>{resource.eyebrow}</small><h3>{resource.title}</h3><p>{resource.text}</p><span className="project-card-action">{resource.action} <Icon name="arrow" size={15} /></span></a>
+          ) : (
+            <button className="project-resource-card" type="button" onClick={() => navigate(resource.route!)} key={resource.title}><span className="project-card-icon"><Icon name={resource.icon} size={21} /></span><small>{resource.eyebrow}</small><h3>{resource.title}</h3><p>{resource.text}</p><span className="project-card-action">{resource.action} <Icon name="arrow" size={15} /></span></button>
+          ))}
+        </div>
+      </section>
+
+      <section className="site-section project-log-section">
+        <div className="project-log-heading"><div><div className="eyebrow"><span className="eyebrow-dot" /> 公开开发日志</div><h2>每一步都能被看见。</h2><p>这里展示面向用户和贡献者的研发节点；更完整的 Markdown 原文和截图保存在仓库中。</p></div><a className="text-link" href={`${githubRoot}/tree/main/apps/wiki/blog`} target="_blank" rel="noreferrer">查看全部日志 <Icon name="arrow" size={17} /></a></div>
+        <div className="project-log-list">{publicDevlog.map(([date, title, text]) => <article key={date} className="project-log-item"><time>{date}</time><div><h3>{title}</h3><p>{text}</p></div><Icon name="chevron" size={17} /></article>)}</div>
+      </section>
+
+      <section className="site-section project-boundary-section">
+        <div className="project-boundary-card"><span className="project-card-icon"><Icon name="shield" size={22} /></span><div><div className="eyebrow">公开边界</div><h2>把软件和证据公开，保留内部运营资料。</h2><p>公开仓库只包含软件本体、必要示例、模块文档和开发日志。商业计划、市场报告、基金预算、个人联系方式和未授权模型仍保留在本地，不会混入官网或 GitHub。</p></div><a className="site-secondary" href={`${githubRoot}#readme`} target="_blank" rel="noreferrer">查看仓库说明 <Icon name="arrow" size={16} /></a></div>
       </section>
     </>
   )
@@ -325,7 +416,7 @@ function PrintPage({ navigate, notify }: { navigate: (route: SiteRoute) => void;
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSubmitted(true); notify('合作意向已记录；正式后台接入后将发送确认') }
   return (
     <>
-      <section className="subpage-hero print-hero"><div className="subpage-hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> 校园打印网络</div><h1>自己设计，<br /><span>附近完成。</span></h1><p>打印伙伴不会只收到一堆匿名 STL，而会收到带编号、参数和项目版本的完整制造包。</p><div className="hero-actions"><button className="site-primary large" type="button" onClick={() => navigate('/design')}>先完成设计 <Icon name="arrow" /></button><button className="site-secondary large" type="button" onClick={() => document.getElementById('partner-form')?.scrollIntoView({ behavior: 'smooth' })}>申请成为伙伴</button></div></div><PrintNetwork /></section>
+      <section className="subpage-hero print-hero"><div className="subpage-hero-copy"><div className="eyebrow"><span className="eyebrow-dot" /> 校园打印网络</div><h1>自己设计，<br /><span>附近完成。</span></h1><p>打印伙伴不会只收到一堆匿名 STL，而会收到带编号、参数和项目版本的完整制造包。</p><div className="hero-actions"><DesignerLink className="site-primary large">先完成设计 <Icon name="arrow" /></DesignerLink><button className="site-secondary large" type="button" onClick={() => document.getElementById('partner-form')?.scrollIntoView({ behavior: 'smooth' })}>申请成为伙伴</button></div></div><PrintNetwork /></section>
       <section className="site-section print-flow-section"><SectionHeading eyebrow="服务流程" title="先检查，再报价；不让自动估价替代责任。" description="首版采用系统估算 + 人工复核。材料、颜色、机时和交付时间确认后才付款，避免低价接单后临时加价。" /><div className="print-flow-grid"><ProcessStep number="01" icon="cube" title="提交项目快照" text="锁定当前版本、板件数量与打印参数，后续修改会创建新报价。" /><ProcessStep number="02" icon="clock" title="人工复核报价" text="打印伙伴检查壁厚、方向、材料、机时和失败风险。" /><ProcessStep number="03" icon="printer" title="排产与质检" text="板件逐一编号，记录机器、材料批次与需要补打的原因。" /><ProcessStep number="04" icon="community" title="同校集中交付" text="同校订单可拼单生产，送到校园自提点或单独快递。" /></div></section>
        <section className="site-section partner-section"><div className="partner-heading"><div><div className="eyebrow dark"><span className="eyebrow-dot" /> 合作打印伙伴</div><h2>首批名额预留中</h2><p>正式上线前只展示经过测试单、设备核验和售后规则确认的伙伴。以下卡片是网站展示格式预览，不代表现已签约。</p></div><span className="placeholder-badge">展示占位</span></div><div className="farm-grid"><FarmCard name="东湖校园打印站" area="东湖大学城 · 3 km" machines="8 台 FDM" material="基础色 PETG" time="预计 2–3 天" color="#705be7" /><FarmCard name="江城创客工坊" area="江城高校片区 · 5 km" machines="12 台 FDM" material="PETG / PLA / ABS" time="预计 3–4 天" color="#f06a47" /><FarmCard name="青禾 3D 实验室" area="滨海大学城 · 4 km" machines="6 台 FDM" material="基础色 PETG" time="预计 2–3 天" color="#129d78" /></div><p className="farm-disclaimer"><Icon name="shield" size={16} /> 正式联系方式只在审核并取得合作方公开授权后展示；平台将同时保留投诉和下架入口。</p></section>
        <section className="site-section partner-form-section" id="partner-form"><div className="partner-form-copy"><span className="site-chip">打印农场 / 校园创客社</span><h2>把你的空闲机时，<br />变成附近同学的成品。</h2><p>我们优先寻找愿意接小批量、能保留生产记录，并能对失败件负责的本地伙伴。</p><ul><li><Icon name="check" /> 平台提供统一制造包和板件编号</li><li><Icon name="check" /> 同校订单可以集中排产与交付</li><li><Icon name="check" /> 伙伴自行确认材料、交期和报价</li></ul></div><form className="partner-form" onSubmit={submit}><label><span>团队或工作室名称</span><input required placeholder="例如：江城大学创客社" /></label><label><span>服务学校 / 城市</span><input required placeholder="例如：江城大学、江城大学城" /></label><div className="form-row"><label><span>设备数量</span><input required type="number" min="1" placeholder="4" /></label><label><span>常用材料</span><input required placeholder="基础色 PETG、PLA" /></label></div><label><span>联系方式</span><input required placeholder="手机号 / 微信 / 邮箱" /></label><label><span>补充说明</span><textarea rows={3} placeholder="设备型号、日产能、是否支持校园自提……" /></label><button className="site-primary large" type="submit" disabled={submitted}>{submitted ? '已记录合作意向' : '提交合作意向'} <Icon name={submitted ? 'check' : 'arrow'} /></button><small>当前为前端演示，正式上线后将接入加密提交与隐私说明。</small></form></section>
@@ -369,7 +460,7 @@ function IrregularShowcase({ navigate }: { navigate: (route: SiteRoute) => void 
         <li><span>02</span><div><b>异形也能自动分割</b><small>保留拐角、孔位与接缝关系，继续生成 P1、P2…板件。</small></div></li>
         <li><span>03</span><div><b>先结构，后配件</b><small>接缝确定后再布置挂钩和托盘，避免跨缝与悬空。</small></div></li>
       </ul>
-      <button className="site-primary large" type="button" onClick={() => navigate('/design')}>画一块异形板 <Icon name="arrow"/></button>
+      <DesignerLink className="site-primary large">画一块异形板 <Icon name="arrow"/></DesignerLink>
     </div>
     <div className="irregular-visual">
       <IrregularWorkbench />
@@ -455,5 +546,5 @@ function FarmCard({ name, area, machines, material, time, color }: { name: strin
 }
 
 function SiteFooter({ navigate }: { navigate: (route: SiteRoute) => void }) {
-  return <footer className="site-footer"><div className="footer-top"><div className="footer-brand"><button className="site-brand" type="button" onClick={() => navigate('/')}><Logo/><span className="site-brand-copy"><b>SnapBoard</b><small>校园空间共创计划</small></span></button><p>让一次认真测量，被整栋楼重复使用。<br/>让每个小空间，都有自己的秩序。</p></div><div className="footer-links"><div><b>产品</b><button onClick={() => navigate('/design')}>在线设计器</button><button onClick={() => navigate('/community')}>校园方案库</button><button onClick={() => navigate('/print')}>打印服务</button></div><div><b>帮助</b><button onClick={() => navigate('/guide')}>第一次使用</button><button onClick={() => navigate('/guide')}>测量指南</button><button onClick={() => navigate('/guide')}>打印与安装</button></div><div><b>社区</b><button onClick={() => navigate('/community')}>发布方案</button><button onClick={() => navigate('/community')}>贡献母版</button><button onClick={() => navigate('/print')}>成为打印伙伴</button></div></div></div><div className="footer-bottom"><span>© 2026 SnapBoard · 当前为产品原型</span><div><button type="button">用户协议</button><button type="button">隐私说明</button><button type="button">社区规范</button></div></div></footer>
+  return <footer className="site-footer"><div className="footer-top"><div className="footer-brand"><button className="site-brand" type="button" onClick={() => navigate('/')}><Logo/><span className="site-brand-copy"><b>SnapBoard</b><small>校园空间共创计划</small></span></button><p>让一次认真测量，被整栋楼重复使用。<br/>让每个小空间，都有自己的秩序。</p></div><div className="footer-links"><div><b>产品</b><button onClick={openDesigner}>在线设计器 ↗</button><button onClick={() => navigate('/community')}>校园方案库</button><button onClick={() => navigate('/print')}>打印服务</button></div><div><b>帮助</b><button onClick={() => navigate('/guide')}>第一次使用</button><button onClick={() => navigate('/guide')}>测量指南</button><button onClick={() => navigate('/guide')}>打印与安装</button></div><div><b>项目</b><button onClick={() => navigate('/project')}>项目资料</button><button onClick={() => navigate('/project')}>开发日志</button><button onClick={() => navigate('/project')}>GitHub 开源</button></div></div></div><div className="footer-bottom"><span>© 2026 SnapBoard · 当前为产品原型</span><div><button type="button">用户协议</button><button type="button">隐私说明</button><button type="button">社区规范</button></div></div></footer>
 }

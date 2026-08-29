@@ -11,7 +11,7 @@ SnapBoard 2.0 是浏览器端 3D 打印洞洞板(pegboard)设计工具,位于 `s
 - 技术栈:React 19 + TypeScript + Vite 8(Rolldown,无 esbuild)+ three.js + Zustand + 命令模式(undo/redo)。
 - 核心概念:
   - 图纸 → 自动分割成多块板件(`pegboardSplit.ts`,分割结果 `SplitPanel[]`),板件**竖直挂墙**,板面 = 世界 XY 平面,厚度沿 +Z(默认 4mm,`splitCfg.thickness`)。
-  - 板面孔阵(`holePattern.ts` / `crystalSlots`):全部为**竖向 5×15 胶囊长圆孔**,A 族 (10,30)+40×40、B 族 (30,10)+40×40 晶体错列;另有 φ6 圆形敲落孔(板内,`edge_holes`,`knocked=true` 才贯通;未打通时 2D/3D 只显示虚线候选)。
+  - 板面孔阵(`holePattern.ts` / `crystalSlots`):全部为**竖向 5×15 胶囊长圆孔**,A 族 (10,30)+40×40、B 族 (30,10)+40×40 晶体错列;另有用户确认制造规格 φ5 圆形敲落孔(板内,`edge_holes`,`knocked=true` 才贯通;未打通时 2D/3D 只显示虚线候选)。
   - 配件库:`配件资源包/` 目录 + `scripts/sync-part-library.mjs` 同步 → `public/partLibrary/index.json`。
   - 3D 装配:`Viewport3D.tsx` 拖拽配件 → `assemblySnap.ts` 的刚体配准把零件锚点匹配到板面孔。
 - 关键文件:

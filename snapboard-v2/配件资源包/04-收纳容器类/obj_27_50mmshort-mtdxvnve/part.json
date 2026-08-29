@@ -1,0 +1,75 @@
+{
+  "id": "obj_27_50mmshort-mtdxvnve",
+  "name": "镂空方孔",
+  "category": "bin",
+  "sortOrder": 280,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_27_50mmShort.stl",
+    "print": "obj_27_50mmShort.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      50,
+      60.8,
+      55
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          783.514,
+          41,
+          504.41
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          783.514,
+          13.656,
+          510.034
+        ],
+        "normal": [
+          0,
+          0.33,
+          -0.944
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 515.16
+  },
+  "defaultRotation": 0
+}

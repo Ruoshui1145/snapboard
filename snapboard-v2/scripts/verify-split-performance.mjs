@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const root = process.cwd()
 const outDir = path.join(root, '.tmp-3d-test', 'compiled-split-performance')
+const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
 execFileSync(process.execPath, [
-  path.join(root, 'node_modules', 'typescript', 'bin', 'tsc'),
+  tscPath,
   '--ignoreConfig',
   'src/utils/pegboardSplit.ts', 'src/types/geometry.ts',
   '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
@@ -27,7 +29,7 @@ const runRectangle = (width, height) => {
 }
 
 const large = runRectangle(1000, 800)
-assert.equal(large.result.panels.length, 19)
+assert.equal(large.result.panels.length, 20)
 assert.equal(large.result.coverageRatio, 1)
 assert.deepEqual(large.result.warnings, [])
 assert.ok(large.elapsed < 8_000, `1000x800mm 大板分割过慢：${large.elapsed.toFixed(0)}ms`)

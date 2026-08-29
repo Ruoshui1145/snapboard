@@ -1,0 +1,79 @@
+{
+  "id": "obj_23_剪刀架large-mtdxvjre",
+  "name": "剪刀架Large",
+  "category": "organizer",
+  "sortOrder": 240,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_23_剪刀架Large.stl",
+    "print": "obj_23_剪刀架Large.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -180,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      60,
+      22.7,
+      20
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          455.2,
+          11,
+          -155.033
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          415.2,
+          11,
+          -155.033
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -144.283
+  },
+  "defaultRotation": 0
+}

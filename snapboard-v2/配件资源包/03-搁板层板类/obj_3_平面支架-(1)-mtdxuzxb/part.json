@@ -1,0 +1,124 @@
+{
+  "id": "obj_3_平面支架-(1)-mtdxuzxb",
+  "name": "平面支架",
+  "category": "shelf",
+  "sortOrder": 30,
+  "description": "平面镂空搁板158mm，可无限拼接",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_3_平面支架 (1).stl",
+    "print": "obj_3_平面支架 (1).stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -180,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      158,
+      85.7,
+      26
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          1109.6,
+          17,
+          -170.875
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          1069.6,
+          17,
+          -170.875
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          1029.6,
+          17,
+          -170.875
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          989.6,
+          17,
+          -170.875
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -160.125
+  },
+  "defaultRotation": 0,
+  "usageImage": "usage.png"
+}

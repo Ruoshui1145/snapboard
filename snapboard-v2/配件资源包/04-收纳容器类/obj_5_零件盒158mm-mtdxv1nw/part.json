@@ -1,0 +1,195 @@
+{
+  "id": "obj_5_零件盒158mm-mtdxv1nw",
+  "name": "零件盒158mm",
+  "category": "bin",
+  "sortOrder": 60,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_5_零件盒158mm.stl",
+    "print": "obj_5_零件盒158mm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      158,
+      70.8,
+      60
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          207.435,
+          51.969,
+          205.159
+        ],
+        "normal": [
+          0,
+          0.079,
+          -0.997
+        ],
+        "required": true,
+        "axis": [
+          -0.38411813449232807,
+          0.9232839534802574
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          167.435,
+          48.5,
+          205.122
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          127.435,
+          48.5,
+          205.122
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          87.435,
+          48.5,
+          205.122
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a5",
+        "label": "吸附点 5",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          207.435,
+          20,
+          210.622
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a6",
+        "label": "吸附点 6",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          167.435,
+          20,
+          210.622
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a7",
+        "label": "吸附点 7",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          127.435,
+          20,
+          210.622
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a8",
+        "label": "吸附点 8",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          87.435,
+          20.759,
+          210.656
+        ],
+        "normal": [
+          0,
+          0.13,
+          -0.991
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 215.872
+  },
+  "defaultRotation": 0
+}

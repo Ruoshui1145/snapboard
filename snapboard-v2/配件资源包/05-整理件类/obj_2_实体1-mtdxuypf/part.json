@@ -1,0 +1,75 @@
+{
+  "id": "obj_2_实体1-mtdxuypf",
+  "name": "宽剪刀/钳子支架",
+  "category": "organizer",
+  "sortOrder": 20,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_2_实体1.stl",
+    "print": "obj_2_实体1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      22,
+      24.8,
+      46
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          788.419,
+          36.487,
+          -141.528
+        ],
+        "normal": [
+          0.383,
+          0,
+          -0.924
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          787.15,
+          8,
+          -136.154
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -130.904
+  },
+  "defaultRotation": 0
+}

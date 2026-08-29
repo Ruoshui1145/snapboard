@@ -1,0 +1,79 @@
+{
+  "id": "obj_24_60mmtall-mtdxvkqb",
+  "name": "60mm镂空方桶Tall",
+  "category": "bin",
+  "sortOrder": 250,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_24_60mmTall.stl",
+    "print": "obj_24_60mmTall.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      60,
+      70.8,
+      100
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          783.51,
+          85.5,
+          409.153
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          783.51,
+          45.5,
+          409.153
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 419.903
+  },
+  "defaultRotation": 0
+}

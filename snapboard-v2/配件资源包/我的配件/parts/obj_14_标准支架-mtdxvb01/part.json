@@ -1,0 +1,33 @@
+{
+  "id": "obj_14_标准支架-mtdxvb01",
+  "name": "obj_14_标准支架",
+  "category": "custom",
+  "sortOrder": 150,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_14_标准支架.stl",
+    "print": "obj_14_标准支架.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      41.8,
+      45,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}

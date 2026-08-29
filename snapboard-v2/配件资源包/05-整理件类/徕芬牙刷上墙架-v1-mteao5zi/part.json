@@ -1,0 +1,79 @@
+{
+  "id": "徕芬牙刷上墙架-v1-mteao5zi",
+  "name": "徕芬牙刷上墙架 v1",
+  "category": "organizer",
+  "sortOrder": 30,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "徕芬牙刷上墙架 v1.3mf",
+    "print": "徕芬牙刷上墙架 v1.3mf",
+    "format": "3mf",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      32.9,
+      50.5,
+      80
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          100.03,
+          45.957,
+          -91.45
+        ],
+        "normal": [
+          0.004,
+          0.003,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          100.031,
+          4.473,
+          -91.629
+        ],
+        "normal": [
+          0.004,
+          0.003,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -81.503
+  },
+  "defaultRotation": 0
+}

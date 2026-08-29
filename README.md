@@ -3,7 +3,7 @@
 更新时间：2026-08-28  
 当前应用本体：`D:\自动切片设计软件\snapboard-v2\`
 
-SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前 Studio 应用位于 `snapboard-v2/`，官网/Wiki 位于 `apps/wiki/`；历史原型和外围工具已归档到 `_archive/legacy/`，不属于运行时主链路。
+SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前唯一对外网站和 Studio 应用都由 `snapboard-v2/` 提供：官网、校园方案、使用指南、项目资料和在线设计器共用 `http://127.0.0.1:5173/`。`apps/wiki/` 保留公开 Markdown 文档与开发日志源文件，供贡献者维护和 GitHub 查阅，不再作为第二个用户入口；历史原型和外围工具已归档到 `_archive/legacy/`。
 
 ## 文档入口
 
@@ -16,10 +16,15 @@ GitHub 新仓库设置与发布流程：[`docs-internal/GITHUB_SETUP.md`](docs-i
 专题文档：
 
 - [`snapboard-v2/docs/TECH_SPEC.md`](snapboard-v2/docs/TECH_SPEC.md)：技术栈和模块边界；
+- [`snapboard-v2/docs/SPLIT_ENGINE_RESEARCH.md`](snapboard-v2/docs/SPLIT_ENGINE_RESEARCH.md)：分割、孔位安全域、模块化排布与科创验证路线；
+- [`snapboard-v2/docs/TECHNICAL_EVOLUTION.md`](snapboard-v2/docs/TECHNICAL_EVOLUTION.md)：分割算法、3D 引擎、装配与制造链的技术演进和创新证据边界；
+- [`snapboard-v2/docs/MECHANICAL_VALIDATION_PLAN.md`](snapboard-v2/docs/MECHANICAL_VALIDATION_PLAN.md)：PETG 材料、孔阵、接缝和长期装配耐久验证计划；
 - [`snapboard-v2/docs/PROJECT_FILE_FORMAT.md`](snapboard-v2/docs/PROJECT_FILE_FORMAT.md)：`.snapboard`、制造清单、3MF 和保存 API；
 - [`snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md`](snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md)：配件包和装配路线。
 
-商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在本地 `商业运营/`，该目录不进入公开 GitHub 仓库；工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明由 `apps/wiki/` 管理。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
+商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在本地 `商业运营/`，该目录不进入公开 GitHub 仓库；工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明的源文件由 `apps/wiki/` 管理，并通过主站的“项目资料”页统一介绍。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
+
+部分配件模型和安装示例图来自 MakeWorld 等公开页面的测试抓取，仅用于软件回归，不用于商业化；来源、授权和下架边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 ## 当前产品链路
 
@@ -50,8 +55,8 @@ Three.js 3D 板件/配件装配预览
 D:\自动切片设计软件\
 ├── README.md                         # 本项目索引
 ├── PROJECT_STRUCTURE.md              # 模块化结构和迁移规则
-├── start-wiki.bat                    # Wiki 一键启动
-├── apps/wiki/                        # ★ 官网、Wiki 与开发日志
+├── start-wiki.bat                    # 兼容名称：启动统一官网
+├── apps/wiki/                        # 公开文档与开发日志源文件（非第二入口）
 ├── modules/                          # 领域模块边界说明
 ├── assets/drawings/                  # DXF/SVG 权威规格
 ├── 商业运营/                          # 内部产品和运营资料
@@ -105,21 +110,23 @@ node .tmp-3d-test/verify-manufacturing-export.mjs
 npm install
 npm run dev          # Studio
 npm run build        # Studio 生产构建
-npm run wiki:dev     # Wiki 本地预览
-npm run wiki:build   # Wiki 静态构建
-npm run build:all    # Studio + Wiki
-npm run site:build   # 统一公开站点：/ + /community + /docs + /devlog + /design/
+npm run wiki:dev     # 兼容命令：启动统一官网（5173）
+npm run wiki:build   # 校验/构建文档源（贡献者使用）
+npm run build:all    # Studio + 文档源
+npm run site:build   # 构建统一官网与设计器
 ```
 
-GitHub Actions 也使用 `npm run site:build`，会把 Studio 构建到 `/design/`，再和官网、文档、开发日志合并为一个 Pages 产物。
+GitHub Actions 使用 `npm run site:build`，直接发布 `snapboard-v2` 的统一官网；公开文档与开发日志从官网“项目资料”页链接到仓库中的 Markdown 源文件。这样部署只维护一个面向用户的网站，不再同时发布两个首页。
+
+公开测试 Release：推送符合 `vX.Y.Z` 的标签会运行 `.github/workflows/release.yml`，先构建官网/设计器并执行分割、孔位、装配和 3MF 回归，再创建 GitHub Release；第三方测试资源边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 
 统一公开站点的路径：
 
 - `/`：消费端官网首页；
 - `/community`：校园方案与母版展示；
-- `/docs`：用户、开发者和制造文档；
-- `/devlog`：带截图的开发日志；
-- `/design/`：在线设计器。
+- `/guide`：测量、画板、自动分割、装配和导出的交互式指南；
+- `/project`：公开文档、开发日志、开源仓库和公开边界的统一入口；
+- `/design`：在线设计器。
 
 Vite 的 `server.watch.ignored` 不能删除，否则 Windows 编辑器临时目录可能触发 EBUSY 并导致开发服务器退出。
 
@@ -137,8 +144,8 @@ Vite 的 `server.watch.ignored` 不能删除，否则 Windows 编辑器临时目
 ## 几何和制造事实
 
 - 所有制造尺寸使用毫米；
-- 长圆孔默认 5×15 mm，全局错列晶格；
-- 边缘候选圆孔默认 φ6；
+- 长圆孔默认 5×15 mm；先在原始轮廓建立唯一 A/B 母阵，分板只能裁取，标准 200×200 拼接仍严格复现四板 DXF；
+- 边缘候选圆孔默认 φ5；
 - 未确认候选孔只有 2D/3D 虚线，不生成薄盖、凹槽或浮动圆片；
 - `knocked=true` 才生成贯通实体孔；
 - 制造网格使用 48 段曲线和约 0.35 mm 倒角；

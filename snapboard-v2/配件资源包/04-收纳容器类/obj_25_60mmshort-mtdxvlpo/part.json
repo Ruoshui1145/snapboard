@@ -1,0 +1,75 @@
+{
+  "id": "obj_25_60mmshort-mtdxvlpo",
+  "name": "60mm镂空方桶Short",
+  "category": "bin",
+  "sortOrder": 260,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_25_60mmShort.stl",
+    "print": "obj_25_60mmShort.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      60,
+      70.7,
+      55
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          700,
+          41,
+          414.762
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          700,
+          13.656,
+          420.386
+        ],
+        "normal": [
+          0,
+          0.33,
+          -0.944
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 425.512
+  },
+  "defaultRotation": 0
+}

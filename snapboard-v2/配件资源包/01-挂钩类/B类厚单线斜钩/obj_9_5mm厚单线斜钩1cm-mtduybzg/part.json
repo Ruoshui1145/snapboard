@@ -1,0 +1,76 @@
+{
+  "id": "obj_9_5mm厚单线斜钩1cm-mtduybzg",
+  "name": "5mm厚单线斜钩1cm",
+  "category": "hook",
+  "subcategory": "B类厚单线斜钩",
+  "sortOrder": 50,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_9_5mm厚单线斜钩1cm.stl",
+    "print": "obj_9_5mm厚单线斜钩1cm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -90,
+      -180,
+      90
+    ],
+    "dimensionsMm": [
+      37.3,
+      49.5,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          132.256,
+          20.573,
+          -127.814
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          132.256,
+          -6.075,
+          -123.794
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -118.214
+  },
+  "defaultRotation": 0
+}

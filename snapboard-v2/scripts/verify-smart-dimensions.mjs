@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 const root = process.cwd()
 const outDir = path.join(root, '.tmp-3d-test', 'compiled-smart-dimensions')
+const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
 execFileSync(process.execPath, [
-  path.join(root, 'node_modules', 'typescript', 'bin', 'tsc'),
+  tscPath,
   '--ignoreConfig', 'src/utils/constraintGeometry.ts', 'src/types/geometry.ts',
   '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
   '--target', 'es2023', '--skipLibCheck', 'true',

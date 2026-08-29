@@ -1,0 +1,79 @@
+{
+  "id": "70-160-40-mtea34rl",
+  "name": "70-160-40",
+  "category": "shelf",
+  "sortOrder": 290,
+  "description": "EA哒哒哒",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "70-160-40.stl",
+    "print": "70-160-40.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      159,
+      84,
+      40.6
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          140,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          20,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 150
+  },
+  "defaultRotation": 0
+}

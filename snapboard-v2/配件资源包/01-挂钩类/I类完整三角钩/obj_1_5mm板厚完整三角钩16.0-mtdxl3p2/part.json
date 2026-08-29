@@ -1,0 +1,93 @@
+{
+  "id": "obj_1_5mm板厚完整三角钩16.0-mtdxl3p2",
+  "name": "5mm板厚完整三角钩16.0",
+  "category": "hook",
+  "subcategory": "I类完整三角钩",
+  "sortOrder": 10,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_1_5mm板厚完整三角钩16.0.stl",
+    "print": "obj_1_5mm板厚完整三角钩16.0.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      90,
+      0,
+      -90
+    ],
+    "dimensionsMm": [
+      178.9,
+      40.6,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          128,
+          10.004,
+          -291.108
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          128,
+          -16.645,
+          -287.088
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          128,
+          -0.82,
+          -281.508
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false
+  },
+  "defaultRotation": 0
+}

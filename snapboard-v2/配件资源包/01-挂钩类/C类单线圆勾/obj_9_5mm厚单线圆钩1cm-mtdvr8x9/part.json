@@ -1,0 +1,76 @@
+{
+  "id": "obj_9_5mm厚单线圆钩1cm-mtdvr8x9",
+  "name": "5mm厚单线圆钩1cm",
+  "category": "hook",
+  "subcategory": "C类单线圆勾",
+  "sortOrder": 50,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_9_5mm厚单线圆钩1cm.stl",
+    "print": "obj_9_5mm厚单线圆钩1cm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      90,
+      0,
+      -90
+    ],
+    "dimensionsMm": [
+      28.6,
+      46.8,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          166.794,
+          18.875,
+          -117.422
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          166.794,
+          -6.449,
+          -113.388
+        ],
+        "normal": [
+          0,
+          0.078,
+          -0.997
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -107.822
+  },
+  "defaultRotation": 0
+}

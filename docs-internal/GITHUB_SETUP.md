@@ -7,7 +7,7 @@
 | Owner | `Ruoshui1145` | 保持 |
 | Repository name | `SnapBoard` 可用 | 可保持；如果想统一 URL，推荐 `snapboard` 小写 |
 | Description | 空白 | 填写项目简介 |
-| Visibility | Public | 保持 Public，便于社区、Wiki 和 GitHub Pages |
+| Visibility | Public | 保持 Public，便于官网、开源软件和 GitHub Pages |
 | Add README | On | **改为 Off**，本地已有完整 README |
 | Add .gitignore | No .gitignore | **保持 No**，使用本地已经整理好的版本 |
 | Add license | No license | **建议 Apache-2.0 或 MIT**，不要留空 |
@@ -50,7 +50,7 @@ git push -u origin main
 
 1. 打开仓库 `Settings → Pages`；
 2. `Build and deployment → Source` 选择 `GitHub Actions`；
-3. 工作流 `.github/workflows/wiki-pages.yml` 会构建 `apps/wiki`；
+3. 工作流 `.github/workflows/wiki-pages.yml` 会构建 `snapboard-v2` 的统一官网；
 4. 页面地址通常为 `https://ruoshui1145.github.io/SnapBoard/`；
 5. 如果绑定自定义域名，再把 `SITE_URL`、`BASE_URL` 和 CNAME 一起调整。
 
@@ -68,9 +68,10 @@ git push -u origin main
 
 ## GitHub 仓库功能建议
 
-- GitHub Wiki：关闭，避免与 `apps/wiki` 形成两套文档；
+- GitHub Wiki：关闭，避免与官网“项目资料”页和 `apps/wiki` 源文件形成三套文档；
 - Issues：开启，用于公开 Bug 和功能建议；
 - Discussions：达到首批用户后再开启；
 - Actions：保持最小权限，Pages 工作流只需要 contents read、pages write、id-token write；
+- Release：推送 `vX.Y.Z` 标签会触发 `.github/workflows/release.yml`，先运行构建和分割/孔位/装配/3MF 回归，再生成公开测试预览 Release 并附带 `snapboard-v2/dist` 网站压缩包；Release 分类配置在 `.github/release.yml`。
 - Security：开启 Dependabot，后续再加入 CodeQL；
 - Topics：`3d-printing`、`pegboard`、`3mf`、`bambu`、`petg`、`webgl`、`react`、`vite`。

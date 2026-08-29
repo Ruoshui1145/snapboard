@@ -5,17 +5,29 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { categoryFromDirName } from './scripts/part-category-rules.mjs'
 
-const runPartSync = (root: string) => new Promise<void>((resolve, reject) => {
-  const child = spawn(process.execPath, [path.resolve(root, 'scripts', 'sync-part-library.mjs')], {
-    cwd: root,
-    stdio: 'inherit',
-  })
-  child.once('error', reject)
-  child.once('exit', code => code === 0 ? resolve() : reject(new Error(`配件库同步失败 (${code})`)))
-})
+let partSyncQueue: Promise<void> = Promise.resolve()
+
+/**
+ * 资源包同步会写回 part.json/pack.json。所有 API 和文件监听都必须走同一
+ * 个队列，否则大量模型同时进入时会并发写 index.json，最终把 Vite 进程打死，
+ * 前端看到的就是保存请求 Failed to fetch。
+ */
+const runPartSync = (root: string) => {
+  const task = partSyncQueue.then(() => new Promise<void>((resolve, reject) => {
+    const child = spawn(process.execPath, [path.resolve(root, 'scripts', 'sync-part-library.mjs')], {
+      cwd: root,
+      stdio: 'inherit',
+    })
+    child.once('error', reject)
+    child.once('exit', code => code === 0 ? resolve() : reject(new Error(`配件库同步失败 (${code})`)))
+  }))
+  partSyncQueue = task.catch(() => undefined)
+  return task
+}
 
 const userPackId = 'snapboard.user-imports'
 const importModelExtensions = new Set(['.3mf', '.stl', '.glb', '.gltf'])
+const usageImageExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp'])
 const partCategories = new Set(['hook', 'bracket', 'shelf', 'bin', 'organizer', 'fastener', 'base', 'cable', 'custom'])
 
 const safeFileSegment = (value: string, fallback: string) => {
@@ -25,6 +37,15 @@ const safeFileSegment = (value: string, fallback: string) => {
     .replace(/[. ]+$/g, '')
     .trim()
   return cleaned || fallback
+}
+
+const parseDimensionsMm = (value: string | null): [number, number, number] | undefined => {
+  if (!value) return undefined
+  const parsed = JSON.parse(value)
+  if (!Array.isArray(parsed) || parsed.length !== 3 || !parsed.every(item => Number.isFinite(Number(item)) && Number(item) >= 0)) {
+    throw new Error('模型尺寸元数据无效')
+  }
+  return parsed.map(Number) as [number, number, number]
 }
 
 const readRequestBuffer = async (req: import('node:http').IncomingMessage, maxBytes: number) => {
@@ -128,15 +149,39 @@ const partLibraryWatcher = () => ({
     const packsRoot = path.resolve(root, '配件资源包')
     let timer: ReturnType<typeof setTimeout> | undefined
     let syncing = false
+    let dirtyWhileSyncing = false
+    // 只监听会影响网页索引的资产文件；同步器自动写入的 part.json/pack.json
+    // 和目录事件不再触发回环。UI/API 修改 manifest 时会显式调用 runPartSync。
+    const watchedExtensions = new Set(['.3mf', '.stl', '.glb', '.gltf', '.step', '.stp', '.sldprt', '.x_t', '.x_b', '.png', '.jpg', '.jpeg', '.webp'])
+    const startSync = () => {
+      if (syncing) {
+        dirtyWhileSyncing = true
+        return
+      }
+      syncing = true
+      dirtyWhileSyncing = false
+      runPartSync(root)
+        .catch(error => server.config.logger.error(error instanceof Error ? error.message : String(error)))
+        .finally(() => {
+          syncing = false
+          if (dirtyWhileSyncing) {
+            dirtyWhileSyncing = false
+            clearTimeout(timer)
+            timer = setTimeout(startSync, 500)
+          }
+        })
+    }
     server.watcher.add(packsRoot)
     const schedule = (_event: string, filename: string) => {
-      if (!path.resolve(filename).startsWith(packsRoot + path.sep)) return
+      const resolved = path.resolve(filename)
+      if (!resolved.startsWith(packsRoot + path.sep)) return
+      if (!watchedExtensions.has(path.extname(resolved).toLowerCase())) return
+      if (syncing) {
+        dirtyWhileSyncing = true
+        return
+      }
       clearTimeout(timer)
-      timer = setTimeout(() => {
-        if (syncing) return
-        syncing = true
-        runPartSync(root).finally(() => { syncing = false })
-      }, 300)
+      timer = setTimeout(startSync, 500)
     }
     server.watcher.on('all', schedule)
     server.httpServer?.once('close', () => {
@@ -238,6 +283,11 @@ const partImportApi = () => ({
         if (!name || name.length > 80) throw new Error('配件名称应为 1–80 个字符')
         const description = String(url.searchParams.get('description') ?? '').trim()
         if (description.length > 240) throw new Error('配件说明不能超过 240 个字符')
+        const subcategory = safeFileSegment(String(url.searchParams.get('subcategory') ?? ''), '')
+        if (subcategory.length > 40) throw new Error('细分文件夹名称不能超过 40 个字符')
+        const dimensionsMm = parseDimensionsMm(url.searchParams.get('dimensionsMm'))
+        const renderNode = String(url.searchParams.get('renderNode') ?? '')
+        if (renderNode.length > 120 || (renderNode && !/^\d+(\/\d+)*$/.test(renderNode))) throw new Error('实际渲染对象路径无效')
         const requestedCategory = String(url.searchParams.get('category') ?? 'custom')
         let category = partCategories.has(requestedCategory) ? requestedCategory : 'custom'
         const model = await readRequestBuffer(req, 200 * 1024 * 1024)
@@ -268,10 +318,12 @@ const partImportApi = () => ({
           const categoryPack = JSON.parse(await fs.readFile(categoryPackFile, 'utf8'))
           targetPackageId = String(categoryPack.id)
           // 大类目录采用 <大类>/<零件>/ 布局；不要创建空 parts/，否则同步器会误判为传统包。
-          partsDir = targetPackDir
+          partsDir = subcategory ? path.join(targetPackDir, subcategory) : targetPackDir
+          if (!partsDir.startsWith(targetPackDir + path.sep) && path.resolve(partsDir) !== path.resolve(targetPackDir)) throw new Error('细分文件夹路径越界')
         } else {
           const userPack = await ensureUserPack(root)
-          partsDir = userPack.partsDir
+          partsDir = subcategory ? path.join(userPack.partsDir, subcategory) : userPack.partsDir
+          if (!partsDir.startsWith(userPack.partsDir + path.sep) && path.resolve(partsDir) !== path.resolve(userPack.partsDir)) throw new Error('细分文件夹路径越界')
         }
         const slug = safeFileSegment(name.toLowerCase().replace(/\s+/g, '-'), 'part')
         let localId = `${slug}-${Date.now().toString(36)}`
@@ -296,6 +348,7 @@ const partImportApi = () => ({
           id: localId,
           name,
           category,
+          ...(subcategory ? { subcategory } : {}),
           sortOrder: await nextPartSortOrder(partsDir),
           description: description || '从网页导入；请设置默认朝向与装配吸附点',
           kind: 'fixed',
@@ -308,6 +361,8 @@ const partImportApi = () => ({
             upAxis: isGltf ? 'y' : 'z',
             scale: 1,
             orientation: [0, 0, 0],
+            ...(dimensionsMm ? { dimensionsMm } : {}),
+            ...(renderNode ? { renderNode } : {}),
           },
           mount: { mode: 'free', anchors: [], calibrationRequired: true },
           defaultRotation: 0,
@@ -345,19 +400,115 @@ const partImportApi = () => ({
         const localId = String(body.localId ?? '')
         const name = String(body.name ?? '').trim()
         const description = String(body.description ?? '').trim()
+        const subcategory = safeFileSegment(String(body.subcategory ?? ''), '')
         const sortOrder = Math.max(0, Math.min(999999, Math.round(Number(body.sortOrder) || 0)))
         if (!packageId || !localId || !name || name.length > 80) throw new Error('配件名称应为 1–80 个字符')
+        if (subcategory.length > 40) throw new Error('细分文件夹名称不能超过 40 个字符')
         if (description.length > 240) throw new Error('配件说明不能超过 240 个字符')
         const root = process.cwd()
         const manifestPath = await findPartManifest(root, packageId, localId)
         const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
         manifest.name = name
         manifest.description = description
+        if (subcategory) manifest.subcategory = subcategory
+        else delete manifest.subcategory
         manifest.sortOrder = sortOrder
         await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
         await runPartSync(root)
         res.statusCode = 200
         res.end(JSON.stringify({ ok: true, name, sortOrder }))
+      } catch (error) {
+        res.statusCode = 400
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+      }
+    })
+
+    server.middlewares.use('/api/part-library/usage-image', async (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      if (req.method !== 'POST' && req.method !== 'DELETE') {
+        res.statusCode = 405
+        res.end(JSON.stringify({ error: '仅支持 POST 或 DELETE' }))
+        return
+      }
+      try {
+        const url = new URL(req.url ?? '/', 'http://snapboard.local')
+        const packageId = String(url.searchParams.get('packageId') ?? '')
+        const localId = String(url.searchParams.get('localId') ?? '')
+        if (!packageId || !localId) throw new Error('零件 ID 无效')
+        const manifestPath = await findPartManifest(process.cwd(), packageId, localId)
+        const partDir = path.dirname(manifestPath)
+        const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+
+        const currentImage = typeof manifest.usageImage === 'string'
+          ? path.basename(manifest.usageImage)
+          : ''
+        const removeUsageAssets = async (keep = '') => {
+          const files = await fs.readdir(partDir)
+          for (const file of files) {
+            const extension = path.extname(file).toLowerCase()
+            const stem = path.basename(file, path.extname(file)).toLowerCase()
+            const isUsageAsset = usageImageExtensions.has(extension) &&
+              (file === currentImage || /^(usage|assembly|install|photo|实装|安装)(-|$)/i.test(stem))
+            if (isUsageAsset && file !== keep) await fs.rm(path.join(partDir, file), { force: true })
+          }
+        }
+
+        if (req.method === 'DELETE') {
+          await removeUsageAssets()
+          delete manifest.usageImage
+          await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
+          await runPartSync(process.cwd())
+          res.statusCode = 200
+          res.end(JSON.stringify({ ok: true, removed: Boolean(currentImage) }))
+          return
+        }
+
+        const originalFilename = safeFileSegment(url.searchParams.get('filename') ?? '', 'usage.png')
+        const extension = path.extname(originalFilename).toLowerCase()
+        if (!usageImageExtensions.has(extension)) throw new Error('实装示例图仅支持 PNG、JPG 或 WebP')
+        const image = await readRequestBuffer(req, 10 * 1024 * 1024)
+        // 每次使用新文件名，避免浏览器/DevTools 缓存继续显示旧照片。
+        const filename = `usage-${Date.now().toString(36)}${extension}`
+        await fs.writeFile(path.join(partDir, filename), image)
+        await removeUsageAssets(filename)
+        manifest.usageImage = filename
+        await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
+        await runPartSync(process.cwd())
+        res.statusCode = 200
+        res.end(JSON.stringify({ ok: true, filename }))
+      } catch (error) {
+        res.statusCode = 400
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+      }
+    })
+
+    server.middlewares.use('/api/part-library/preview', async (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      if (req.method !== 'POST') {
+        res.statusCode = 405
+        res.end(JSON.stringify({ error: '仅支持 POST' }))
+        return
+      }
+      try {
+        let raw = ''
+        for await (const chunk of req) {
+          raw += chunk
+          if (raw.length > 16 * 1024) throw new Error('预览设置数据过大')
+        }
+        const body = JSON.parse(raw)
+        const packageId = String(body.packageId ?? '')
+        const localId = String(body.localId ?? '')
+        const direction = Array.isArray(body.direction) ? body.direction.map(Number) : []
+        if (!packageId || !localId || direction.length !== 3 || !direction.every(Number.isFinite)) throw new Error('缩略图视角数据无效')
+        const length = Math.hypot(direction[0], direction[1], direction[2])
+        if (length < .1) throw new Error('缩略图视角方向无效')
+        const manifestPath = await findPartManifest(process.cwd(), packageId, localId)
+        const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+        manifest.model = { ...(manifest.model ?? {}), previewDirection: direction.map((value: number) => value / length) }
+        await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
+        await runPartSync(process.cwd())
+        res.statusCode = 200
+        res.end(JSON.stringify({ ok: true, direction: manifest.model.previewDirection }))
       } catch (error) {
         res.statusCode = 400
         res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
@@ -620,11 +771,96 @@ const partBatchApi = () => ({
   },
 })
 
+/** 配件大类下的细分文件夹管理；GET 用于导入弹框读取已有目录，删除由客户端二次确认。 */
+const partGroupApi = () => ({
+  name: 'snapboard-part-group-api',
+  configureServer(server: import('vite').ViteDevServer) {
+    server.middlewares.use('/api/part-library/group', async (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      try {
+        const categoryFolders: Record<string, string> = {
+          hook: '01-挂钩类', bracket: '02-支架托架类', shelf: '03-搁板层板类', bin: '04-收纳容器类',
+          organizer: '05-整理件类', fastener: '06-紧固锁扣类', base: '07-底座安装类', cable: '08-线缆整理类', custom: '我的配件',
+        }
+        const requestUrl = new URL(req.url ?? '/', 'http://snapboard.local')
+        const queryCategory = partCategories.has(String(requestUrl.searchParams.get('category') ?? ''))
+          ? String(requestUrl.searchParams.get('category'))
+          : 'custom'
+        const root = process.cwd()
+        const packsRoot = path.resolve(root, '配件资源包')
+        const categoryRootFor = (value: string) => value === 'custom'
+          ? path.resolve(packsRoot, categoryFolders[value], 'parts')
+          : path.resolve(packsRoot, categoryFolders[value])
+        if (req.method === 'GET') {
+          const category = queryCategory
+          const categoryRoot = categoryRootFor(category)
+          const groups: string[] = []
+          let entries: import('node:fs').Dirent[] = []
+          try { entries = await fs.readdir(categoryRoot, { withFileTypes: true }) } catch { entries = [] }
+          for (const entry of entries) {
+            if (!entry.isDirectory() || entry.name.startsWith('.')) continue
+            const groupDir = path.join(categoryRoot, entry.name)
+            let children: import('node:fs').Dirent[] = []
+            try { children = await fs.readdir(groupDir, { withFileTypes: true }) } catch { continue }
+            // 大类根目录下的“零件目录”不是细分文件夹；真正的细分目录通常只包含零件子目录。
+            const isPartDirectory = children.some(child => child.isFile()
+              && (child.name === 'part.json' || importModelExtensions.has(path.extname(child.name).toLowerCase())))
+            if (!isPartDirectory) groups.push(entry.name)
+          }
+          groups.sort((a, b) => a.localeCompare(b, 'zh-CN'))
+          res.statusCode = 200
+          res.end(JSON.stringify({ ok: true, category, groups }))
+          return
+        }
+        if (req.method !== 'POST') {
+          res.statusCode = 405
+          res.end(JSON.stringify({ error: '仅支持 GET 或 POST' }))
+          return
+        }
+        let raw = ''
+        for await (const chunk of req) {
+          raw += chunk
+          if (raw.length > 16 * 1024) throw new Error('请求数据过大')
+        }
+        const body = JSON.parse(raw)
+        const action = String(body.action ?? '')
+        const category = partCategories.has(String(body.category ?? '')) ? String(body.category) : queryCategory
+        const name = safeFileSegment(String(body.name ?? '').trim(), '')
+        if (!name || name.length > 40) throw new Error('细分文件夹名称应为 1–40 个字符')
+        const categoryRoot = categoryRootFor(category)
+        const groupDir = path.resolve(categoryRoot, name)
+        if (!groupDir.startsWith(categoryRoot + path.sep)) throw new Error('细分文件夹路径越界')
+        if (action === 'create') {
+          await fs.mkdir(groupDir, { recursive: true })
+        } else if (action === 'delete') {
+          let entries: import('node:fs').Dirent[]
+          try { entries = await fs.readdir(groupDir, { withFileTypes: true }) }
+          catch { throw new Error('细分文件夹不存在') }
+          if (entries.length > 0 && body.force !== true) throw new Error('该细分文件夹中仍有模型或子文件夹；确认后可连同内容一起删除')
+          if (entries.length > 0) await fs.rm(groupDir, { recursive: true, force: true })
+          else await fs.rmdir(groupDir)
+        } else {
+          throw new Error(`未知操作: ${action}`)
+        }
+        await runPartSync(root)
+        res.statusCode = 200
+        res.end(JSON.stringify({ ok: true, action, category, name }))
+      } catch (error) {
+        res.statusCode = 400
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+      }
+    })
+  },
+})
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), partLibraryWatcher(), partCalibrationApi(), partImportApi(), partBatchApi(), projectLibraryApi(), systemControlApi()],
+  plugins: [react(), partLibraryWatcher(), partCalibrationApi(), partImportApi(), partBatchApi(), partGroupApi(), projectLibraryApi(), systemControlApi()],
   base: process.env.VITE_BASE ?? '/',
   server: {
+    // 统一启动脚本和文档都使用 127.0.0.1；显式绑定 IPv4，避免 Windows
+    // 将 localhost 解析到 ::1 后，浏览器访问 127.0.0.1 得到 Failed to fetch。
+    host: '127.0.0.1',
     watch: {
       // 忽略编辑器原子保存临时目录与本地 Edge 调试用户目录；其中 Cookies 等文件会被
       // 浏览器独占锁定，若让 chokidar 递归监听会报 EBUSY 并直接退出 dev server。

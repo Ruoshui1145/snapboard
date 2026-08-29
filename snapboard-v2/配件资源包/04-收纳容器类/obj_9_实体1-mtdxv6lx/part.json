@@ -1,0 +1,75 @@
+{
+  "id": "obj_9_实体1-mtdxv6lx",
+  "name": "55mm内径镂空圆筒",
+  "category": "bin",
+  "sortOrder": 100,
+  "description": "适配200mlWD40",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_9_实体1.stl",
+    "print": "obj_9_实体1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      59,
+      69.7,
+      50
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          183.489,
+          40.48,
+          -164.139
+        ],
+        "normal": [
+          0.33,
+          0,
+          -0.944
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          182.297,
+          12,
+          -158.732
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -153.482
+  },
+  "defaultRotation": 0
+}

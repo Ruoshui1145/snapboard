@@ -1,0 +1,58 @@
+{
+  "id": "obj_7_5mm厚单洞小直钩0.5cm-mtdurcqg",
+  "name": "5mm厚单洞小直钩0.5cm",
+  "category": "hook",
+  "subcategory": "A类直钩",
+  "sortOrder": 40,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_7_5mm厚单洞小直钩0.5cm.stl",
+    "print": "obj_7_5mm厚单洞小直钩0.5cm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -90,
+      0,
+      -90
+    ],
+    "dimensionsMm": [
+      23.6,
+      29.5,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "single",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          119.123,
+          9.75,
+          -124.8
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -115.3
+  },
+  "defaultRotation": 0
+}

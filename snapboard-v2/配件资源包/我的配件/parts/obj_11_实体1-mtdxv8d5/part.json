@@ -1,0 +1,33 @@
+{
+  "id": "obj_11_实体1-mtdxv8d5",
+  "name": "obj_11_实体1",
+  "category": "custom",
+  "sortOrder": 120,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_11_实体1.stl",
+    "print": "obj_11_实体1.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      66.8,
+      75.4,
+      20
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}

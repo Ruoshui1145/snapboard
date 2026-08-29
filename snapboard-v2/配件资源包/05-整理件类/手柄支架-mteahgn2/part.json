@@ -1,0 +1,101 @@
+{
+  "id": "手柄支架-mteahgn2",
+  "name": "手柄支架",
+  "category": "organizer",
+  "sortOrder": 310,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "DDB - SB - YJ.STL",
+    "print": "DDB - SB - YJ.STL",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      90,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      65,
+      35,
+      63
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          52.45,
+          41.5,
+          -49
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          12.55,
+          41.5,
+          -49
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          32.5,
+          21.5,
+          -49
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.2589693139543369,
+          0.9658855493432025
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -39
+  },
+  "defaultRotation": 0
+}

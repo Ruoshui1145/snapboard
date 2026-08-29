@@ -1,0 +1,33 @@
+{
+  "id": "耳机支架-mteatmth",
+  "name": "耳机支架缺少配件",
+  "category": "organizer",
+  "sortOrder": 330,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "耳机支架.stl",
+    "print": "耳机支架.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      86.5,
+      66.5,
+      72
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}

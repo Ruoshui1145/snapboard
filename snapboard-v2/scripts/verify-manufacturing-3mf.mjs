@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { unzipSync, strFromU8 } from 'fflate'
@@ -79,6 +79,7 @@ try {
   assert.equal((modelSettings.match(/<model_instance>/g) ?? []).length, 2)
 
   const output = path.resolve(projectRoot, '..', '.tmp-3d-test', 'snapboard-bambu-two-plate.3mf')
+  await mkdir(path.dirname(output), { recursive: true })
   await writeFile(output, result.data)
 
   const slopedSplit = splitOrthogonalPolygon({

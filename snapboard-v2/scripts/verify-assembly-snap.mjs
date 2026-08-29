@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import * as THREE from 'three'
 
 const root = process.cwd()
 const outDir = path.join(root, '.tmp-3d-test', 'compiled-assembly-regression')
+const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
 execFileSync(process.execPath, [
-  path.join(root, 'node_modules', 'typescript', 'bin', 'tsc'),
+  tscPath,
   '--ignoreConfig',
   'src/utils/assemblySnap.ts', 'src/utils/assemblySide.ts', 'src/utils/slotAxisProbe.ts', 'src/utils/mountAxis.ts', 'src/utils/mountCalibrationRepair.ts', 'src/partLibrary/types.ts',
   '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',

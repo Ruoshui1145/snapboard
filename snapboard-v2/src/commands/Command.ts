@@ -9,6 +9,8 @@ export interface Command {
   redo(): void
   /** 命令描述 (用于 UI 显示) */
   label: string
+  /** 是否修改草图/轮廓，从而需要同步自动分割；配件和旧演示板命令为 false。 */
+  affectsSketch?: boolean
 }
 
 /** 把一次用户手势涉及的多个几何修改作为一个可撤销操作提交。 */
@@ -19,6 +21,10 @@ export class CompositeCommand implements Command {
   constructor(label: string, commands: Command[]) {
     this.label = label
     this.commands = commands
+  }
+
+  get affectsSketch(): boolean {
+    return this.commands.some(command => command.affectsSketch !== false)
   }
 
   execute(): void {

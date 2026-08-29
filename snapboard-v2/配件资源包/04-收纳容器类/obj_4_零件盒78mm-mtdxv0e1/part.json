@@ -1,0 +1,115 @@
+{
+  "id": "obj_4_零件盒78mm-mtdxv0e1",
+  "name": "零件盒78mm",
+  "category": "bin",
+  "sortOrder": 50,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_4_零件盒78mm.stl",
+    "print": "obj_4_零件盒78mm.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      78,
+      70.8,
+      60
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          212.971,
+          48.5,
+          82.528
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          212.971,
+          15.5,
+          93.028
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          172.971,
+          48.5,
+          82.528
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a4",
+        "label": "吸附点 4",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          172.971,
+          18.293,
+          88.455
+        ],
+        "normal": [
+          0,
+          -0.609,
+          -0.793
+        ],
+        "required": true
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 93.278
+  },
+  "defaultRotation": 0
+}

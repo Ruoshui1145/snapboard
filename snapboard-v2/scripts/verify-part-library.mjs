@@ -7,10 +7,11 @@ const expected = ['hook', 'bracket', 'shelf', 'bin', 'organizer', 'fastener', 'b
 assert.deepEqual(CATEGORY_DIRECTORY_NAMES.map(categoryFromDirName), expected)
 await Promise.all(CATEGORY_DIRECTORY_NAMES.map(name => access(`配件资源包/${name}/.gitkeep`)))
 
-const [vite, sync, dialog, css, viewport, types, indexText] = await Promise.all([
+const [vite, sync, dialog, previewDialog, css, viewport, types, indexText] = await Promise.all([
   read('vite.config.ts'),
   read('scripts/sync-part-library.mjs'),
   read('src/components/partLibrary/PartImportDialog.tsx'),
+  read('src/components/partLibrary/PartPreviewDialog.tsx'),
   read('src/App.css'),
   read('src/components/viewport/Viewport3D.tsx'),
   read('src/partLibrary/types.ts'),
@@ -32,8 +33,11 @@ assert.match(vite, /manifest\.sortOrder/)
 assert.equal((dialog.match(/createPortal\(/g) ?? []).length, 2)
 assert.equal((dialog.match(/document\.body/g) ?? []).length, 2)
 assert.match(dialog, /单个模型失败不阻断其余文件/)
-assert.match(dialog, /配件信息与文件位置/)
+assert.match(dialog, /配件资料与展示/)
 assert.match(dialog, /删除零件/)
+assert.match(dialog, /实际安装照片/)
+assert.match(previewDialog, /保存当前角度为封面/)
+assert.match(previewDialog, /api\/part-library\/preview/)
 assert.match(css, /max-height:\s*min\(88vh,\s*calc\(100vh - 48px\)\)/)
 assert.match(css, /\.part-import-scroll[\s\S]*overflow-y:\s*auto/)
 
@@ -41,9 +45,13 @@ assert.match(vite, /findPartManifest/)
 assert.match(vite, /向上找到最近持有 pack\.json/)
 assert.match(vite, /api\/system\/shutdown/)
 assert.match(vite, /process\.exit\(0\)/)
+assert.match(vite, /仅支持 POST 或 DELETE/)
+assert.match(vite, /usage-\$\{Date\.now\(\)\.toString\(36\)\}/)
 assert.match(viewport, /openCoveredAssemblyTargets/)
 assert.match(viewport, /occupiedTargetIds\(moving\.partId\)/)
 assert.match(types, /待补长孔方向/)
+assert.match(sync, /(?:function|const) isUsageImage/)
+assert.match(dialog, /删除照片/)
 
 const index = JSON.parse(indexText)
 assert.ok(index.parts.length >= 1)

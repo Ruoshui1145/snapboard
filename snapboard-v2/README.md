@@ -17,7 +17,7 @@ npm run verify:assembly
 npm run verify:textured-3mf -- path/to/generated.3mf
 ```
 
-设计器入口：`http://localhost:5173/design`。
+统一官网入口：`http://localhost:5173/`；设计器入口：`http://localhost:5173/design`。官网的“项目资料”页集中链接公开文档、开发日志和 GitHub 仓库。
 
 Windows 用户可直接双击项目目录中的 [`SnapBoard Studio.lnk`](SnapBoard%20Studio.lnk)，或运行 [`一键启动 SnapBoard.bat`](一键启动%20SnapBoard.bat)。脚本会等待 5173 服务真正就绪后再打开设计器，首次运行会自动安装依赖。
 
@@ -41,7 +41,7 @@ Windows 用户可直接双击项目目录中的 [`SnapBoard Studio.lnk`](SnapBoa
 - 3MF 导出显示分阶段进度并支持取消，板件与配件分开排盘；
 - 左右栏支持折叠、靠边悬停展开和拖动调宽；右栏为全高整列，分割/配件/纹理三个业务工作区入口固定在右栏顶部双层 tab 条，进入任一工作区自动收起左栏；第二工具栏提供紧凑的“自动/取消分割”和 2D/3D 开关，手动切回 2D 不关闭当前右栏业务；
 - 配件资源包支持 8 个大类根目录、传统 `parts/` 布局、散模型自动拆分和网页批量导入；配件信息设置可修改名称、说明、序号与资源分类，也可永久删除零件；默认顺序写入 `part.json.sortOrder`，拖动排序会同步到资源包而非只保存在当前浏览器；
-- 孔位默认采用 5×15 mm 长圆孔与 φ5 固定圆孔；200×200 标准板严格使用工程 SVG 的 10 mm 底边中心距和 B 相 22.2648 mm 横向相位；
+- 孔位默认采用 5×15 mm 长圆孔与用户确认的 φ5 固定圆孔；原始轮廓先建立唯一母阵，分板只裁取；内部接缝圆孔默认内缩 10 mm，非模数外周圆孔与最近长孔共线并取相邻中心中点；
 - 配件标定支持长圆孔轴向、独立接触面 `contactZ`、旧误记数据恢复、正背面双向装配、全局孔位占用和候选圆孔自动打孔；拖拽时以半透明模型、胶囊/圆形锚点和附近候选孔共同预览；
 - 导出前检查闭合网格和 Bambu 多盘实例映射。
 
@@ -64,12 +64,17 @@ VITE_PROJECT_STORAGE_API_BASE=https://your-api.example.com/api/project-library
 
 ## 文档索引
 
-技术文档(实现/规格/格式/路线/更新)在本仓库 `docs/`;商业与市场文档保留在本地 `../商业运营/`，不随公开 GitHub 仓库提交。公开用户文档、开发日志和架构说明位于 `../apps/wiki/`。
+技术文档(实现/规格/格式/路线/更新)在本仓库 `docs/`;商业与市场文档保留在本地 `../商业运营/`，不随公开 GitHub 仓库提交。公开用户文档、开发日志和架构说明的源文件位于 `../apps/wiki/`，普通用户从官网“项目资料”页进入。
+
+配件资源包中部分模型来自 MakeWorld 等公开页面，仅作导入、渲染、装配和 3MF 回归测试，不用于商业化；第三方资源边界见根目录 [`THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md)。
 
 | 文档 | 内容 |
 |---|---|
 | [`docs/PROJECT_DOCUMENTATION.md`](docs/PROJECT_DOCUMENTATION.md) | 当前实现的完整项目文档、架构、数据流、保存和排障 |
 | [`docs/TECH_SPEC.md`](docs/TECH_SPEC.md) | 技术栈、模块边界和几何事实摘要 |
+| [`docs/SPLIT_ENGINE_RESEARCH.md`](docs/SPLIT_ENGINE_RESEARCH.md) | 分割、孔位安全域、规则/六边形模块研究与验证路线 |
+| [`docs/TECHNICAL_EVOLUTION.md`](docs/TECHNICAL_EVOLUTION.md) | 分割算法、3D引擎、装配与制造链的创新候选和迭代路径 |
+| [`docs/MECHANICAL_VALIDATION_PLAN.md`](docs/MECHANICAL_VALIDATION_PLAN.md) | PETG 材料、孔阵、接缝和长期耐久实验计划 |
 | [`docs/PROJECT_FILE_FORMAT.md`](docs/PROJECT_FILE_FORMAT.md) | `.snapboard`、制造清单和 3MF 接口 |
 | [`docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md`](docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md) | 配件包格式、锚点和装配路线 |
 | [`docs/CHANGELOG.md`](docs/CHANGELOG.md) | 版本更新与制造格式兼容说明 |

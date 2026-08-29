@@ -1,0 +1,81 @@
+{
+  "id": "obj_29_重力挂钩-mtdxvq2e",
+  "name": "obj_29_重力挂钩",
+  "category": "hook",
+  "sortOrder": 300,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_29_重力挂钩.stl",
+    "print": "obj_29_重力挂钩.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      90
+    ],
+    "dimensionsMm": [
+      81,
+      40.8,
+      30
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          435.2,
+          46.5,
+          462.846
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          435.2,
+          6.5,
+          462.846
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 473.596
+  },
+  "defaultRotation": 0,
+  "subcategory": "特殊挂钩",
+  "usageImage": "usage-mte3wpm4.jpg"
+}

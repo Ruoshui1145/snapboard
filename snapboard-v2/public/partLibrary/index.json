@@ -38,8 +38,44 @@
       "name": "自定义"
     }
   ],
-  "generatedAt": "2026-08-28T10:44:40.255Z",
+  "generatedAt": "2026-08-29T13:38:56.701Z",
   "packages": [
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-01-挂钩类",
+      "name": "01-挂钩类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“01-挂钩类”大类目录：从网页导入的 hook 类配件。"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-03-搁板层板类",
+      "name": "03-搁板层板类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“03-搁板层板类”大类目录：从网页导入的 shelf 类配件。"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-04-收纳容器类",
+      "name": "04-收纳容器类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“04-收纳容器类”大类目录：从网页导入的 bin 类配件。"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-05-整理件类",
+      "name": "05-整理件类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“05-整理件类”大类目录：从网页导入的 organizer 类配件。"
+    },
     {
       "schemaVersion": 1,
       "id": "snapboard.category-06-紧固锁扣类",
@@ -48,6 +84,15 @@
       "author": "Local User",
       "license": "Private",
       "description": "“06-紧固锁扣类”大类目录：把模型文件拖入本文件夹（或子文件夹）即可自动收录。"
+    },
+    {
+      "schemaVersion": 1,
+      "id": "snapboard.category-08-线缆整理类",
+      "name": "08-线缆整理类",
+      "version": "1.0.0",
+      "author": "Local User",
+      "license": "Private",
+      "description": "“08-线缆整理类”大类目录：从网页导入的 cable 类配件。"
     },
     {
       "schemaVersion": 1,
@@ -69,6 +114,5607 @@
     }
   ],
   "parts": [
+    {
+      "id": "snapboard.category-01-挂钩类:5mm厚单洞小直钩2cm-mtdst3ji",
+      "localId": "5mm厚单洞小直钩2cm-mtdst3ji",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "A类直钩",
+      "sortOrder": 10,
+      "name": "5mm厚单洞小直钩2cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/5mm厚单洞小直钩2cm-mtdst3ji/obj_1_5mm厚单洞小直钩2cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/5mm厚单洞小直钩2cm-mtdst3ji/obj_1_5mm厚单洞小直钩2cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          38.6,
+          29.5,
+          4.5
+        ],
+        "usageImage": "community-assets/snapboard.category-01-挂钩类/5mm厚单洞小直钩2cm-mtdst3ji/usage.jpg"
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              142.55,
+              10.573,
+              -162.3
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -152.7
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm厚单洞小直钩1.5cm-mtduqu8a",
+      "localId": "obj_3_5mm厚单洞小直钩1.5cm-mtduqu8a",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "A类直钩",
+      "sortOrder": 20,
+      "name": "5mm厚单洞小直钩1.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单洞小直钩1.5cm-mtduqu8a/obj_3_5mm厚单洞小直钩1.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单洞小直钩1.5cm-mtduqu8a/obj_3_5mm厚单洞小直钩1.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          33.6,
+          29.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              145.05,
+              10.573,
+              -129.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -120.2
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5.0mm厚单洞小直钩1cm-mtdurcjy",
+      "localId": "obj_5_5.0mm厚单洞小直钩1cm-mtdurcjy",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "A类直钩",
+      "sortOrder": 30,
+      "name": "5.0mm厚单洞小直钩1cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5.0mm厚单洞小直钩1cm-mtdurcjy/obj_5_5.0mm厚单洞小直钩1cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5.0mm厚单洞小直钩1cm-mtdurcjy/obj_5_5.0mm厚单洞小直钩1cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          28.6,
+          29.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              108.45,
+              10.573,
+              -157.3
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -147.7
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm厚单洞小直钩0.5cm-mtdurcqg",
+      "localId": "obj_7_5mm厚单洞小直钩0.5cm-mtdurcqg",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "A类直钩",
+      "sortOrder": 40,
+      "name": "5mm厚单洞小直钩0.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单洞小直钩0.5cm-mtdurcqg/obj_7_5mm厚单洞小直钩0.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单洞小直钩0.5cm-mtdurcqg/obj_7_5mm厚单洞小直钩0.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          23.6,
+          29.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              119.123,
+              9.75,
+              -124.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -115.3
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_11_5mm厚单线斜钩0.5cm-mtduyc7s",
+      "localId": "obj_11_5mm厚单线斜钩0.5cm-mtduyc7s",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 60,
+      "name": "5mm厚单线斜钩0.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线斜钩0.5cm-mtduyc7s/obj_11_5mm厚单线斜钩0.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线斜钩0.5cm-mtduyc7s/obj_11_5mm厚单线斜钩0.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          32.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100.488,
+              20.573,
+              -119.141
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100.488,
+              -6.075,
+              -115.121
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -109.541
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_1_5mm厚单线斜钩3cm-mtduyb5p",
+      "localId": "obj_1_5mm厚单线斜钩3cm-mtduyb5p",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 10,
+      "name": "5mm厚单线斜钩3cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线斜钩3cm-mtduyb5p/obj_1_5mm厚单线斜钩3cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线斜钩3cm-mtduyb5p/obj_1_5mm厚单线斜钩3cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          57.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              173.282,
+              20.573,
+              -181.641
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              173.282,
+              -6.075,
+              -177.621
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -172.041
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm厚单线斜钩2.5cm-mtduybcr",
+      "localId": "obj_3_5mm厚单线斜钩2.5cm-mtduybcr",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 20,
+      "name": "5mm厚单线斜钩2.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线斜钩2.5cm-mtduybcr/obj_3_5mm厚单线斜钩2.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线斜钩2.5cm-mtduybcr/obj_3_5mm厚单线斜钩2.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          52.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              175.782,
+              20.573,
+              -129.141
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              175.782,
+              -6.075,
+              -125.121
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -119.541
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5.0mm厚单线斜钩2cm-mtduybk9",
+      "localId": "obj_5_5.0mm厚单线斜钩2cm-mtduybk9",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 30,
+      "name": "5.0mm厚单线斜钩2cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5.0mm厚单线斜钩2cm-mtduybk9/obj_5_5.0mm厚单线斜钩2cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5.0mm厚单线斜钩2cm-mtduybk9/obj_5_5.0mm厚单线斜钩2cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          47.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              120.5,
+              20.573,
+              -176.641
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              120.5,
+              -6.075,
+              -172.621
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -167.041
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm厚单线斜钩1.5cm-mtduybrq",
+      "localId": "obj_7_5mm厚单线斜钩1.5cm-mtduybrq",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 40,
+      "name": "5mm厚单线斜钩1.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线斜钩1.5cm-mtduybrq/obj_7_5mm厚单线斜钩1.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线斜钩1.5cm-mtduybrq/obj_7_5mm厚单线斜钩1.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          42.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              75.218,
+              20.573,
+              -174.141
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              75.218,
+              -6.075,
+              -170.121
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -164.541
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_9_5mm厚单线斜钩1cm-mtduybzg",
+      "localId": "obj_9_5mm厚单线斜钩1cm-mtduybzg",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "B类厚单线斜钩",
+      "sortOrder": 50,
+      "name": "5mm厚单线斜钩1cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线斜钩1cm-mtduybzg/obj_9_5mm厚单线斜钩1cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线斜钩1cm-mtduybzg/obj_9_5mm厚单线斜钩1cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          37.3,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              132.256,
+              20.573,
+              -127.814
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              132.256,
+              -6.075,
+              -123.794
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -118.214
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_11_5mm厚单线圆钩0.5-mtdvr96l",
+      "localId": "obj_11_5mm厚单线圆钩0.5-mtdvr96l",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 60,
+      "name": "5mm厚单线圆钩0.5",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线圆钩0.5-mtdvr96l/obj_11_5mm厚单线圆钩0.5.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线圆钩0.5-mtdvr96l/obj_11_5mm厚单线圆钩0.5.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          23.6,
+          44.2,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              86.706,
+              17.613,
+              -118.414
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              86.706,
+              -8.712,
+              -114.394
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -108.814
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_1_5mm厚单线圆钩3cm-mtdvr7zn",
+      "localId": "obj_1_5mm厚单线圆钩3cm-mtdvr7zn",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 10,
+      "name": "5mm厚单线圆钩3cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线圆钩3cm-mtdvr7zn/obj_1_5mm厚单线圆钩3cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线圆钩3cm-mtdvr7zn/obj_1_5mm厚单线圆钩3cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          48.6,
+          56.8,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              156.794,
+              23.875,
+              -177.161
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              156.794,
+              -2.45,
+              -173.141
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -167.561
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm厚单线圆钩2.5cm-mtdvr87x",
+      "localId": "obj_3_5mm厚单线圆钩2.5cm-mtdvr87x",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 20,
+      "name": "5mm厚单线圆钩2.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线圆钩2.5cm-mtdvr87x/obj_3_5mm厚单线圆钩2.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线圆钩2.5cm-mtdvr87x/obj_3_5mm厚单线圆钩2.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          43.6,
+          54.3,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              110.194,
+              22.625,
+              -175.911
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              110.194,
+              -2.699,
+              -171.877
+            ],
+            "normal": [
+              0,
+              0.078,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -166.311
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5mm厚单线圆钩2cm-mtdvr8fv",
+      "localId": "obj_5_5mm厚单线圆钩2cm-mtdvr8fv",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 30,
+      "name": "5mm厚单线圆钩2cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚单线圆钩2cm-mtdvr8fv/obj_5_5mm厚单线圆钩2cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚单线圆钩2cm-mtdvr8fv/obj_5_5mm厚单线圆钩2cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          38.6,
+          51.7,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              115.073,
+              21.375,
+              -129.692
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              115.073,
+              -4.95,
+              -125.672
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -120.092
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm厚单线圆钩1.5cm-mtdvr8oh",
+      "localId": "obj_7_5mm厚单线圆钩1.5cm-mtdvr8oh",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 40,
+      "name": "5mm厚单线圆钩1.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线圆钩1.5cm-mtdvr8oh/obj_7_5mm厚单线圆钩1.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线圆钩1.5cm-mtdvr8oh/obj_7_5mm厚单线圆钩1.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          33.6,
+          49.2,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              139.344,
+              20.111,
+              -116.175
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              139.344,
+              -5.213,
+              -112.141
+            ],
+            "normal": [
+              0,
+              0.078,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -106.575
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_9_5mm厚单线圆钩1cm-mtdvr8x9",
+      "localId": "obj_9_5mm厚单线圆钩1cm-mtdvr8x9",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "C类单线圆勾",
+      "sortOrder": 50,
+      "name": "5mm厚单线圆钩1cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线圆钩1cm-mtdvr8x9/obj_9_5mm厚单线圆钩1cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线圆钩1cm-mtdvr8x9/obj_9_5mm厚单线圆钩1cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          28.6,
+          46.8,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              166.794,
+              18.875,
+              -117.422
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              166.794,
+              -6.449,
+              -113.388
+            ],
+            "normal": [
+              0,
+              0.078,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -107.822
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_11_5mm厚单线直钩0.5cm-mtdw0qb4",
+      "localId": "obj_11_5mm厚单线直钩0.5cm-mtdw0qb4",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 60,
+      "name": "5mm厚单线直钩0.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线直钩0.5cm-mtdw0qb4/obj_11_5mm厚单线直钩0.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚单线直钩0.5cm-mtdw0qb4/obj_11_5mm厚单线直钩0.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          23.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              82.483,
+              20.573,
+              -151.175
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              82.483,
+              -6.075,
+              -147.155
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -141.575
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_1_5mm厚单线直钩3cm-mtdw0noy",
+      "localId": "obj_1_5mm厚单线直钩3cm-mtdw0noy",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 10,
+      "name": "5mm厚单线直钩3cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线直钩3cm-mtdw0noy/obj_1_5mm厚单线直钩3cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚单线直钩3cm-mtdw0noy/obj_1_5mm厚单线直钩3cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          48.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              161.017,
+              20.573,
+              -177.3
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              161.017,
+              -6.075,
+              -173.28
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -167.7
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm厚单线直钩2.5cm-mtdw0nxa",
+      "localId": "obj_3_5mm厚单线直钩2.5cm-mtdw0nxa",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 20,
+      "name": "5mm厚单线直钩2.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线直钩2.5cm-mtdw0nxa/obj_3_5mm厚单线直钩2.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚单线直钩2.5cm-mtdw0nxa/obj_3_5mm厚单线直钩2.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          43.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              114.417,
+              20.573,
+              -174.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              114.417,
+              -5.074,
+              -170.766
+            ],
+            "normal": [
+              0,
+              0.078,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -165.2
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5mm厚单线直钩2cm-mtdw0o6q",
+      "localId": "obj_5_5mm厚单线直钩2cm-mtdw0o6q",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 30,
+      "name": "5mm厚单线直钩2cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚单线直钩2cm-mtdw0o6q/obj_5_5mm厚单线直钩2cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚单线直钩2cm-mtdw0o6q/obj_5_5mm厚单线直钩2cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          38.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              141.633,
+              20.573,
+              -122.3
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              141.633,
+              -6.075,
+              -118.28
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -112.7
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm厚单线直钩1.5cm-mtdw0p6o",
+      "localId": "obj_7_5mm厚单线直钩1.5cm-mtdw0p6o",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 40,
+      "name": "5mm厚单线直钩1.5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线直钩1.5cm-mtdw0p6o/obj_7_5mm厚单线直钩1.5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚单线直钩1.5cm-mtdw0p6o/obj_7_5mm厚单线直钩1.5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          33.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              110.117,
+              20.573,
+              -119.8
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              110.117,
+              -6.075,
+              -115.78
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -110.2
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_9_5mm厚单线直钩1cm-mtdw0phh",
+      "localId": "obj_9_5mm厚单线直钩1cm-mtdw0phh",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "D类厚单线直钩",
+      "sortOrder": 50,
+      "name": "5mm厚单线直钩1cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线直钩1cm-mtdw0phh/obj_9_5mm厚单线直钩1cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚单线直钩1cm-mtdw0phh/obj_9_5mm厚单线直钩1cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          28.6,
+          49.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              170.649,
+              20.573,
+              -117.3
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              170.649,
+              -6.075,
+              -113.28
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -107.7
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_11_5mm厚三角钩4cm-mtdw9x8p",
+      "localId": "obj_11_5mm厚三角钩4cm-mtdw9x8p",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 290,
+      "name": "5mm厚三角钩4cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚三角钩4cm-mtdw9x8p/obj_11_5mm厚三角钩4cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_11_5mm厚三角钩4cm-mtdw9x8p/obj_11_5mm厚三角钩4cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          63.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              82.177,
+              8.073,
+              -170.706
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              82.177,
+              -18.575,
+              -166.686
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -161.106
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_1_5mm厚三角钩9cm-mtdw9tqa",
+      "localId": "obj_1_5mm厚三角钩9cm-mtdw9tqa",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 10,
+      "name": "5mm厚三角钩9cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚三角钩9cm-mtdw9tqa/obj_1_5mm厚三角钩9cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm厚三角钩9cm-mtdw9tqa/obj_1_5mm厚三角钩9cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          113.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              148.823,
+              8.073,
+              -252.357
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              148.823,
+              -18.575,
+              -248.337
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -242.757
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm厚三角钩8cm-mtdw9u0k",
+      "localId": "obj_3_5mm厚三角钩8cm-mtdw9u0k",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 20,
+      "name": "5mm厚三角钩8cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚三角钩8cm-mtdw9u0k/obj_3_5mm厚三角钩8cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm厚三角钩8cm-mtdw9u0k/obj_3_5mm厚三角钩8cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          103.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              153.823,
+              8.073,
+              -202.357
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              153.823,
+              -18.575,
+              -198.337
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -192.757
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5mm厚三角钩7cm-mtdw9uv4",
+      "localId": "obj_5_5mm厚三角钩7cm-mtdw9uv4",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 30,
+      "name": "5mm厚三角钩7cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚三角钩7cm-mtdw9uv4/obj_5_5mm厚三角钩7cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm厚三角钩7cm-mtdw9uv4/obj_5_5mm厚三角钩7cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          93.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              158.823,
+              8.073,
+              -152.357
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              158.823,
+              -18.575,
+              -148.337
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -142.757
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm厚三角钩6cm-mtdw9v74",
+      "localId": "obj_7_5mm厚三角钩6cm-mtdw9v74",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 270,
+      "name": "5mm厚三角钩6cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚三角钩6cm-mtdw9v74/obj_7_5mm厚三角钩6cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm厚三角钩6cm-mtdw9v74/obj_7_5mm厚三角钩6cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -90,
+          -180,
+          90
+        ],
+        "dimensionsMm": [
+          83.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              163.823,
+              8.073,
+              -102.357
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              163.823,
+              -18.575,
+              -98.337
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -92.757
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_9_5mm厚三角钩5cm-mtdw9wbi",
+      "localId": "obj_9_5mm厚三角钩5cm-mtdw9wbi",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "E类厚三角钩",
+      "sortOrder": 280,
+      "name": "5mm厚三角钩5cm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚三角钩5cm-mtdw9wbi/obj_9_5mm厚三角钩5cm.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm厚三角钩5cm-mtdw9wbi/obj_9_5mm厚三角钩5cm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          73.7,
+          44.5,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              88.343,
+              8.073,
+              -137.46
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              88.343,
+              -18.575,
+              -133.44
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -127.86
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_1_5mm板厚完整三角钩16.0-mtdxl3p2",
+      "localId": "obj_1_5mm板厚完整三角钩16.0-mtdxl3p2",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "I类完整三角钩",
+      "sortOrder": 10,
+      "name": "5mm板厚完整三角钩16.0",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm板厚完整三角钩16.0-mtdxl3p2/obj_1_5mm板厚完整三角钩16.0.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_1_5mm板厚完整三角钩16.0-mtdxl3p2/obj_1_5mm板厚完整三角钩16.0.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          178.9,
+          40.6,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              128,
+              10.004,
+              -291.108
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              128,
+              -16.645,
+              -287.088
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "round"
+            ],
+            "position": [
+              128,
+              -0.82,
+              -281.508
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true
+          }
+        ],
+        "calibrationRequired": false
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_3_5mm板厚完整三角钩14.0-mtdxl3zv",
+      "localId": "obj_3_5mm板厚完整三角钩14.0-mtdxl3zv",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "I类完整三角钩",
+      "sortOrder": 20,
+      "name": "5mm板厚完整三角钩14.0",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm板厚完整三角钩14.0-mtdxl3zv/obj_3_5mm板厚完整三角钩14.0.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_3_5mm板厚完整三角钩14.0-mtdxl3zv/obj_3_5mm板厚完整三角钩14.0.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          158.9,
+          40.6,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              138,
+              10.004,
+              -239.969
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              138,
+              -16.645,
+              -235.949
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -230.369
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_5_5mm板厚完整三角钩12.0-mtdxl56j",
+      "localId": "obj_5_5mm板厚完整三角钩12.0-mtdxl56j",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "I类完整三角钩",
+      "sortOrder": 30,
+      "name": "5mm板厚完整三角钩12.0",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm板厚完整三角钩12.0-mtdxl56j/obj_5_5mm板厚完整三角钩12.0.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_5_5mm板厚完整三角钩12.0-mtdxl56j/obj_5_5mm板厚完整三角钩12.0.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          138.9,
+          40.6,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              148,
+              10.004,
+              -188.83
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              148,
+              -15.644,
+              -184.796
+            ],
+            "normal": [
+              0,
+              0.078,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              148,
+              -0.82,
+              -179.23
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_7_5mm板厚完整三角钩10.0-mtdxl62u",
+      "localId": "obj_7_5mm板厚完整三角钩10.0-mtdxl62u",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "I类完整三角钩",
+      "sortOrder": 40,
+      "name": "5mm板厚完整三角钩10.0",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm板厚完整三角钩10.0-mtdxl62u/obj_7_5mm板厚完整三角钩10.0.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_7_5mm板厚完整三角钩10.0-mtdxl62u/obj_7_5mm板厚完整三角钩10.0.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          118.9,
+          40.6,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              158,
+              10.004,
+              -137.691
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              158,
+              -16.645,
+              -133.671
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -128.091
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_9_5mm板厚完整三角钩8.0-mtdxl77v",
+      "localId": "obj_9_5mm板厚完整三角钩8.0-mtdxl77v",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "I类完整三角钩",
+      "sortOrder": 50,
+      "name": "5mm板厚完整三角钩8.0",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm板厚完整三角钩8.0-mtdxl77v/obj_9_5mm板厚完整三角钩8.0.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_9_5mm板厚完整三角钩8.0-mtdxl77v/obj_9_5mm板厚完整三角钩8.0.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          98.9,
+          40.6,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              119.641,
+              10.004,
+              -103.813
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              119.641,
+              -16.645,
+              -99.793
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -94.213
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-01-挂钩类:obj_29_重力挂钩-mtdxvq2e",
+      "localId": "obj_29_重力挂钩-mtdxvq2e",
+      "pack": "01-挂钩类",
+      "packageId": "snapboard.category-01-挂钩类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "hook",
+      "subcategory": "特殊挂钩",
+      "sortOrder": 300,
+      "name": "obj_29_重力挂钩",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-01-挂钩类/obj_29_重力挂钩-mtdxvq2e/obj_29_重力挂钩.stl",
+        "print": "community-assets/snapboard.category-01-挂钩类/obj_29_重力挂钩-mtdxvq2e/obj_29_重力挂钩.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          90
+        ],
+        "dimensionsMm": [
+          81,
+          40.8,
+          30
+        ],
+        "usageImage": "community-assets/snapboard.category-01-挂钩类/obj_29_重力挂钩-mtdxvq2e/usage-mte3wpm4.jpg"
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              435.2,
+              46.5,
+              462.846
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              435.2,
+              6.5,
+              462.846
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 473.596
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-03-搁板层板类:70-160-40-mtea34rl",
+      "localId": "70-160-40-mtea34rl",
+      "pack": "03-搁板层板类",
+      "packageId": "snapboard.category-03-搁板层板类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "shelf",
+      "sortOrder": 290,
+      "name": "70-160-40",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-03-搁板层板类/70-160-40-mtea34rl/70-160-40.stl",
+        "print": "community-assets/snapboard.category-03-搁板层板类/70-160-40-mtea34rl/70-160-40.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          159,
+          84,
+          40.6
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              140,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              20,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 150
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-03-搁板层板类:85-240-15-mtea35vg",
+      "localId": "85-240-15-mtea35vg",
+      "pack": "03-搁板层板类",
+      "packageId": "snapboard.category-03-搁板层板类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "shelf",
+      "sortOrder": 300,
+      "name": "85-240-15",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-03-搁板层板类/85-240-15-mtea35vg/85-240-15.stl",
+        "print": "community-assets/snapboard.category-03-搁板层板类/85-240-15-mtea35vg/85-240-15.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          239,
+          95,
+          28.2
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              180,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              20,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 150
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-03-搁板层板类:obj_3_平面支架-(1)-mtdxuzxb",
+      "localId": "obj_3_平面支架-(1)-mtdxuzxb",
+      "pack": "03-搁板层板类",
+      "packageId": "snapboard.category-03-搁板层板类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "shelf",
+      "sortOrder": 30,
+      "name": "平面支架",
+      "description": "平面镂空搁板158mm，可无限拼接",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-03-搁板层板类/obj_3_平面支架--1--mtdxuzxb/obj_3_平面支架 (1).stl",
+        "print": "community-assets/snapboard.category-03-搁板层板类/obj_3_平面支架--1--mtdxuzxb/obj_3_平面支架 (1).stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -180,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          158,
+          85.7,
+          26
+        ],
+        "usageImage": "community-assets/snapboard.category-03-搁板层板类/obj_3_平面支架--1--mtdxuzxb/usage.png"
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              1109.6,
+              17,
+              -170.875
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              1069.6,
+              17,
+              -170.875
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              1029.6,
+              17,
+              -170.875
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              989.6,
+              17,
+              -170.875
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -160.125
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:50-50-100-box-mtea31nw",
+      "localId": "50-50-100-box-mtea31nw",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 260,
+      "name": "50-50-100 box",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/50-50-100-box-mtea31nw/50-50-100 box.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/50-50-100-box-mtea31nw/50-50-100 box.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -90,
+          0
+        ],
+        "dimensionsMm": [
+          64.2,
+          54,
+          100
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              59,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -21.9
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:50-50-100-loukong-box-mtea330g",
+      "localId": "50-50-100-loukong-box-mtea330g",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 270,
+      "name": "50-50-100 loukong box",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/50-50-100-loukong-box-mtea330g/50-50-100 loukong box.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/50-50-100-loukong-box-mtea330g/50-50-100 loukong box.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -90,
+          0
+        ],
+        "dimensionsMm": [
+          64.2,
+          54,
+          100
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              59,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              19,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -21.9
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:50-50-30-box-mtea3062",
+      "localId": "50-50-30-box-mtea3062",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 240,
+      "name": "50-50-30 box",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/50-50-30-box-mtea3062/50-50-30 box.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/50-50-30-box-mtea3062/50-50-30 box.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -90,
+          0
+        ],
+        "dimensionsMm": [
+          64.2,
+          54,
+          54.5
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              69,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              29,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -21.9
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:50-50-55-box-mtea30k4",
+      "localId": "50-50-55-box-mtea30k4",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 250,
+      "name": "50-50-55 box",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/50-50-55-box-mtea30k4/50-50-55 box.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/50-50-55-box-mtea30k4/50-50-55 box.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -90,
+          0
+        ],
+        "dimensionsMm": [
+          64.2,
+          54,
+          58
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              69,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              -5.1,
+              29,
+              -32.1
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -21.9
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:60-200-40-mtea33h4",
+      "localId": "60-200-40-mtea33h4",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 280,
+      "name": "60-200-40",
+      "description": "EA哒哒哒",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/60-200-40-mtea33h4/60-200-40.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/60-200-40-mtea33h4/60-200-40.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          199,
+          70,
+          41.7
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              180,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              20,
+              11.75,
+              140
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 150
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_10_实体1-mtdxv7ik",
+      "localId": "obj_10_实体1-mtdxv7ik",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 110,
+      "name": "68mm内径镂空圆筒",
+      "description": "适配360mlWD40",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_10_实体1-mtdxv7ik/obj_10_实体1.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_10_实体1-mtdxv7ik/obj_10_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          72,
+          82.8,
+          50
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              95.888,
+              40.5,
+              -169.375
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              95.888,
+              12,
+              -163.875
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -158.625
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_24_60mmtall-mtdxvkqb",
+      "localId": "obj_24_60mmtall-mtdxvkqb",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 250,
+      "name": "60mm镂空方桶Tall",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_24_60mmtall-mtdxvkqb/obj_24_60mmTall.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_24_60mmtall-mtdxvkqb/obj_24_60mmTall.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          60,
+          70.8,
+          100
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              783.51,
+              85.5,
+              409.153
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              783.51,
+              45.5,
+              409.153
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 419.903
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_25_60mmshort-mtdxvlpo",
+      "localId": "obj_25_60mmshort-mtdxvlpo",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 260,
+      "name": "60mm镂空方桶Short",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_25_60mmshort-mtdxvlpo/obj_25_60mmShort.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_25_60mmshort-mtdxvlpo/obj_25_60mmShort.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          60,
+          70.7,
+          55
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              700,
+              41,
+              414.762
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              700,
+              13.656,
+              420.386
+            ],
+            "normal": [
+              0,
+              0.33,
+              -0.944
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 425.512
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_26_50mmtall-mtdxvmqr",
+      "localId": "obj_26_50mmtall-mtdxvmqr",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 270,
+      "name": "50mm镂空方桶Tall",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_26_50mmtall-mtdxvmqr/obj_26_50mmTall.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_26_50mmtall-mtdxvmqr/obj_26_50mmTall.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          50,
+          60.8,
+          100
+        ]
+      },
+      "mount": {
+        "mode": "single",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              701.318,
+              88.883,
+              506.272
+            ],
+            "normal": [
+              0.382,
+              0.06,
+              -0.922
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 516.871
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_27_50mmshort-mtdxvnve",
+      "localId": "obj_27_50mmshort-mtdxvnve",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 280,
+      "name": "镂空方孔",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_27_50mmshort-mtdxvnve/obj_27_50mmShort.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_27_50mmshort-mtdxvnve/obj_27_50mmShort.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          50,
+          60.8,
+          55
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              783.514,
+              41,
+              504.41
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              783.514,
+              13.656,
+              510.034
+            ],
+            "normal": [
+              0,
+              0.33,
+              -0.944
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 515.16
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_4_零件盒78mm-mtdxv0e1",
+      "localId": "obj_4_零件盒78mm-mtdxv0e1",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 50,
+      "name": "零件盒78mm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_4_零件盒78mm-mtdxv0e1/obj_4_零件盒78mm.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_4_零件盒78mm-mtdxv0e1/obj_4_零件盒78mm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          78,
+          70.8,
+          60
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              212.971,
+              48.5,
+              82.528
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              212.971,
+              15.5,
+              93.028
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              172.971,
+              48.5,
+              82.528
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              172.971,
+              18.293,
+              88.455
+            ],
+            "normal": [
+              0,
+              -0.609,
+              -0.793
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 93.278
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_5_零件盒158mm-mtdxv1nw",
+      "localId": "obj_5_零件盒158mm-mtdxv1nw",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 60,
+      "name": "零件盒158mm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_5_零件盒158mm-mtdxv1nw/obj_5_零件盒158mm.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_5_零件盒158mm-mtdxv1nw/obj_5_零件盒158mm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          158,
+          70.8,
+          60
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              207.435,
+              51.969,
+              205.159
+            ],
+            "normal": [
+              0,
+              0.079,
+              -0.997
+            ],
+            "required": true,
+            "axis": [
+              -0.38411813449232807,
+              0.9232839534802574
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              167.435,
+              48.5,
+              205.122
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              127.435,
+              48.5,
+              205.122
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              87.435,
+              48.5,
+              205.122
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a5",
+            "label": "吸附点 5",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              207.435,
+              20,
+              210.622
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a6",
+            "label": "吸附点 6",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              167.435,
+              20,
+              210.622
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a7",
+            "label": "吸附点 7",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              127.435,
+              20,
+              210.622
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a8",
+            "label": "吸附点 8",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              87.435,
+              20.759,
+              210.656
+            ],
+            "normal": [
+              0,
+              0.13,
+              -0.991
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 215.872
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_8_零件盒118mm-mtdxv5c2",
+      "localId": "obj_8_零件盒118mm-mtdxv5c2",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 90,
+      "name": "零件盒118mm",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_8_零件盒118mm-mtdxv5c2/obj_8_零件盒118mm.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_8_零件盒118mm-mtdxv5c2/obj_8_零件盒118mm.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          118,
+          70.8,
+          60
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              124.13,
+              48.5,
+              82.758
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              84.13,
+              48.5,
+              82.758
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              44.13,
+              48.5,
+              82.758
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              124.13,
+              20.759,
+              88.292
+            ],
+            "normal": [
+              0,
+              0.13,
+              -0.991
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a5",
+            "label": "吸附点 5",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              84.13,
+              20,
+              88.258
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a6",
+            "label": "吸附点 6",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              44.13,
+              20,
+              88.258
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 93.508
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-04-收纳容器类:obj_9_实体1-mtdxv6lx",
+      "localId": "obj_9_实体1-mtdxv6lx",
+      "pack": "04-收纳容器类",
+      "packageId": "snapboard.category-04-收纳容器类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "bin",
+      "sortOrder": 100,
+      "name": "55mm内径镂空圆筒",
+      "description": "适配200mlWD40",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-04-收纳容器类/obj_9_实体1-mtdxv6lx/obj_9_实体1.stl",
+        "print": "community-assets/snapboard.category-04-收纳容器类/obj_9_实体1-mtdxv6lx/obj_9_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          59,
+          69.7,
+          50
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              183.489,
+              40.48,
+              -164.139
+            ],
+            "normal": [
+              0.33,
+              0,
+              -0.944
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              182.297,
+              12,
+              -158.732
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -153.482
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_1_实体1-mtdxuydz",
+      "localId": "obj_1_实体1-mtdxuydz",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 10,
+      "name": "窄剪刀/钳子支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_1_实体1-mtdxuydz/obj_1_实体1.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_1_实体1-mtdxuydz/obj_1_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          31,
+          26.7,
+          46
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              703.419,
+              36.487,
+              -140.97
+            ],
+            "normal": [
+              0.383,
+              0,
+              -0.924
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              702.15,
+              8.759,
+              -135.562
+            ],
+            "normal": [
+              0,
+              0.131,
+              -0.991
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -130.346
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_1_洞洞板手表挂架-v2-mtearedm",
+      "localId": "obj_1_洞洞板手表挂架-v2-mtearedm",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 30,
+      "name": "obj_1_洞洞板手表挂架 v2",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_1_洞洞板手表挂架-v2-mtearedm/obj_1_洞洞板手表挂架 v2.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_1_洞洞板手表挂架-v2-mtearedm/obj_1_洞洞板手表挂架 v2.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -105,
+          0,
+          -90
+        ],
+        "dimensionsMm": [
+          52.2,
+          77.7,
+          30.1
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              113.19,
+              31.12,
+              -116.77
+            ],
+            "normal": [
+              -0.001,
+              0.174,
+              -0.985
+            ],
+            "required": true,
+            "axis": [
+              -0.3878782253528581,
+              0.9217106282869463
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              113.19,
+              3.294,
+              -113.295
+            ],
+            "normal": [
+              -0.001,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38787822535285815,
+              0.9217106282869464
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -108.864
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_1_洞洞板鼠标123.step-mteaii06",
+      "localId": "obj_1_洞洞板鼠标123.step-mteaii06",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 320,
+      "name": "装配体，缺少零件",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_1_洞洞板鼠标123.step-mteaii06/obj_1_洞洞板鼠标123.STEP.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_1_洞洞板鼠标123.step-mteaii06/obj_1_洞洞板鼠标123.STEP.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          75,
+          85,
+          50.7
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_23_剪刀架large-mtdxvjre",
+      "localId": "obj_23_剪刀架large-mtdxvjre",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 240,
+      "name": "剪刀架Large",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_23_剪刀架large-mtdxvjre/obj_23_剪刀架Large.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_23_剪刀架large-mtdxvjre/obj_23_剪刀架Large.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -180,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          60,
+          22.7,
+          20
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              455.2,
+              11,
+              -155.033
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              415.2,
+              11,
+              -155.033
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -144.283
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_28_实体1-mtdxvoz8",
+      "localId": "obj_28_实体1-mtdxvoz8",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 290,
+      "name": "游标卡尺架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_28_实体1-mtdxvoz8/obj_28_实体1.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_28_实体1-mtdxvoz8/obj_28_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          83,
+          23.8,
+          34
+        ],
+        "usageImage": "community-assets/snapboard.category-05-整理件类/obj_28_实体1-mtdxvoz8/usage-mte45icy.jpg"
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              762.4,
+              23.046,
+              167.325
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              722.4,
+              23.046,
+              167.325
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 178.075
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_2_实体1-mtdxuypf",
+      "localId": "obj_2_实体1-mtdxuypf",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 20,
+      "name": "宽剪刀/钳子支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_2_实体1-mtdxuypf/obj_2_实体1.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_2_实体1-mtdxuypf/obj_2_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          22,
+          24.8,
+          46
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              788.419,
+              36.487,
+              -141.528
+            ],
+            "normal": [
+              0.383,
+              0,
+              -0.924
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              787.15,
+              8,
+              -136.154
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -130.904
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_6_实体1-mtdxv3a8",
+      "localId": "obj_6_实体1-mtdxv3a8",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 70,
+      "name": "手电钻批头/钻头支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_6_实体1-mtdxv3a8/obj_6_实体1.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_6_实体1-mtdxv3a8/obj_6_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          80,
+          31.9,
+          50
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              455.2,
+              39,
+              163.265
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              415.2,
+              39,
+              163.265
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              415.2,
+              11.259,
+              168.799
+            ],
+            "normal": [
+              0,
+              0.131,
+              -0.991
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              455.2,
+              11.759,
+              168.933
+            ],
+            "normal": [
+              0,
+              0.383,
+              -0.924
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": 174.015
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:obj_7_剪刀架medium-mtdxv438",
+      "localId": "obj_7_剪刀架medium-mtdxv438",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 80,
+      "name": "剪刀架medium",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/obj_7_剪刀架medium-mtdxv438/obj_7_剪刀架medium.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/obj_7_剪刀架medium-mtdxv438/obj_7_剪刀架medium.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          -180,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          60,
+          22.7,
+          20
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              455.2,
+              11,
+              -120.361
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              415.2,
+              11,
+              -120.361
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              0,
+              1
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -109.611
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:徕芬牙刷上墙架-v1-mteao5zi",
+      "localId": "徕芬牙刷上墙架-v1-mteao5zi",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 30,
+      "name": "徕芬牙刷上墙架 v1",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/徕芬牙刷上墙架-v1-mteao5zi/徕芬牙刷上墙架 v1.3mf",
+        "print": "community-assets/snapboard.category-05-整理件类/徕芬牙刷上墙架-v1-mteao5zi/徕芬牙刷上墙架 v1.3mf",
+        "format": "3mf",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          32.9,
+          50.5,
+          80
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100.03,
+              45.957,
+              -91.45
+            ],
+            "normal": [
+              0.004,
+              0.003,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              100.031,
+              4.473,
+              -91.629
+            ],
+            "normal": [
+              0.004,
+              0.003,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -81.503
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:手柄支架-mteahgn2",
+      "localId": "手柄支架-mteahgn2",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 310,
+      "name": "手柄支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/手柄支架-mteahgn2/DDB - SB - YJ.STL",
+        "print": "community-assets/snapboard.category-05-整理件类/手柄支架-mteahgn2/DDB - SB - YJ.STL",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          90,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          65,
+          35,
+          63
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              52.45,
+              41.5,
+              -49
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              12.55,
+              41.5,
+              -49
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              32.5,
+              21.5,
+              -49
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false,
+        "contactZ": -39
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:纸抽盒子倒角版-mteackkr",
+      "localId": "纸抽盒子倒角版-mteackkr",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 300,
+      "name": "纸抽盒子倒角版",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/纸抽盒子倒角版-mteackkr/obj_1_纸抽盒子倒角版.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/纸抽盒子倒角版-mteackkr/obj_1_纸抽盒子倒角版.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          -180,
+          0
+        ],
+        "dimensionsMm": [
+          150,
+          109.2,
+          19.8
+        ]
+      },
+      "mount": {
+        "mode": "multi",
+        "anchors": [
+          {
+            "id": "a1",
+            "label": "吸附点 1",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              185.046,
+              8.2,
+              -182.6
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a2",
+            "label": "吸附点 2",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              145.046,
+              8.2,
+              -182.6
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a3",
+            "label": "吸附点 3",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              105.046,
+              8.2,
+              -182.6
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          },
+          {
+            "id": "a4",
+            "label": "吸附点 4",
+            "accepts": [
+              "slot"
+            ],
+            "position": [
+              65.046,
+              8.2,
+              -182.6
+            ],
+            "normal": [
+              0,
+              0,
+              -1
+            ],
+            "required": true,
+            "axis": [
+              -0.2589693139543369,
+              0.9658855493432025
+            ]
+          }
+        ],
+        "calibrationRequired": false
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.category-05-整理件类:耳机支架-mteatmth",
+      "localId": "耳机支架-mteatmth",
+      "pack": "05-整理件类",
+      "packageId": "snapboard.category-05-整理件类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "organizer",
+      "sortOrder": 330,
+      "name": "耳机支架缺少配件",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.category-05-整理件类/耳机支架-mteatmth/耳机支架.stl",
+        "print": "community-assets/snapboard.category-05-整理件类/耳机支架-mteatmth/耳机支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          86.5,
+          66.5,
+          72
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
     {
       "id": "snapboard.category-06-紧固锁扣类:三孔平连接-mtcl8d89",
       "localId": "三孔平连接-mtcl8d89",
@@ -881,29 +6527,34 @@
       "defaultRotation": 0
     },
     {
-      "id": "snapboard.official-starter:wall-base-dual",
-      "localId": "wall-base-dual",
-      "pack": "官方基础配件包",
-      "packageId": "snapboard.official-starter",
-      "packageVersion": "0.1.0",
-      "author": "SnapBoard",
-      "category": "base",
+      "id": "snapboard.category-08-线缆整理类:数据线夹-mteam0y8",
+      "localId": "数据线夹-mteam0y8",
+      "pack": "08-线缆整理类",
+      "packageId": "snapboard.category-08-线缆整理类",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "cable",
       "sortOrder": 10,
-      "name": "双孔墙面底座",
-      "description": "同时使用长圆孔与圆形固定孔的墙面底座",
+      "name": "数据线夹",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
       "kind": "fixed",
       "params": [],
       "model": {
-        "preview": "community-assets/snapboard.official-starter/wall-base-dual/底座四孔.3MF",
-        "print": "community-assets/snapboard.official-starter/wall-base-dual/底座四孔.3MF",
-        "format": "3mf",
+        "preview": "community-assets/snapboard.category-08-线缆整理类/数据线夹-mteam0y8/数据线夹1.stl",
+        "print": "community-assets/snapboard.category-08-线缆整理类/数据线夹-mteam0y8/数据线夹1.stl",
+        "format": "stl",
         "unit": "millimeter",
         "upAxis": "z",
         "scale": 1,
         "orientation": [
-          0,
+          -180,
           0,
           0
+        ],
+        "dimensionsMm": [
+          73.4,
+          30.8,
+          36.6
         ]
       },
       "mount": {
@@ -916,16 +6567,20 @@
               "slot"
             ],
             "position": [
-              10,
-              10,
-              -4.8
+              56.262,
+              30.036,
+              -30.834
             ],
             "normal": [
               0,
               0,
               -1
             ],
-            "required": true
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
           },
           {
             "id": "a2",
@@ -934,74 +6589,87 @@
               "slot"
             ],
             "position": [
-              -10,
-              -10,
-              -4.8
+              16.261,
+              30.036,
+              -30.834
             ],
             "normal": [
               0,
               0,
               -1
             ],
-            "required": true
+            "required": true,
+            "axis": [
+              -0.38291098354328656,
+              0.923785244892942
+            ]
           },
           {
             "id": "a3",
             "label": "吸附点 3",
             "accepts": [
-              "round"
+              "slot"
             ],
             "position": [
-              -10,
-              10,
-              -4.8
+              16.261,
+              2.334,
+              -28.234
             ],
             "normal": [
               0,
               0,
               -1
             ],
-            "required": true
+            "required": true,
+            "axis": [
+              -0.3829109835432866,
+              0.9237852448929421
+            ]
           },
           {
             "id": "a4",
             "label": "吸附点 4",
             "accepts": [
-              "round"
+              "slot"
             ],
             "position": [
-              10,
-              -10,
-              -4.8
+              56.262,
+              2.334,
+              -28.234
             ],
             "normal": [
               0,
               0,
               -1
             ],
-            "required": true
+            "required": true,
+            "axis": [
+              -0.3829109835432866,
+              0.9237852448929421
+            ]
           }
         ],
-        "calibrationRequired": false
+        "calibrationRequired": false,
+        "contactZ": -21.634
       },
       "defaultRotation": 0
     },
     {
-      "id": "snapboard.user-imports:40直钩子-mt5n0uxc",
-      "localId": "40直钩子-mt5n0uxc",
-      "pack": "我的配件",
-      "packageId": "snapboard.user-imports",
+      "id": "snapboard.category-08-线缆整理类:数据线夹-mteamwtp",
+      "localId": "数据线夹-mteamwtp",
+      "pack": "08-线缆整理类",
+      "packageId": "snapboard.category-08-线缆整理类",
       "packageVersion": "1.0.0",
       "author": "Local User",
-      "category": "hook",
-      "sortOrder": 10,
-      "name": "40直钩子",
+      "category": "cable",
+      "sortOrder": 20,
+      "name": "数据线夹",
       "description": "从网页导入；请设置默认朝向与装配吸附点",
       "kind": "fixed",
       "params": [],
       "model": {
-        "preview": "community-assets/snapboard.user-imports/40直钩子-mt5n0uxc/40直钩子.stl",
-        "print": "community-assets/snapboard.user-imports/40直钩子-mt5n0uxc/40直钩子.stl",
+        "preview": "community-assets/snapboard.category-08-线缆整理类/数据线夹-mteamwtp/未命名.stl",
+        "print": "community-assets/snapboard.category-08-线缆整理类/数据线夹-mteamwtp/未命名.stl",
         "format": "stl",
         "unit": "millimeter",
         "upAxis": "z",
@@ -1009,7 +6677,12 @@
         "orientation": [
           0,
           -180,
-          0
+          90
+        ],
+        "dimensionsMm": [
+          74.4,
+          30.8,
+          15
         ]
       },
       "mount": {
@@ -1022,9 +6695,9 @@
               "slot"
             ],
             "position": [
-              20,
-              27.75,
-              -2.99
+              37.379,
+              37.754,
+              -30.784
             ],
             "normal": [
               0,
@@ -1033,8 +6706,8 @@
             ],
             "required": true,
             "axis": [
-              -0.1310496772432974,
-              0.991375802657311
+              -0.38291098354328656,
+              0.923785244892942
             ]
           },
           {
@@ -1044,9 +6717,9 @@
               "slot"
             ],
             "position": [
-              -20,
-              27.75,
-              -2.99
+              37.379,
+              10.052,
+              -28.184
             ],
             "normal": [
               0,
@@ -1055,35 +6728,469 @@
             ],
             "required": true,
             "axis": [
-              -0.1310496772432974,
-              0.991375802657311
-            ]
-          },
-          {
-            "id": "a3",
-            "label": "吸附点 3",
-            "accepts": [
-              "slot"
-            ],
-            "position": [
-              -1.356,
-              7.75,
-              -2.655
-            ],
-            "normal": [
-              -0.556,
-              0,
-              -0.831
-            ],
-            "required": true,
-            "axis": [
-              -0.10900452378160735,
-              -0.9940412535680524
+              -0.3829109835432866,
+              0.9237852448929421
             ]
           }
         ],
         "calibrationRequired": false,
-        "contactZ": 7
+        "contactZ": -21.584
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_11_实体1-mtdxv8d5",
+      "localId": "obj_11_实体1-mtdxv8d5",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 120,
+      "name": "obj_11_实体1",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_11_实体1-mtdxv8d5/obj_11_实体1.stl",
+        "print": "community-assets/snapboard.user-imports/obj_11_实体1-mtdxv8d5/obj_11_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          66.8,
+          75.4,
+          20
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_12_实体1-mtdxv98p",
+      "localId": "obj_12_实体1-mtdxv98p",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 130,
+      "name": "obj_12_实体1",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_12_实体1-mtdxv98p/obj_12_实体1.stl",
+        "print": "community-assets/snapboard.user-imports/obj_12_实体1-mtdxv98p/obj_12_实体1.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          106.8,
+          90,
+          20
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_13_标准支架-mtdxva3x",
+      "localId": "obj_13_标准支架-mtdxva3x",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 140,
+      "name": "obj_13_标准支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_13_标准支架-mtdxva3x/obj_13_标准支架.stl",
+        "print": "community-assets/snapboard.user-imports/obj_13_标准支架-mtdxva3x/obj_13_标准支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          41.8,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_14_标准支架-mtdxvb01",
+      "localId": "obj_14_标准支架-mtdxvb01",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 150,
+      "name": "obj_14_标准支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_14_标准支架-mtdxvb01/obj_14_标准支架.stl",
+        "print": "community-assets/snapboard.user-imports/obj_14_标准支架-mtdxvb01/obj_14_标准支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          41.8,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_15_标准支架-mtdxvbz1",
+      "localId": "obj_15_标准支架-mtdxvbz1",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 160,
+      "name": "obj_15_标准支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_15_标准支架-mtdxvbz1/obj_15_标准支架.stl",
+        "print": "community-assets/snapboard.user-imports/obj_15_标准支架-mtdxvbz1/obj_15_标准支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          41.8,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_16_标准支架-mtdxvcqz",
+      "localId": "obj_16_标准支架-mtdxvcqz",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 170,
+      "name": "obj_16_标准支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_16_标准支架-mtdxvcqz/obj_16_标准支架.stl",
+        "print": "community-assets/snapboard.user-imports/obj_16_标准支架-mtdxvcqz/obj_16_标准支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          41.8,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_17_标准支架-mtdxvdr5",
+      "localId": "obj_17_标准支架-mtdxvdr5",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 180,
+      "name": "obj_17_标准支架",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_17_标准支架-mtdxvdr5/obj_17_标准支架.stl",
+        "print": "community-assets/snapboard.user-imports/obj_17_标准支架-mtdxvdr5/obj_17_标准支架.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          41.8,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_18_实体4-mtdxvewt",
+      "localId": "obj_18_实体4-mtdxvewt",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 190,
+      "name": "obj_18_实体4",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_18_实体4-mtdxvewt/obj_18_实体4.stl",
+        "print": "community-assets/snapboard.user-imports/obj_18_实体4-mtdxvewt/obj_18_实体4.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          24.5,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_19_实体4-mtdxvfu1",
+      "localId": "obj_19_实体4-mtdxvfu1",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 200,
+      "name": "obj_19_实体4",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_19_实体4-mtdxvfu1/obj_19_实体4.stl",
+        "print": "community-assets/snapboard.user-imports/obj_19_实体4-mtdxvfu1/obj_19_实体4.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          24.5,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_20_实体4-mtdxvgqr",
+      "localId": "obj_20_实体4-mtdxvgqr",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 210,
+      "name": "obj_20_实体4",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_20_实体4-mtdxvgqr/obj_20_实体4.stl",
+        "print": "community-assets/snapboard.user-imports/obj_20_实体4-mtdxvgqr/obj_20_实体4.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          24.5,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_21_实体4-mtdxvhkr",
+      "localId": "obj_21_实体4-mtdxvhkr",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 220,
+      "name": "obj_21_实体4",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_21_实体4-mtdxvhkr/obj_21_实体4.stl",
+        "print": "community-assets/snapboard.user-imports/obj_21_实体4-mtdxvhkr/obj_21_实体4.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          24.5,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
+      },
+      "defaultRotation": 0
+    },
+    {
+      "id": "snapboard.user-imports:obj_22_实体4-mtdxviuc",
+      "localId": "obj_22_实体4-mtdxviuc",
+      "pack": "我的配件",
+      "packageId": "snapboard.user-imports",
+      "packageVersion": "1.0.0",
+      "author": "Local User",
+      "category": "custom",
+      "sortOrder": 230,
+      "name": "obj_22_实体4",
+      "description": "从网页导入；请设置默认朝向与装配吸附点",
+      "kind": "fixed",
+      "params": [],
+      "model": {
+        "preview": "community-assets/snapboard.user-imports/obj_22_实体4-mtdxviuc/obj_22_实体4.stl",
+        "print": "community-assets/snapboard.user-imports/obj_22_实体4-mtdxviuc/obj_22_实体4.stl",
+        "format": "stl",
+        "unit": "millimeter",
+        "upAxis": "z",
+        "scale": 1,
+        "orientation": [
+          0,
+          0,
+          0
+        ],
+        "dimensionsMm": [
+          24.5,
+          45,
+          4.5
+        ]
+      },
+      "mount": {
+        "mode": "free",
+        "anchors": [],
+        "calibrationRequired": true
       },
       "defaultRotation": 0
     }

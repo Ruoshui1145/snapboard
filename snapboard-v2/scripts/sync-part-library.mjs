@@ -13,6 +13,7 @@ const sourceExts = ['.step', '.stp', '.sldprt', '.x_t', '.x_b']
 const imageExts = ['.png', '.jpg', '.jpeg', '.webp']
 const allowedExts = new Set([...previewExts, ...printExts, ...sourceExts, ...imageExts])
 const warnings = []
+const usageImagePrefixes = ['usage', 'assembly', 'install', 'photo', '实装', '安装']
 
 const posix = value => value.split(path.sep).join('/')
 const cleanId = value => value.toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff_.-]+/g, '-').replace(/^-+|-+$/g, '')
@@ -53,6 +54,40 @@ function chooseFile(files, given, extensions) {
   const preferred = ['preview.glb', 'preview.gltf', 'model.3mf', 'model.glb', 'model.gltf', 'model.stl']
   return preferred.find(file => files.includes(file) && extensions.includes(path.extname(file).toLowerCase()))
     ?? files.find(file => extensions.includes(path.extname(file).toLowerCase()))
+}
+
+/** 同一零件上的多个长孔通常共用安装方向；用已标定锚点补齐采样失败的端面。 */
+function inferSlotAxes(mount) {
+  if (!mount || typeof mount !== 'object' || !Array.isArray(mount.anchors)) return mount
+  const slotAnchors = mount.anchors.filter(anchor => Array.isArray(anchor?.axis) && anchor.axis.length === 2)
+  if (!slotAnchors.length) return mount
+  const normalized = slotAnchors.map(anchor => {
+    const length = Math.hypot(Number(anchor.axis[0]), Number(anchor.axis[1]))
+    return length > 1e-6
+      ? [Number(anchor.axis[0]) / length, Number(anchor.axis[1]) / length]
+      : null
+  }).filter(axis => axis)
+  if (!normalized.length) return mount
+  const dotAbs = (a, b) => Math.abs(a[0] * b[0] + a[1] * b[1])
+  const reference = normalized.reduce((best, candidate) => {
+    const bestError = normalized.reduce((sum, axis) => sum + 1 - dotAbs(best, axis), 0)
+    const candidateError = normalized.reduce((sum, axis) => sum + 1 - dotAbs(candidate, axis), 0)
+    return candidateError < bestError ? candidate : best
+  }, normalized[0])
+  // 约 35° 以内视为同一安装方向；真正互相垂直的锚点不自动猜测。
+  if (normalized.some(axis => dotAbs(reference, axis) < 0.82)) return mount
+  return {
+    ...mount,
+    anchors: mount.anchors.map(anchor =>
+      anchor.accepts?.includes('slot') && !Array.isArray(anchor.axis)
+        ? { ...anchor, axis: [...reference] }
+        : anchor),
+  }
+}
+
+const isUsageImage = file => {
+  const stem = path.basename(file, path.extname(file)).toLowerCase()
+  return usageImagePrefixes.some(prefix => stem === prefix || stem.startsWith(`${prefix}-`) || stem.startsWith(`${prefix}_`))
 }
 
 await fs.mkdir(sourceRoot, { recursive: true })
@@ -194,8 +229,15 @@ for (const entry of await childDirectories(sourceRoot)) {
     const source = chooseFile(files, explicit.source, sourceExts)
     const thumbnail = manifest.thumbnail && files.includes(path.basename(manifest.thumbnail))
       ? path.basename(manifest.thumbnail)
-      : files.find(file => imageExts.includes(path.extname(file).toLowerCase()))
+      : files.find(file => imageExts.includes(path.extname(file).toLowerCase())
+        && !isUsageImage(file))
+    const usageImage = manifest.usageImage && files.includes(path.basename(manifest.usageImage))
+      ? path.basename(manifest.usageImage)
+      : files.find(file => isUsageImage(file) && imageExts.includes(path.extname(file).toLowerCase()))
     const localId = String(manifest.id || cleanId(path.basename(dir)))
+    const scanRoot = categoryMode ? packageDir : path.join(packageDir, 'parts')
+    const relativeSegments = path.relative(scanRoot, dir).split(path.sep).filter(Boolean)
+    const inferredSubcategory = relativeSegments.length > 1 ? relativeSegments[0] : ''
     const id = `${packageInfo.id}:${localId}`
     const ext = path.extname(preview).slice(1).toLowerCase()
     const defaultUp = ext === 'glb' || ext === 'gltf' ? 'y' : 'z'
@@ -204,6 +246,7 @@ for (const entry of await childDirectories(sourceRoot)) {
     const copiedPrint = printable ? await copyAsset(path.join(dir, printable), packageInfo.id, localId) : undefined
     const copiedSource = source ? await copyAsset(path.join(dir, source), packageInfo.id, localId) : undefined
     const copiedThumbnail = thumbnail ? await copyAsset(path.join(dir, thumbnail), packageInfo.id, localId) : undefined
+    const copiedUsageImage = usageImage ? await copyAsset(path.join(dir, usageImage), packageInfo.id, localId) : undefined
     for (const file of files) {
       const fileExt = path.extname(file).toLowerCase()
       if (fileExt && !allowedExts.has(fileExt) && file !== 'part.json') {
@@ -218,6 +261,9 @@ for (const entry of await childDirectories(sourceRoot)) {
       packageVersion: packageInfo.version,
       author: packageInfo.author,
       category: manifest.category ?? dirCategory,
+      ...((typeof manifest.subcategory === 'string' && manifest.subcategory.trim()) || inferredSubcategory
+        ? { subcategory: String(manifest.subcategory ?? inferredSubcategory).trim() }
+        : {}),
       ...(Number.isFinite(Number(manifest.sortOrder)) ? { sortOrder: Number(manifest.sortOrder) } : {}),
       name: manifest.name ?? path.basename(dir),
       description: manifest.description ?? (Object.keys(manifest).length ? '' : '自动收录；尚未配置装配锚点'),
@@ -232,8 +278,12 @@ for (const entry of await childDirectories(sourceRoot)) {
         upAxis: explicit.upAxis ?? defaultUp,
         scale: explicit.scale ?? 1,
         ...(Array.isArray(explicit.orientation) ? { orientation: explicit.orientation } : {}),
+        ...(Array.isArray(explicit.dimensionsMm) && explicit.dimensionsMm.length === 3 ? { dimensionsMm: explicit.dimensionsMm.map(Number) } : {}),
+        ...(typeof explicit.renderNode === 'string' && explicit.renderNode ? { renderNode: explicit.renderNode } : {}),
+        ...(copiedUsageImage ? { usageImage: copiedUsageImage } : {}),
+        ...(Array.isArray(explicit.previewDirection) && explicit.previewDirection.length === 3 ? { previewDirection: explicit.previewDirection.map(Number) } : {}),
       },
-      mount: manifest.mount ?? { mode: 'free', anchors: [] },
+      mount: inferSlotAxes(manifest.mount ?? { mode: 'free', anchors: [] }),
       defaultRotation: manifest.defaultRotation ?? 0,
       ...(copiedThumbnail ? { thumbnail: copiedThumbnail } : {}),
     })

@@ -1,7 +1,7 @@
 # SnapBoard v2 当前技术规格
 
-更新时间：2026-08-26  
-完整说明见 [`PROJECT_DOCUMENTATION.md`](PROJECT_DOCUMENTATION.md)。本文只保留架构和接口摘要。
+更新时间：2026-08-29
+完整说明见 [`PROJECT_DOCUMENTATION.md`](PROJECT_DOCUMENTATION.md)；算法与 3D 引擎的演进证据见 [`TECHNICAL_EVOLUTION.md`](TECHNICAL_EVOLUTION.md)。本文只保留架构和接口摘要。
 
 ## 1. 技术栈
 
@@ -25,7 +25,7 @@
 - `src/components/toolbar/Toolbar.tsx`：绘图工具、文件、分割、视图和导出；
 - `src/store/useAppStore.ts`：`project`、`boards`、`placedParts`、`splitConfig`、`splitResult`；
 - `src/hooks/useSketchTool.ts`：2D 绘图、命中、尺寸和修剪；
-- `src/utils/pegboardSplit.ts`：孔位、正交切分、边缘融合、热床旋转；
+- `src/utils/pegboardSplit.ts`：平衡网格/特征对齐分区、最小结构宽、孔位安全域、边缘融合和热床旋转；
 - `src/utils/panelBoolean.ts`：板件内孔和切口布尔；
 - `src/utils/boardMesh.ts`：预览和制造板件实体网格；
 - `src/components/viewport/Viewport3D.tsx`：场景、相机、灯光、配件预览和吸附；
@@ -44,7 +44,10 @@
 
 - 草图内部为 Canvas 世界坐标；`pixelToMM` 转换为毫米；分割器使用 Y 向上工程坐标；
 - 外轮廓支持矩形、L 型、阶梯型和正交多边形；内轮廓可为圆、槽、多边形和含弧轮廓；
-- 长圆孔为 5×15 mm 全局错列晶格；B 相横向相位为工程 SVG 标定值 22.2648 mm；边缘候选孔默认 φ5，底边中心距严格为 10 mm；
+- 规则矩形分割为确定性对齐网格；异形同时比较均匀模数网格与凹角/转折点对齐网格，默认局部结构宽度下限 60 mm；
+- 长圆孔为 5×15 mm；原始轮廓先生成唯一母阵，A 相 `(10,30)+40n`、B 相 `(30,10)+40n`，分板只领取完整落入自身安全域的孔；候选圆孔按用户确认采用 φ5，标准板/内部接缝为 10 mm 内缩，非模数外周与最近长孔共线并取中点；
+- 外周圆孔直接从最近长孔行/列的相邻中心中点生成，端部按半节距外推并受边角安全距离限制；内部接缝仍在分割线两侧默认内缩 10 mm，标准 200×200 接缝保持 20 mm 错列；
+- 长圆孔按“中心线段 ⊕ 半径圆盘”的真实胶囊距离检查，功能孔与外边/缺口/内孔默认保留 2 mm 实体边带，冲突孔自动删除留白；
 - `knocked=true` 才是贯通孔，未确认候选位置只显示预览虚线；
 - `printRotation` 只用于制造排盘，不改写设计坐标；
 - 预览曲线较轻量，制造导出使用 48 段曲线和约 0.35 mm 倒角；
@@ -96,6 +99,10 @@ node .tmp-3d-test/verify-texture-direct-manipulation.mjs
 node .tmp-3d-test/verify-consumer-layout.mjs
 npm run verify:parts
 npm run verify:assembly
+npm run verify:split
+npm run verify:split-shapes
+npm run verify:holes
+npm run verify:edge-holes
 node .tmp-3d-test/verify-hole-open-store.mjs
 ```
 

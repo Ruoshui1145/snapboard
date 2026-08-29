@@ -9,8 +9,8 @@
 //   - 缺块补偿: ① 允许"贴板边条料"作为小矩形板 (w/h ≥20, 面积足够);
 //               ② 剩余碎料优先并进相邻板;
 //               ③ 其余无法补偿的碎料给出警告 (不再静默丢失)
-//   - 孔位: 整个装配轮廓共享同一晶体槽阵列; 分板只裁切阵列，不重置相位
-//           边缘圆孔按各分板边界生成，但只落在全局槽孔横/纵轴线交点
+//   - 孔位: 原始轮廓先建立唯一 A/B 长孔母阵，分板只裁取完整落入自身的孔；
+//           圆孔在分割线/外边界确定后生成，并做角点去重与最小中心距检查
 //   - 圆角: 仅整体外轮廓的真实凸角按 DXF 倒 R8; 拼接角保持直角以便无缝装配
 //
 // 输出:
@@ -43,7 +43,9 @@ export const PEGBOARD_DEFAULT_CONFIG: SplitConfig = {
   edgeMargin: 20,
   minW: 80,
   minH: 60,
+  minFeatureWidth: 60,
   holeSeamClearance: 10,
+  holeBoundaryClearance: 2,
   jointOffsetX: 10,
   jointOffsetY: 10,
   lidThickness: 0, // 旧字段兼容；候选孔不再生成薄盖，只有完整板面/贯通孔两种状态
@@ -56,10 +58,10 @@ export const PEGBOARD_DEFAULT_CONFIG: SplitConfig = {
   slotPairGapY: 12.5,        // ⚠ 已废弃: 旧"半圆槽两两成对"参数, 不再参与生成
   slotGridX0: 10,            // A 列胶囊中心 x 零位 (相对整板左下角, 工程图 10)
   slotGridY0: 30,            // A 列胶囊中心 y 零位 (工程图 30)
-  slotStaggerX: 22.2648,     // SVG 实测 B 列 x 错位: 32.2648+40i，相对 A 列 10+40i
+  slotStaggerX: 20,          // 四板拼接 DXF: B 列 = 30+40i，相对 A 列 10+40i 错位 20
   slotStaggerY: 20,          // B 列 y 错位 (对中心 30 -> 10)
-  jointDiameter: 5,        // 默认圆孔 φ5；中心距与 SVG 保持严格 10mm 边距
-  cornerHoleDiameter: 5,   // (兼容字段; 工程图无网格角圆孔)
+  jointDiameter: 5,          // 用户确认制造规格 φ5；DXF 仅作为圆孔中心位置与相位基准
+  cornerHoleDiameter: 5,     // (兼容字段; 工程图无独立网格角圆孔)
   thickness: 5,
   manufacturingChamfer: 0.35,
   gapTolerance: 0.2,
@@ -135,6 +137,61 @@ function pointInPolygon(p: Point2D, polygon: Point2D[]): boolean {
   return inside
 }
 
+function pointSegmentDistanceSq(p: Point2D, a: Point2D, b: Point2D): number {
+  const vx = b.x - a.x, vy = b.y - a.y
+  const len2 = vx * vx + vy * vy
+  if (len2 <= EPS) return (p.x - a.x) ** 2 + (p.y - a.y) ** 2
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * vx + (p.y - a.y) * vy) / len2))
+  const dx = p.x - (a.x + t * vx)
+  const dy = p.y - (a.y + t * vy)
+  return dx * dx + dy * dy
+}
+
+function orientation(a: Point2D, b: Point2D, c: Point2D): number {
+  return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
+}
+
+function segmentsIntersect(a: Point2D, b: Point2D, c: Point2D, d: Point2D): boolean {
+  const abC = orientation(a, b, c), abD = orientation(a, b, d)
+  const cdA = orientation(c, d, a), cdB = orientation(c, d, b)
+  if (((abC > EPS && abD < -EPS) || (abC < -EPS && abD > EPS)) &&
+      ((cdA > EPS && cdB < -EPS) || (cdA < -EPS && cdB > EPS))) return true
+  const on = (p: Point2D, u: Point2D, v: Point2D) =>
+    Math.abs(orientation(u, v, p)) <= EPS &&
+    p.x >= Math.min(u.x, v.x) - EPS && p.x <= Math.max(u.x, v.x) + EPS &&
+    p.y >= Math.min(u.y, v.y) - EPS && p.y <= Math.max(u.y, v.y) + EPS
+  return on(c, a, b) || on(d, a, b) || on(a, c, d) || on(b, c, d)
+}
+
+function segmentDistanceSq(a: Point2D, b: Point2D, c: Point2D, d: Point2D): number {
+  if (segmentsIntersect(a, b, c, d)) return 0
+  return Math.min(
+    pointSegmentDistanceSq(a, c, d), pointSegmentDistanceSq(b, c, d),
+    pointSegmentDistanceSq(c, a, b), pointSegmentDistanceSq(d, a, b),
+  )
+}
+
+/**
+ * 判断“线段与半径的 Minkowski 和”（圆或胶囊孔）是否完整落在实体安全域中。
+ * 与只检查四角相比，这个距离条件能可靠处理凹角、U/缺口轮廓和斜边。
+ */
+function sweptCircleFitsMaterial(
+  a: Point2D, b: Point2D, radius: number, clearance: number,
+  contour: Point2D[], cutouts: Point2D[][],
+): boolean {
+  const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+  if (![a, mid, b].every(point => pointInPolygon(point, contour))) return false
+  const requiredSq = (radius + clearance) ** 2
+  const boundaryClear = (loop: Point2D[]) => loop.every((p, index) =>
+    segmentDistanceSq(a, b, p, loop[(index + 1) % loop.length]) + EPS >= requiredSq)
+  if (!boundaryClear(contour)) return false
+  for (const hole of cutouts) {
+    if ([a, mid, b].some(point => pointInPolygon(point, hole))) return false
+    if (!boundaryClear(hole)) return false
+  }
+  return true
+}
+
 /** 多边形面积 (鞋带公式, 绝对值) */
 function polygonArea(pts: Point2D[]): number {
   let a = 0
@@ -190,6 +247,42 @@ function regionRightRuns(r: Region): Uint32Array {
   }
   regionRightRunsCache.set(r, runs)
   return runs
+}
+
+/**
+ * 1mm 栅格上的局部最小结构宽度近似。每个实体单元分别取得其所在横向、
+ * 纵向连续材料带宽，并取两者较小值；全局最小值可识别独立细条和 L/U 形细颈。
+ */
+function regionMinimumBandWidth(r: Region): number {
+  if (regionArea(r) === 0) return 0
+  const horizontal = new Uint32Array(r.mask.length)
+  const vertical = new Uint32Array(r.mask.length)
+  for (let y = 0; y < r.h; y++) {
+    let x = 0
+    while (x < r.w) {
+      while (x < r.w && !r.mask[y * r.w + x]) x++
+      const start = x
+      while (x < r.w && r.mask[y * r.w + x]) x++
+      const length = x - start
+      for (let fill = start; fill < x; fill++) horizontal[y * r.w + fill] = length
+    }
+  }
+  for (let x = 0; x < r.w; x++) {
+    let y = 0
+    while (y < r.h) {
+      while (y < r.h && !r.mask[y * r.w + x]) y++
+      const start = y
+      while (y < r.h && r.mask[y * r.w + x]) y++
+      const length = y - start
+      for (let fill = start; fill < y; fill++) vertical[fill * r.w + x] = length
+    }
+  }
+  let minimum = Infinity
+  for (let index = 0; index < r.mask.length; index++) {
+    if (!r.mask[index]) continue
+    minimum = Math.min(minimum, horizontal[index], vertical[index])
+  }
+  return Number.isFinite(minimum) ? minimum : 0
 }
 
 /**
@@ -258,6 +351,21 @@ function cutsHole(rect: RectMM, holes: HoleBox[]): boolean {
       y0 >= rect.y - EPS && y1 <= ry1 + EPS
     return !contains
   })
+}
+
+function regionContainsBox(region: Region, box: HoleBox): boolean {
+  if (box.x0 < region.x - EPS || box.x1 > region.x + region.w + EPS ||
+    box.y0 < region.y - EPS || box.y1 > region.y + region.h + EPS) return false
+  const x0 = Math.floor(box.x0), x1 = Math.ceil(box.x1)
+  const y0 = Math.floor(box.y0), y1 = Math.ceil(box.y1)
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      if (x + 1 <= box.x0 + EPS || x >= box.x1 - EPS ||
+        y + 1 <= box.y0 + EPS || y >= box.y1 - EPS) continue
+      if (!regionCell(region, x, y)) return false
+    }
+  }
+  return true
 }
 
 function countOnes(mask: Uint8Array): number {
@@ -520,21 +628,206 @@ function isOrthogonalContour(points: Point2D[]): boolean {
   })
 }
 
-/** 将一个跨度均匀切成不超过 maxSpan 的段，内部接缝尽量吸附到模数线。 */
-function partitionAxis(start: number, span: number, maxSpan: number, module: number): number[] {
-  if (span <= maxSpan + EPS) return [start, start + span]
-  const count = Math.max(1, Math.ceil(span / maxSpan))
+/** 按指定段数均匀分轴，内部接缝吸附到孔阵模数线，避免把余量挤成单侧细条。 */
+function partitionAxisCount(start: number, span: number, count: number, module: number): number[] {
+  if (count <= 1) return [start, start + span]
   const cuts = [start]
+  const minSegment = Math.max(1, Math.min(module, span / count))
   for (let index = 1; index < count; index++) {
     const ideal = start + span * index / count
     const snapped = start + Math.round((ideal - start) / module) * module
-    const minCut = cuts[cuts.length - 1] + Math.min(module, maxSpan)
+    const minCut = cuts[cuts.length - 1] + minSegment
     const remaining = count - index
-    const maxCut = start + span - remaining * Math.min(module, maxSpan)
+    const maxCut = start + span - remaining * minSegment
     cuts.push(Math.max(minCut, Math.min(maxCut, snapped)))
   }
   cuts.push(start + span)
   return cuts
+}
+
+/** 将一个跨度均匀切成不超过 maxSpan 的段，内部接缝尽量吸附到模数线。 */
+function partitionAxis(start: number, span: number, maxSpan: number, module: number): number[] {
+  if (span <= maxSpan + EPS) return [start, start + span]
+  return partitionAxisCount(start, span, Math.max(1, Math.ceil(span / maxSpan)), module)
+}
+
+function partitionAxisVariants(
+  start: number, span: number, count: number, module: number, features: number[],
+): number[][] {
+  const base = partitionAxisCount(start, span, count, module)
+  if (count <= 1 || features.length === 0) return [base]
+  const aligned = [start]
+  const minSegment = Math.max(1, Math.min(module, span / count))
+  for (let index = 1; index < count; index++) {
+    const ideal = start + span * index / count
+    const remaining = count - index
+    const low = aligned[aligned.length - 1] + minSegment
+    const high = start + span - remaining * minSegment
+    const nearby = features
+      .filter(value => value >= low - EPS && value <= high + EPS && Math.abs(value - ideal) <= module * 2 + EPS)
+      .sort((a, b) => Math.abs(a - ideal) - Math.abs(b - ideal))[0]
+    aligned.push(nearby ?? base[index])
+  }
+  aligned.push(start + span)
+  return aligned.some((value, index) => Math.abs(value - base[index]) > EPS) ? [base, aligned] : [base]
+}
+
+interface GridPartitionCandidate {
+  pieces: Region[]
+  fragileCount: number
+  minimumFeature: number
+  seamLength: number
+  aspectPenalty: number
+}
+
+function cropRegion(root: Region, x0: number, y0: number, x1: number, y1: number): Region[] {
+  const offsetX = Math.max(0, Math.round(x0 - root.x))
+  const offsetY = Math.max(0, Math.round(y0 - root.y))
+  const w = Math.max(0, Math.min(root.w - offsetX, Math.round(x1 - x0)))
+  const h = Math.max(0, Math.min(root.h - offsetY, Math.round(y1 - y0)))
+  if (w === 0 || h === 0) return []
+  const mask = new Uint8Array(w * h)
+  for (let y = 0; y < h; y++) {
+    const source = (offsetY + y) * root.w + offsetX
+    mask.set(root.mask.subarray(source, source + w), y * w)
+  }
+  return splitComponents({ x: root.x + offsetX, y: root.y + offsetY, w, h, mask })
+    .filter(region => regionArea(region) > 0)
+}
+
+function internalSeamLength(pieces: Region[]): number {
+  let seam = 0
+  for (let i = 0; i < pieces.length; i++) {
+    for (let j = i + 1; j < pieces.length; j++) seam += sharedEdgeLen(pieces[i], pieces[j])
+  }
+  return seam
+}
+
+function betterGridCandidate(a: GridPartitionCandidate, b: GridPartitionCandidate | null): boolean {
+  if (!b) return true
+  if (a.fragileCount !== b.fragileCount) return a.fragileCount < b.fragileCount
+  if (a.pieces.length !== b.pieces.length) return a.pieces.length < b.pieces.length
+  if (Math.abs(a.minimumFeature - b.minimumFeature) > EPS) return a.minimumFeature > b.minimumFeature
+  if (Math.abs(a.seamLength - b.seamLength) > EPS) return a.seamLength < b.seamLength
+  return a.aspectPenalty < b.aspectPenalty
+}
+
+/**
+ * 规则网格分区：枚举靠近热床理论下界的行列数，并按
+ * “无细条 → 少板 → 最大最短边 → 短接缝 → 紧凑外形”排序。
+ * 这相当于工程化的 fat partition，不再由一次贪心最大矩形决定余量落在哪一侧。
+ */
+function balancedGridPartition(
+  root: Region, cfg: SplitConfig, protectedHoles: HoleBox[], measureFeature: boolean,
+): Region[] | null {
+  if (regionArea(root) === root.w * root.h && protectedHoles.length === 0) {
+    return balancedRectangleTiles(root.x, root.y, root.w, root.h, cfg)
+  }
+  const printableBed = getPrintBedBounds(cfg)
+  const diagonal = Math.max(1, Math.hypot(printableBed.width, printableBed.height))
+  const minCols = Math.max(1, Math.ceil(root.w / diagonal))
+  const minRows = Math.max(1, Math.ceil(root.h / diagonal))
+  const maxCols = Math.min(Math.max(minCols, Math.ceil(root.w / Math.max(1, cfg.minW)) + 1), minCols + 3)
+  const maxRows = Math.min(Math.max(minRows, Math.ceil(root.h / Math.max(1, cfg.minH)) + 1), minRows + 3)
+  const contour = regionContour(root)
+  const featureXs = [...new Set(contour.map(point => point.x)
+    .filter(value => value > root.x + EPS && value < root.x + root.w - EPS))]
+  const featureYs = [...new Set(contour.map(point => point.y)
+    .filter(value => value > root.y + EPS && value < root.y + root.h - EPS))]
+  let best: GridPartitionCandidate | null = null
+
+  for (let cols = minCols; cols <= maxCols; cols++) {
+    const xVariants = partitionAxisVariants(root.x, root.w, cols, Math.max(1, cfg.mx), featureXs)
+    for (let rows = minRows; rows <= maxRows; rows++) {
+      const yVariants = partitionAxisVariants(root.y, root.h, rows, Math.max(1, cfg.my), featureYs)
+      for (const xs of xVariants) for (const ys of yVariants) {
+      const pieces: Region[] = []
+      let valid = true
+      for (let yi = 0; yi < rows && valid; yi++) {
+        for (let xi = 0; xi < cols; xi++) {
+          const w = xs[xi + 1] - xs[xi]
+          const h = ys[yi + 1] - ys[yi]
+          if (findRectPrintFitAngle(w, h, cfg) === null) { valid = false; break }
+          pieces.push(...cropRegion(root, xs[xi], ys[yi], xs[xi + 1], ys[yi + 1]))
+        }
+      }
+      if (!valid || pieces.length === 0) continue
+      if (protectedHoles.some(hole => !pieces.some(piece => regionContainsBox(piece, hole)))) continue
+      const widths = measureFeature ? pieces.map(regionMinimumBandWidth) : pieces.map(piece => Math.min(piece.w, piece.h))
+      const minimumFeature = widths.length ? Math.min(...widths) : 0
+      const fragileCount = measureFeature
+        ? widths.filter(width => width + EPS < cfg.minFeatureWidth).length
+        : 0
+      const aspectPenalty = pieces.reduce((sum, piece) => {
+        const short = Math.max(EPS, Math.min(piece.w, piece.h))
+        return sum + Math.max(piece.w, piece.h) / short
+      }, 0)
+      const candidate = {
+        pieces,
+        fragileCount,
+        minimumFeature,
+        seamLength: internalSeamLength(pieces),
+        aspectPenalty,
+      }
+      if (betterGridCandidate(candidate, best)) best = candidate
+      }
+    }
+  }
+  return best ? fuseAdjacentPieces(best.pieces, cfg).pieces : null
+}
+
+/** 规则矩形的确定性网格：不做跨格融合，因此每一行/列接缝严格对齐。 */
+function balancedRectangleTiles(
+  minX: number, minY: number, width: number, height: number, cfg: SplitConfig,
+): Region[] | null {
+  const printableBed = getPrintBedBounds(cfg)
+  const diagonal = Math.max(1, Math.hypot(printableBed.width, printableBed.height))
+  const minCols = Math.max(1, Math.ceil(width / diagonal))
+  const minRows = Math.max(1, Math.ceil(height / diagonal))
+  const maxCols = minCols + 5
+  const maxRows = minRows + 5
+  let best: { tiles: Region[]; fragile: number; minSide: number; seam: number; aspect: number } | null = null
+  for (let cols = minCols; cols <= maxCols; cols++) {
+    const xs = partitionAxisCount(minX, width, cols, Math.max(1, cfg.mx))
+    for (let rows = minRows; rows <= maxRows; rows++) {
+      const ys = partitionAxisCount(minY, height, rows, Math.max(1, cfg.my))
+      const tiles: Region[] = []
+      let valid = true
+      let minSide = Infinity
+      let aspect = 0
+      for (let yi = 0; yi < rows && valid; yi++) {
+        for (let xi = 0; xi < cols; xi++) {
+          const x = xs[xi], y = ys[yi]
+          const w = Math.round(xs[xi + 1] - x)
+          const h = Math.round(ys[yi + 1] - y)
+          if (findRectPrintFitAngle(w, h, cfg) === null) { valid = false; break }
+          const short = Math.min(w, h)
+          minSide = Math.min(minSide, short)
+          aspect += Math.max(w, h) / Math.max(EPS, short)
+          tiles.push({ x, y, w, h, mask: new Uint8Array(w * h).fill(1) })
+        }
+      }
+      if (!valid) continue
+      const fragile = minSide + EPS < cfg.minFeatureWidth ? 1 : 0
+      const seam = Math.max(0, cols - 1) * height + Math.max(0, rows - 1) * width
+      const candidate = { tiles, fragile, minSide, seam, aspect }
+      let better = !best
+      if (best && candidate.fragile !== best.fragile) better = candidate.fragile < best.fragile
+      else if (best && candidate.tiles.length !== best.tiles.length) better = candidate.tiles.length < best.tiles.length
+      else if (best && Math.abs(candidate.minSide - best.minSide) > EPS) better = candidate.minSide > best.minSide
+      else if (best && Math.abs(candidate.seam - best.seam) > EPS) better = candidate.seam < best.seam
+      else if (best) better = candidate.aspect < best.aspect
+      if (better) best = candidate
+    }
+  }
+  return best?.tiles ?? null
+}
+
+/** 只为包围盒建立平衡矩形网格；斜边最终再与原始矢量轮廓精确相交。 */
+function balancedCoverTiles(
+  minX: number, minY: number, width: number, height: number, cfg: SplitConfig,
+): Region[] | null {
+  return balancedRectangleTiles(minX, minY, width, height, cfg)
 }
 
 /**
@@ -544,6 +837,8 @@ function partitionAxis(start: number, span: number, maxSpan: number, module: num
 function exactCoverTiles(
   minX: number, minY: number, width: number, height: number, cfg: SplitConfig,
 ): Region[] {
+  const balanced = balancedCoverTiles(minX, minY, width, height, cfg)
+  if (balanced) return balanced
   const bed = getPrintBedBounds(cfg)
   const diagonal = Math.hypot(bed.width, bed.height)
   let tileW = Math.min(width, bed.width)
@@ -726,7 +1021,7 @@ function fuseAdjacentPieces(source: Region[], cfg: SplitConfig): { pieces: Regio
 }
 
 // ---------------------------------------------------------------------------
-// 孔位生成 (所有分板共享整张装配轮廓的全局晶体阵列)
+// 孔位生成 (原始轮廓唯一母阵 → 分板裁取 → 接缝/外边圆孔)
 // ---------------------------------------------------------------------------
 
 /** 分板包围盒 (全局 mm 坐标) */
@@ -746,6 +1041,31 @@ function panelContour(p: { x: number; y: number; w: number; h: number; contour?:
   ]
 }
 
+function estimatePanelMinimumFeatureWidth(panel: SplitPanel): number | null {
+  const contour = panelContour(panel)
+  if (!isOrthogonalContour(contour)) return null
+  const minX = Math.floor(Math.min(...contour.map(point => point.x)))
+  const minY = Math.floor(Math.min(...contour.map(point => point.y)))
+  const maxX = Math.ceil(Math.max(...contour.map(point => point.x)))
+  const maxY = Math.ceil(Math.max(...contour.map(point => point.y)))
+  const width = Math.max(1, maxX - minX)
+  const height = Math.max(1, maxY - minY)
+  const mask = rasterize(contour, minX, minY, width, height)
+  const cutouts = panel.cutouts ?? []
+  if (cutouts.length) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (!mask[y * width + x]) continue
+        const sample = { x: minX + x + 0.5, y: minY + y + 0.5 }
+        if (cutouts.some(hole => pointInPolygon(sample, hole))) mask[y * width + x] = 0
+      }
+    }
+  }
+  const components = splitComponents({ x: minX, y: minY, w: width, h: height, mask })
+  if (!components.length) return 0
+  return Math.min(...components.map(regionMinimumBandWidth))
+}
+
 /**
  * 槽孔 (竖向长圆孔 5×15) 晶体错列阵列:
  *   A 列族: (ox+10 + 40i, oy+30 + 40j); B 列族: (ox+30 + 40i, oy+10 + 40j)
@@ -753,21 +1073,14 @@ function panelContour(p: { x: number; y: number; w: number; h: number; contour?:
  * 否则相邻板（例如上下相差 220mm 的 P7/P4）会出现相同相位而中断晶格交错。
  * 仅保留整颗胶囊 (含两端半圆) 完全落在板轮廓内。
  */
-function boxTouchesCutout(
-  x0: number, y0: number, x1: number, y1: number, cutouts: Point2D[][],
-): boolean {
-  return cutouts.some(c => {
-    const b = polygonBox(c)
-    return x1 >= b.x0 - EPS && x0 <= b.x1 + EPS && y1 >= b.y0 - EPS && y0 <= b.y1 + EPS
-  })
-}
-
 function generateSlots(
   contour: Point2D[], board: BoardBox, lattice: Pick<BoardBox, 'x' | 'y'>,
   cfg: SplitConfig, cutouts: Point2D[][] = [],
 ): HolePos[] {
   const halfL = cfg.slotLength / 2
   const halfW = cfg.slotWidth / 2
+  const straightHalf = Math.max(0, halfL - halfW)
+  const clearance = Math.max(0, cfg.holeBoundaryClearance)
   const slots: HolePos[] = []
   const families = [
     { dx: 0, dy: 0 },
@@ -785,11 +1098,15 @@ function generateSlots(
       const cx = baseX + i * cfg.mx
       for (let j = j0; j <= j1; j++) {
         const cy = baseY + j * pitchY
-        const ok = pointInPolygon({ x: cx - halfW, y: cy - halfL }, contour) &&
-          pointInPolygon({ x: cx + halfW, y: cy - halfL }, contour) &&
-          pointInPolygon({ x: cx - halfW, y: cy + halfL }, contour) &&
-          pointInPolygon({ x: cx + halfW, y: cy + halfL }, contour)
-        if (ok && !boxTouchesCutout(cx - halfW, cy - halfL, cx + halfW, cy + halfL, cutouts)) {
+        const ok = sweptCircleFitsMaterial(
+          { x: cx, y: cy - straightHalf },
+          { x: cx, y: cy + straightHalf },
+          halfW,
+          clearance,
+          contour,
+          cutouts,
+        )
+        if (ok) {
           slots.push({ x: cx, y: cy })
         }
       }
@@ -798,59 +1115,135 @@ function generateSlots(
   return slots
 }
 
+/** 分板只领取母阵中完整落入自身材料安全域的长孔，绝不重新计算相位。 */
+function filterSlotsForPanel(
+  source: HolePos[], contour: Point2D[], cutouts: Point2D[][], cfg: SplitConfig,
+): HolePos[] {
+  const halfL = cfg.slotLength / 2
+  const halfW = cfg.slotWidth / 2
+  const straightHalf = Math.max(0, halfL - halfW)
+  return source.filter(slot => sweptCircleFitsMaterial(
+    { x: slot.x, y: slot.y - straightHalf },
+    { x: slot.x, y: slot.y + straightHalf },
+    halfW,
+    Math.max(0, cfg.holeBoundaryClearance),
+    contour,
+    cutouts,
+  ))
+}
+
 /**
- * 边缘敲落圆孔 (默认 φ5，中心距边 10mm，40mm 间距)。
+ * 边缘敲落圆孔 (用户确认制造规格 φ5，沿边方向 40mm 节距)。
  *
- * DXF 不是“沿边盲排孔”，而是把圆孔放在槽孔两组中心轴线的交点：
- *   A 槽中心轴: x=10+40i, y=30+40j
- *   B 槽中心轴: x=32.2648+40i, y=10+40j（来自 200.200 平面工程图 SVG）
- *   边内缩 10mm 后吸附到最近 A/B 轴线；超过 5mm 仍无轴线时，该边不生成圆孔。
- * 所有相位均锚定整张装配轮廓。每块分板仍独立沿自身边界内缩并生成孔列，
- * 但接缝两侧的孔列继承全局 A/B 相位，因此会连续交错而不会重复起排。
+ * 内部接缝圆孔线默认距分割线 10mm；外周边则优先与内侧最近一排/列
+ * 长圆孔共线，再采用它的互补中点相位：
+ *   最近 A 槽行/列 → 圆孔使用 B 名义中线 (30+40n)
+ *   最近 B 槽行/列 → 圆孔使用 A 名义中线 (10+40n)
+ * 所有相位继承原始轮廓的唯一母阵。标准 200×200 外边距仍严格为10mm；
+ * 非模数外周优先保证圆孔真正落在相邻长孔中心之间。
  */
 function generateEdgeHoles(
-  contour: Point2D[], board: BoardBox, lattice: Pick<BoardBox, 'x' | 'y'>,
-  cfg: SplitConfig, cutouts: Point2D[][] = [], materialContour: Point2D[] = contour,
+  contour: Point2D[], lattice: Pick<BoardBox, 'x' | 'y'>,
+  cfg: SplitConfig, slots: HolePos[],
+  cutouts: Point2D[][] = [], materialContour: Point2D[] = contour,
+  assemblyContour: Point2D[] = materialContour,
 ): HolePos[] {
   const insetX = cfg.jointOffsetX
   const insetY = cfg.jointOffsetY
   const pit = cfg.mx
-  const slots = generateSlots(materialContour, board, lattice, cfg, cutouts)
   const holes: HolePos[] = []
   const seen = new Set<string>()
   type AxisFamily = 'A' | 'B'
-  const nearestAxis = (
-    local: number,
-    aPhase: number,
-    bPhase: number,
-  ): { value: number; family: AxisFamily } | null => {
-    const candidate = (phase: number, family: AxisFamily) => {
-      const value = phase + Math.round((local - phase) / pit) * pit
-      return { value, family, distance: Math.abs(value - local) }
-    }
-    const a = candidate(aPhase, 'A')
-    const b = candidate(bPhase, 'B')
-    const best = a.distance <= b.distance ? a : b
-    // 边长不是 20mm 模数整数时允许最多半个 10mm 边距的补偿吸附。
-    // 例如 145mm 高板: 顶部目标135 → 槽轴130 (5mm, 合法);
-    // 32mm 窄条: 右侧目标22 → 最近槽轴30 (8mm, 非法)。
-    const tolerance = Math.max(insetX, insetY) / 2 + cfg.gapTolerance
-    return best.distance <= tolerance + EPS ? { value: best.value, family: best.family } : null
+  const pitchY = cfg.my * 2
+  const aX = lattice.x + cfg.slotGridX0
+  const bX = lattice.x + cfg.slotGridX0 + cfg.slotStaggerX
+  const aY = lattice.y + cfg.slotGridY0
+  const bY = lattice.y + cfg.slotGridY0 - cfg.slotStaggerY
+  const nominalBX = lattice.x + cfg.slotGridX0 + cfg.mx / 2
+  const nominalBY = lattice.y + cfg.slotGridY0 - cfg.my
+  const periodicDistance = (value: number, phase: number, period: number) => {
+    const delta = ((value - phase) % period + period) % period
+    return Math.min(delta, period - delta)
   }
-  /**
-   * 水平边孔的 y 轴若属于 A 槽行(30相位)，x 取 B 槽列(30相位)；
-   * 若属于 B 槽行(10相位)，x 取 A 槽列(10相位)。其余无交点。
-   */
-  const horizontalAxis = (globalY: number) => nearestAxis(
-    globalY,
-    lattice.y + cfg.slotGridY0,
-    lattice.y + cfg.slotGridY0 - cfg.slotStaggerY,
-  )
-  const verticalAxis = (globalX: number) => nearestAxis(
-    globalX,
-    lattice.x + cfg.slotGridX0,
-    lattice.x + cfg.slotGridX0 + cfg.slotStaggerX,
-  )
+  const rowFamily = (y: number): AxisFamily =>
+    periodicDistance(y, aY, pitchY) <= periodicDistance(y, bY, pitchY) ? 'A' : 'B'
+  const columnFamily = (x: number): AxisFamily =>
+    periodicDistance(x, aX, cfg.mx) <= periodicDistance(x, bX, cfg.mx) ? 'A' : 'B'
+  const nearestTheoreticalFamily = (
+    edge: number, inward: 1 | -1, aPhase: number, bPhase: number,
+    period: number, minimumInset: number,
+  ): AxisFamily => {
+    let best: { family: AxisFamily; distance: number } | null = null
+    for (const candidate of [{ family: 'A' as const, phase: aPhase }, { family: 'B' as const, phase: bPhase }]) {
+      const center = candidate.phase + Math.round((edge - candidate.phase) / period) * period
+      for (const value of [center - period, center, center + period]) {
+        const distance = (value - edge) * inward
+        if (distance + EPS < minimumInset) continue
+        if (!best || distance < best.distance - EPS) best = { family: candidate.family, distance }
+      }
+    }
+    return best?.family ?? 'A'
+  }
+  const nearestHorizontalFamily = (
+    edgeY: number, x0: number, x1: number, inward: 1 | -1,
+  ): AxisFamily => {
+    const nearby = slots
+      .filter(slot => slot.x >= x0 - EPS && slot.x <= x1 + EPS && (slot.y - edgeY) * inward > EPS)
+      .sort((first, second) => Math.abs(first.y - edgeY) - Math.abs(second.y - edgeY))[0]
+    return nearby
+      ? rowFamily(nearby.y)
+      : nearestTheoreticalFamily(
+        edgeY, inward, aY, bY, pitchY,
+        cfg.slotLength / 2 + cfg.holeBoundaryClearance,
+      )
+  }
+  const nearestVerticalFamily = (
+    edgeX: number, y0: number, y1: number, inward: 1 | -1,
+  ): AxisFamily => {
+    const nearby = slots
+      .filter(slot => slot.y >= y0 - EPS && slot.y <= y1 + EPS && (slot.x - edgeX) * inward > EPS)
+      .sort((first, second) => Math.abs(first.x - edgeX) - Math.abs(second.x - edgeX))[0]
+    return nearby
+      ? columnFamily(nearby.x)
+      : nearestTheoreticalFamily(
+        edgeX, inward, aX, bX, cfg.mx,
+        cfg.slotWidth / 2 + cfg.holeBoundaryClearance,
+      )
+  }
+  const nearestHorizontalRow = (
+    edgeY: number, x0: number, x1: number, inward: 1 | -1,
+  ): { coordinate: number; along: number[] } | null => {
+    const candidates = slots.filter(slot =>
+      slot.x >= x0 - pit - EPS && slot.x <= x1 + pit + EPS &&
+      (slot.y - edgeY) * inward > EPS)
+    if (!candidates.length) return null
+    const nearest = Math.min(...candidates.map(slot => Math.abs(slot.y - edgeY)))
+    const row = candidates.filter(slot => Math.abs(Math.abs(slot.y - edgeY) - nearest) <= EPS)
+    return { coordinate: row[0].y, along: row.map(slot => slot.x) }
+  }
+  const nearestVerticalColumn = (
+    edgeX: number, y0: number, y1: number, inward: 1 | -1,
+  ): { coordinate: number; along: number[] } | null => {
+    const candidates = slots.filter(slot =>
+      slot.y >= y0 - pit - EPS && slot.y <= y1 + pit + EPS &&
+      (slot.x - edgeX) * inward > EPS)
+    if (!candidates.length) return null
+    const nearest = Math.min(...candidates.map(slot => Math.abs(slot.x - edgeX)))
+    const column = candidates.filter(slot => Math.abs(Math.abs(slot.x - edgeX) - nearest) <= EPS)
+    return { coordinate: column[0].x, along: column.map(slot => slot.y) }
+  }
+  const midpointCandidates = (values: number[]): number[] => {
+    const sorted = [...new Set(values.map(value => Math.round(value * 1e6) / 1e6))].sort((a, b) => a - b)
+    if (!sorted.length) return []
+    const candidates = [sorted[0] - pit / 2]
+    for (let index = 0; index + 1 < sorted.length; index++) {
+      if (sorted[index + 1] - sorted[index] <= pit + EPS) {
+        candidates.push((sorted[index] + sorted[index + 1]) / 2)
+      }
+    }
+    candidates.push(sorted[sorted.length - 1] + pit / 2)
+    return candidates
+  }
   const push = (x: number, y: number) => {
     const k = `${Math.round(x * 100) / 100},${Math.round(y * 100) / 100}`
     if (seen.has(k)) return
@@ -864,8 +1257,10 @@ function generateEdgeHoles(
       return dx * dx + dy * dy <= expandedR * expandedR + EPS
     })
     if (collide) return
-    const hr = cfg.jointDiameter / 2
-    if (boxTouchesCutout(x - hr, y - hr, x + hr, y + hr, cutouts)) return
+    // 相邻两条边或 T/凹角可能各自提出一个几乎重合的候选孔。连接孔中心距
+    // 小于 20mm 时只保留先生成的一颗，防止截图中的“双圆孔挤在角上”。
+    const minimumSpacing = Math.max(cfg.jointDiameter + cfg.gapTolerance, Math.min(cfg.mx, cfg.my))
+    if (holes.some(hole => Math.hypot(hole.x - x, hole.y - y) < minimumSpacing - EPS)) return
     seen.add(k)
     holes.push({ x, y })
   }
@@ -895,46 +1290,63 @@ function generateEdgeHoles(
     const b = contour[(i + 1) % n]
     const horizontal = Math.abs(b.y - a.y) < EPS
     if (!horizontal && Math.abs(b.x - a.x) > EPS) continue
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+    const edgeDx = Math.sign(b.x - a.x)
+    const edgeDy = Math.sign(b.y - a.y)
+    const outsideSample = { x: mid.x + edgeDy, y: mid.y - edgeDx }
+    const isOuterEdge = !pointInPolygon(outsideSample, assemblyContour)
     if (horizontal) {
       // contour 为 CCW: 边的左侧就是面板内部。
       // 水平向右=底边, 内法线 +Y; 水平向左=顶边, 内法线 -Y。
       const isBottom = b.x > a.x
-      const desiredY = a.y + (isBottom ? insetY : -insetY)
-      const axis = horizontalAxis(desiredY)
-      if (!axis) continue
-      const holeY = axis.value
-      // A 横轴配 B 竖轴；B 横轴配 A 竖轴。
-      const xPhase = axis.family === 'A'
-        ? lattice.x + cfg.slotGridX0 + cfg.slotStaggerX
-        : lattice.x + cfg.slotGridX0
+      const inward: 1 | -1 = isBottom ? 1 : -1
+      const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x)
+      if (isOuterEdge) {
+        const row = nearestHorizontalRow(a.y, x0, x1, inward)
+        if (row) {
+          for (const x of midpointCandidates(row.along)) {
+            if (x >= x0 + insetX - EPS && x <= x1 - insetX + EPS) push(x, row.coordinate)
+          }
+          continue
+        }
+      }
+      const holeY = a.y + inward * insetY
+      const family = nearestHorizontalFamily(a.y, x0, x1, inward)
+      const xPhase = family === 'A' ? nominalBX : aX
       pushHorizontal(
-        holeY, Math.min(a.x, b.x), Math.max(a.x, b.x), xPhase,
+        holeY, x0, x1, xPhase,
       )
     } else {
       // 竖直向上=右边, 内法线 -X; 竖直向下=左边, 内法线 +X。
       const isRight = b.y > a.y
-      const desiredX = a.x + (isRight ? -insetX : insetX)
-      const axis = verticalAxis(desiredX)
-      if (!axis) continue
-      const holeX = axis.value
-      const yPhase = axis.family === 'A'
-        ? lattice.y + cfg.slotGridY0 - cfg.slotStaggerY
-        : lattice.y + cfg.slotGridY0
+      const inward: 1 | -1 = isRight ? -1 : 1
+      const y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y)
+      if (isOuterEdge) {
+        const column = nearestVerticalColumn(a.x, y0, y1, inward)
+        if (column) {
+          for (const y of midpointCandidates(column.along)) {
+            if (y >= y0 + insetY - EPS && y <= y1 - insetY + EPS) push(column.coordinate, y)
+          }
+          continue
+        }
+      }
+      const holeX = a.x + inward * insetX
+      const family = nearestVerticalFamily(a.x, y0, y1, inward)
+      const yPhase = family === 'A' ? nominalBY : aY
       pushVertical(
-        holeX, Math.min(a.y, b.y), Math.max(a.y, b.y), yPhase,
+        holeX, y0, y1, yPhase,
       )
     }
   }
   const diskInsideMaterial = (hole: HolePos) => {
-    const radius = cfg.jointDiameter / 2 + 0.15
-    for (let i = 0; i < 12; i++) {
-      const a = (i / 12) * Math.PI * 2
-      if (!pointInPolygon({
-        x: hole.x + Math.cos(a) * radius,
-        y: hole.y + Math.sin(a) * radius,
-      }, materialContour)) return false
-    }
-    return true
+    const center = { x: hole.x, y: hole.y }
+    return sweptCircleFitsMaterial(
+      center, center,
+      cfg.jointDiameter / 2,
+      Math.max(0, cfg.holeBoundaryClearance),
+      materialContour,
+      cutouts,
+    )
   }
   return holes.filter(diskInsideMaterial)
 }
@@ -1105,20 +1517,6 @@ export function splitOrthogonalPolygon(
     x1: b.x1 + seamClearance,
     y1: b.y1 + seamClearance,
   }))
-  const containsBox = (p: Region, b: HoleBox) => {
-    if (b.x0 < p.x - EPS || b.x1 > p.x + p.w + EPS ||
-      b.y0 < p.y - EPS || b.y1 > p.y + p.h + EPS) return false
-    const x0 = Math.floor(b.x0), x1 = Math.ceil(b.x1)
-    const y0 = Math.floor(b.y0), y1 = Math.ceil(b.y1)
-    for (let y = y0; y < y1; y++) {
-      for (let x = x0; x < x1; x++) {
-        if (x + 1 <= b.x0 + EPS || x >= b.x1 - EPS ||
-          y + 1 <= b.y0 + EPS || y >= b.y1 - EPS) continue
-        if (!regionCell(p, x, y)) return false
-      }
-    }
-    return true
-  }
   const protectedHoleIdx = new Set<number>()
   for (let i = 0; i < expandedHoleBoxes.length; i++) {
     const b = expandedHoleBoxes[i]
@@ -1136,11 +1534,14 @@ export function splitOrthogonalPolygon(
   for (let attempt = 0; attempt <= validHoles.length; attempt++) {
     const root: Region = { x: minX, y: minY, w: W, h: H, mask: grid.slice() }
     const keepouts = [...protectedHoleIdx].map(i => expandedHoleBoxes[i])
-    const partition = greedyPartition(root, cfg, minX, minY, keepouts)
+    const regular = balancedGridPartition(root, cfg, keepouts, isOrthogonalContour(poly))
+    const partition = regular
+      ? { pieces: regular, warnings: [] as string[] }
+      : greedyPartition(root, cfg, minX, minY, keepouts)
     pieces = partition.pieces
     partitionWarnings = partition.warnings
     const failed = [...protectedHoleIdx].filter(i =>
-      !pieces.some(piece => containsBox(piece, expandedHoleBoxes[i])))
+      !pieces.some(piece => regionContainsBox(piece, expandedHoleBoxes[i])))
     if (failed.length === 0) break
     for (const i of failed) {
       protectedHoleIdx.delete(i)
@@ -1186,7 +1587,11 @@ export function splitOrthogonalPolygon(
     }
   }
 
+  // 先在原始轮廓上建立唯一长孔母阵。分割线和板件产生之后只做空间裁取，
+  // 从根本上避免 136.58/211.90mm 等非模数板件各自重启孔阵造成的错位。
   const latticeOrigin = { x: minX, y: minY }
+  const motherGrid = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
+  const motherSlots = generateSlots(poly, motherGrid, latticeOrigin, cfg, validHoles)
   const outPanels: SplitPanel[] = []
   for (const piece of pieces) {
     const baseContour = regionContour(piece)
@@ -1224,17 +1629,17 @@ export function splitOrthogonalPolygon(
       const ys = region.contour.map(p => p.y)
       const x = Math.min(...xs), y = Math.min(...ys)
       const w = Math.max(...xs) - x, h = Math.max(...ys) - y
-      const panelGrid = { x, y, w, h }
+      const panelSlots = filterSlotsForPanel(motherSlots, region.contour, region.cutouts, cfg)
       const panel: SplitPanel = {
         id: '',
         x, y, w, h,
         printRotation: findPrintFitAngle(region.contour, cfg) ?? 0,
         contour: region.contour,
         roundIdx: [],
-        slots: generateSlots(region.contour, panelGrid, latticeOrigin, cfg, region.cutouts),
+        slots: panelSlots,
         round_holes: [],
         edge_holes: generateEdgeHoles(
-          region.contour, panelGrid, latticeOrigin, cfg, region.cutouts, region.contour,
+          region.contour, latticeOrigin, cfg, panelSlots, region.cutouts, region.contour, poly,
         ),
         cutouts: region.cutouts,
       }
@@ -1245,6 +1650,15 @@ export function splitOrthogonalPolygon(
 
   outPanels.sort((a, b) => a.y - b.y || a.x - b.x)
   for (let i = 0; i < outPanels.length; i++) outPanels[i].id = `p${i + 1}`
+
+  for (const panel of outPanels) {
+    const featureWidth = estimatePanelMinimumFeatureWidth(panel)
+    if (featureWidth !== null && featureWidth + EPS < cfg.minFeatureWidth) {
+      warnings.push(
+        `板块 ${panel.id} 的局部结构宽度约 ${Math.round(featureWidth)}mm，低于 ${cfg.minFeatureWidth}mm；建议调整轮廓/分割或增加连接支撑`,
+      )
+    }
+  }
 
   for (const p of outPanels) {
     p.roundIdx = roundableIndices(p, outPanels, validHoles)

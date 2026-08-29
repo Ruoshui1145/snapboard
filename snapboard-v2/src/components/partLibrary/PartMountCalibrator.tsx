@@ -7,7 +7,7 @@ import { deriveSlotAxis } from '../../utils/slotAxisProbe'
 import { recoverLegacyContactSelection } from '../../utils/mountCalibrationRepair'
 import { stabilizeSlotAxis } from '../../utils/mountAxis.js'
 import { partPreviewPath, type MountHoleKind, type PartDefinition, type PartMountAnchor } from '../../partLibrary/types'
-import { createCalibrationReferenceBoard, createRotationGizmo } from './calibrationReferenceBoard'
+import { createCalibrationReferenceBoard, createRotationGizmo, setRotationGizmoAngle, setRotationGizmoAngles } from './calibrationReferenceBoard'
 
 interface Props {
   part: PartDefinition
@@ -175,6 +175,15 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
   contactModeRef.current = contactMode
   orientationRef.current = orientation
 
+  const modelPivotWorld = () => {
+    const model = modelRef.current
+    const node = model?.userData.orientationNode as THREE.Object3D | undefined
+    if (!node) return null
+    const pivot = new THREE.Vector3()
+    node.getWorldPosition(pivot)
+    return pivot
+  }
+
   const clearVisualPatches = () => {
     for (const patch of patchMeshesRef.current) {
       patch.removeFromParent()
@@ -224,19 +233,23 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
         const center = box.getCenter(new THREE.Vector3())
         const dimensions = box.getSize(new THREE.Vector3())
         const referenceBoard = createCalibrationReferenceBoard()
-        referenceBoard.position.set(center.x - 200, center.y - 200, box.min.z - 4.8)
+        const pivot = modelPivotWorld() ?? center
+        referenceBoard.position.set(pivot.x - 200, pivot.y - 200, box.min.z - 4.8)
         referenceBoardRef.current = referenceBoard
         scene.add(referenceBoard)
 
         const gizmoRadius = Math.max(18, Math.max(dimensions.x, dimensions.y, dimensions.z) * 0.72)
         const rotationGizmo = createRotationGizmo(gizmoRadius)
-        rotationGizmo.position.copy(center)
+        rotationGizmo.position.copy(pivot)
+        setRotationGizmoAngles(rotationGizmo, orientation)
         rotationGizmoRef.current = rotationGizmo
         scene.add(rotationGizmo)
 
         const size = Math.max(400, dimensions.length(), 20)
-        controls.target.copy(center)
-        camera.position.set(center.x + size * 0.75, center.y + size * 0.55, center.z + size * 0.95)
+        // 相机和旋转环共享固定枢轴；不要以旋转后的包围盒中心为目标，
+        // 否则非对称零件每次改角度都会产生“相机在追模型”的错觉。
+        controls.target.copy(pivot)
+        camera.position.set(pivot.x + size * 0.75, pivot.y + size * 0.55, pivot.z + size * 0.95)
         camera.near = Math.max(0.01, size / 1000)
         camera.far = size * 50
         camera.updateProjectionMatrix()
@@ -249,6 +262,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       startX: number
       startY: number
       startOrientation: [number, number, number]
+      startAngle: number
+      cameraPosition: THREE.Vector3
+      cameraTarget: THREE.Vector3
+      cameraZoom: number
     } | null = null
     const canvas = renderer.domElement
     const rayFromEvent = (event: PointerEvent) => {
@@ -264,8 +281,27 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     const ringHit = (event: PointerEvent) => {
       const gizmo = rotationGizmoRef.current
       if (!gizmo) return null
-      return rayFromEvent(event).intersectObject(gizmo, true)
-        .find(hit => Number.isInteger(hit.object.userData.rotationAxis)) ?? null
+      const hits = rayFromEvent(event).intersectObject(gizmo, true)
+        .filter(hit => Number.isInteger(hit.object.userData.rotationAxis))
+      // 箭头是每条环的明确抓手；重叠位置才回退到圆环本体，减少误选相邻轴。
+      return hits.find(hit => hit.object.userData.rotationHandle) ?? hits[0] ?? null
+    }
+    const ringAngle = (event: PointerEvent, axis: 0 | 1 | 2): number | null => {
+      const gizmo = rotationGizmoRef.current
+      const root = gizmo?.getObjectByName(`rotation-axis-${axis}`)
+      if (!gizmo || !root) return null
+      const quaternion = root.getWorldQuaternion(new THREE.Quaternion())
+      const u = new THREE.Vector3(1, 0, 0).applyQuaternion(quaternion).normalize()
+      const v = new THREE.Vector3(0, 1, 0).applyQuaternion(quaternion).normalize()
+      const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(quaternion).normalize()
+      const center = gizmo.getWorldPosition(new THREE.Vector3())
+      const point = rayFromEvent(event).ray.intersectPlane(
+        new THREE.Plane().setFromNormalAndCoplanarPoint(normal, center),
+        new THREE.Vector3(),
+      )
+      if (!point) return null
+      const relative = point.sub(center)
+      return Math.atan2(relative.dot(v), relative.dot(u))
     }
     const updateRingHover = (axis: number | null) => {
       rotationGizmoRef.current?.traverse(object => {
@@ -286,15 +322,24 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       model?.updateMatrixWorld(true)
       if (model) {
         const box = new THREE.Box3().setFromObject(model)
-        const center = box.getCenter(new THREE.Vector3())
+        const center = modelPivotWorld() ?? box.getCenter(new THREE.Vector3())
         referenceBoardRef.current?.position.set(center.x - 200, center.y - 200, box.min.z - 4.8)
         rotationGizmoRef.current?.position.copy(center)
+      }
+      const ringSign = 1
+      const rotationGizmo = rotationGizmoRef.current
+      if (rotationGizmo) {
+        setRotationGizmoAngle(
+          rotationGizmo,
+          axis,
+          THREE.MathUtils.degToRad(next[axis]) * ringSign,
+        )
       }
       if (anchorsRef.current.length) {
         setAnchors([])
         clearVisualPatches()
       }
-      setMessage(`${['X', 'Y', 'Z'][axis]} 轴 ${Math.round(next[axis])}° · 松开旋转环后可继续选择端面。`)
+      setMessage(`${['X', 'Y', 'Z'][axis]} 轴 ${Math.round(next[axis])}° · 已吸附到 15° 刻度 · 松开旋转环后可继续选择端面。`)
     }
     const onDown = (event: PointerEvent) => {
       const hit = ringHit(event)
@@ -305,6 +350,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
           startX: event.clientX,
           startY: event.clientY,
           startOrientation: [...orientationRef.current],
+          startAngle: ringAngle(event, axis) ?? 0,
+          cameraPosition: camera.position.clone(),
+          cameraTarget: controls.target.clone(),
+          cameraZoom: camera.zoom,
         }
         controls.enabled = false
         canvas.style.cursor = 'grabbing'
@@ -317,11 +366,24 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     }
     const onMove = (event: PointerEvent) => {
       if (rotationDrag) {
-        const delta = (event.clientX - rotationDrag.startX - (event.clientY - rotationDrag.startY)) * 0.55
-        applyDraggedOrientation(
-          rotationDrag.axis,
-          rotationDrag.startOrientation[rotationDrag.axis] + delta,
-        )
+        // OrbitControls 可能已经排队了上一帧的阻尼变化；每一帧恢复快照，
+        // 确保旋转环只改变模型姿态，不改变相机位置、目标或缩放。
+        camera.position.copy(rotationDrag.cameraPosition)
+        controls.target.copy(rotationDrag.cameraTarget)
+        camera.zoom = rotationDrag.cameraZoom
+        camera.updateProjectionMatrix()
+        const currentAngle = ringAngle(event, rotationDrag.axis)
+        const ringSign = 1
+        const delta = currentAngle === null
+          ? (event.clientX - rotationDrag.startX - (event.clientY - rotationDrag.startY)) * 0.55
+          : THREE.MathUtils.radToDeg(THREE.MathUtils.euclideanModulo(
+            currentAngle - rotationDrag.startAngle + Math.PI,
+            Math.PI * 2,
+          ) - Math.PI)
+        const raw = rotationDrag.startOrientation[rotationDrag.axis] + ringSign * delta
+        // 旋转环刻度是 15° 一格；拖到刻度附近时吸附，形成明确的“卡点”反馈。
+        const snapped = Math.round(raw / 15) * 15
+        applyDraggedOrientation(rotationDrag.axis, snapped)
         event.preventDefault()
         event.stopImmediatePropagation()
         return
@@ -331,6 +393,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     }
     const onUp = (event: PointerEvent) => {
       if (rotationDrag) {
+        camera.position.copy(rotationDrag.cameraPosition)
+        controls.target.copy(rotationDrag.cameraTarget)
+        camera.zoom = rotationDrag.cameraZoom
+        camera.updateProjectionMatrix()
         rotationDrag = null
         controls.enabled = true
         updateRingHover(null)
@@ -416,6 +482,12 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       patchMeshesRef.current.push(overlay)
     }
     const onCancel = (event: PointerEvent) => {
+      if (rotationDrag) {
+        camera.position.copy(rotationDrag.cameraPosition)
+        controls.target.copy(rotationDrag.cameraTarget)
+        camera.zoom = rotationDrag.cameraZoom
+        camera.updateProjectionMatrix()
+      }
       rotationDrag = null
       down = null
       controls.enabled = true
@@ -434,7 +506,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     resize.observe(host)
     const animate = () => {
       frame = requestAnimationFrame(animate)
-      controls.update()
+      if (!rotationDrag) controls.update()
       renderer.render(scene, camera)
     }
     animate()
@@ -504,10 +576,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     const board = referenceBoardRef.current
     if (!model || !board) return
     model.updateMatrixWorld(true)
-    const box = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
-    board.position.set(center.x - 200, center.y - 200, box.min.z - 4.8)
-    rotationGizmoRef.current?.position.copy(center)
+      const box = new THREE.Box3().setFromObject(model)
+      const center = modelPivotWorld() ?? box.getCenter(new THREE.Vector3())
+      board.position.set(center.x - 200, center.y - 200, box.min.z - 4.8)
+      rotationGizmoRef.current?.position.copy(center)
   }
 
   const normalizeAngle = (value: number) => ((value + 180) % 360 + 360) % 360 - 180
@@ -525,6 +597,8 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       )
       model?.updateMatrixWorld(true)
       updateReferenceBoardPosition()
+      const gizmo = rotationGizmoRef.current
+      if (gizmo) setRotationGizmoAngles(gizmo, next)
     }
     if (anchorsRef.current.length) {
       setAnchors([])
@@ -572,7 +646,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       setMessage('标定已保存。')
       onSaved()
     } catch (error) {
-      setMessage(`保存失败：${error instanceof Error ? error.message : String(error)}`)
+      const message = error instanceof TypeError && /fetch/i.test(error.message)
+        ? '无法连接本地开发服务（请确认 5173 仍在运行；资源包同步会自动排队后重试）'
+        : error instanceof Error ? error.message : String(error)
+      setMessage(`保存失败：${message}`)
     } finally {
       setSaving(false)
     }
@@ -591,7 +668,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
         <div className="calib-body">
           <div className="calib-viewport" ref={hostRef}>
             <div className="calib-gizmo-hint">
-              拖动旋转环
+              拖动旋转环 · XYZ 标签位于对应圆弧中点
               <span className="x">X</span><span className="y">Y</span><span className="z">Z</span>
               · 15° / 45° / 90° 刻度
             </div>

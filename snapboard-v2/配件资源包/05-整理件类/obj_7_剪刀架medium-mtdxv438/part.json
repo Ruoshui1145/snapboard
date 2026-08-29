@@ -1,0 +1,79 @@
+{
+  "id": "obj_7_剪刀架medium-mtdxv438",
+  "name": "剪刀架medium",
+  "category": "organizer",
+  "sortOrder": 80,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_7_剪刀架medium.stl",
+    "print": "obj_7_剪刀架medium.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      -180,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      60,
+      22.7,
+      20
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          455.2,
+          11,
+          -120.361
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          415.2,
+          11,
+          -120.361
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": -109.611
+  },
+  "defaultRotation": 0
+}

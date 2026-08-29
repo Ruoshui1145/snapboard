@@ -595,51 +595,60 @@ export const useAppStore = create<AppState>((set, get) => ({
   // 注意: 命令直接 mutate project 内部对象, zustand 浅比较无法感知,
   // 因此 set 时必须给 project 做两层浅复制, 强制订阅者重渲染。
   execute: (command) => {
-    cancelActiveSplitTask()
+    const affectsSketch = command.affectsSketch !== false
+    if (affectsSketch) cancelActiveSplitTask()
     command.execute()
     const s = get()
     set({
-      project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) },
+      ...(affectsSketch ? { project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) } } : {}),
       undoStack: [...s.undoStack, command],
       redoStack: [],
-      splitJob: null,
+      splitJob: affectsSketch ? null : s.splitJob,
     })
-    void refreshSolveStates(get, set)
-    void syncSplitToSketch(get, set)
+    if (affectsSketch) {
+      void refreshSolveStates(get, set)
+      void syncSplitToSketch(get, set)
+    }
   },
 
   undo: () => {
-    cancelActiveSplitTask()
     const { undoStack, redoStack } = get()
     if (undoStack.length === 0) return
     const cmd = undoStack[undoStack.length - 1]
+    const affectsSketch = cmd.affectsSketch !== false
+    if (affectsSketch) cancelActiveSplitTask()
     cmd.undo()
     const s = get()
     set({
-      project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) },
+      ...(affectsSketch ? { project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) } } : {}),
       undoStack: undoStack.slice(0, -1),
       redoStack: [...redoStack, cmd],
-      splitJob: null,
+      splitJob: affectsSketch ? null : s.splitJob,
     })
-    void refreshSolveStates(get, set)
-    void syncSplitToSketch(get, set)
+    if (affectsSketch) {
+      void refreshSolveStates(get, set)
+      void syncSplitToSketch(get, set)
+    }
   },
 
   redo: () => {
-    cancelActiveSplitTask()
     const { undoStack, redoStack } = get()
     if (redoStack.length === 0) return
     const cmd = redoStack[redoStack.length - 1]
+    const affectsSketch = cmd.affectsSketch !== false
+    if (affectsSketch) cancelActiveSplitTask()
     cmd.redo()
     const s = get()
     set({
-      project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) },
+      ...(affectsSketch ? { project: { ...s.project, parts: s.project.parts.map(p => ({ ...p })) } } : {}),
       undoStack: [...undoStack, cmd],
       redoStack: redoStack.slice(0, -1),
-      splitJob: null,
+      splitJob: affectsSketch ? null : s.splitJob,
     })
-    void refreshSolveStates(get, set)
-    void syncSplitToSketch(get, set)
+    if (affectsSketch) {
+      void refreshSolveStates(get, set)
+      void syncSplitToSketch(get, set)
+    }
   },
 
   newProject: (name) => {

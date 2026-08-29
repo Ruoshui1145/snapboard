@@ -7,8 +7,8 @@ SnapBoard 采用“应用、领域模块、文档运营、第三方参考、归�
 ```text
 SnapBoard/
 ├── apps/
-│   └── wiki/                      # Docusaurus 官网/Wiki/开发日志
-├── snapboard-v2/                  # 当前 Studio 应用（迁移期保持路径）
+│   └── wiki/                      # 公开 Markdown 文档与开发日志源文件（非第二入口）
+├── snapboard-v2/                  # 当前 Studio 应用与统一官网（迁移期保持路径）
 ├── modules/                       # 领域模块边界和迁移说明
 │   ├── sketch-engine/
 │   ├── split-engine/
@@ -48,7 +48,7 @@ Sketch Engine ──→ Split Engine ──→ Manufacturing Engine
                   Texture Engine
 
 apps/studio 只负责组合模块，不承载领域算法。
-apps/wiki 不依赖 Studio 运行时代码，只读取公开文档和静态媒体。
+主站与 Studio 当前由 `snapboard-v2` 统一提供；`apps/wiki` 不参与运行时，只保存公开文档和开发日志源文件。
 商业运营与 vendor 不得被浏览器运行时代码直接导入；运行必需模板需要复制到明确的 runtime 资源目录。
 ```
 
@@ -86,7 +86,7 @@ apps/wiki 不依赖 Studio 运行时代码，只读取公开文档和静态媒�
 - 创建 `apps/wiki`；
 - 创建模块边界说明；
 - 根目录加入 npm workspaces 统一命令；
-- 建立 Wiki、开发日志和 GitHub Pages 工作流；
+- 建立公开文档、开发日志和统一官网的 GitHub Pages 工作流；
 - 归类 Lumina、历史原型、工程图和旧架构资料。
 
 ### Phase B：下一步

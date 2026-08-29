@@ -1,0 +1,101 @@
+{
+  "id": "60-200-40-mtea33h4",
+  "name": "60-200-40",
+  "category": "bin",
+  "sortOrder": 280,
+  "description": "EA哒哒哒",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "60-200-40.stl",
+    "print": "60-200-40.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      199,
+      70,
+      41.7
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          180,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          100,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          20,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 150
+  },
+  "defaultRotation": 0
+}

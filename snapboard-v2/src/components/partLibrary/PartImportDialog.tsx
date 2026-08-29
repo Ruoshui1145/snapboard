@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { PART_CATEGORY_FOLDER, PART_CATEGORY_OPTIONS, type PartCategory, type PartDefinition } from '../../partLibrary/types'
+import { dimensionsLabel, inspectModelFile, type ModelInspection } from '../../utils/modelInspection'
 
 const readableSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
@@ -8,11 +9,20 @@ const readableSize = (bytes: number) => {
 }
 
 const fileStem = (name: string) => name.replace(/\.[^.]+$/, '')
+const CUSTOM_SUBCATEGORY = '__custom__'
 
 interface FileStatus {
   name: string
   size: number
+  included: boolean
   state: 'pending' | 'ok' | 'fail'
+  error?: string
+  inspection?: ModelInspection
+  inspecting?: boolean
+}
+
+interface FolderListResponse {
+  groups?: unknown
   error?: string
 }
 
@@ -20,20 +30,64 @@ interface ImportProps {
   files: File[]
   onClose: () => void
   onImported: (category: PartCategory) => void
+  /** 从当前配件库大类打开导入时，沿用当前大类，便于直接看到该类已有细分目录。 */
+  initialCategory?: PartCategory
 }
 
 /** 导入新配件 (支持单文件与批量; 可选择大类, 按大类归档到“配件资源包/<大类文件夹>/”) */
-export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
+export function PartImportDialog({ files, onClose, onImported, initialCategory = 'custom' }: ImportProps) {
   const single = files.length === 1
   const initialName = single ? fileStem(files[0].name) : ''
   const [name, setName] = useState(initialName)
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState<PartCategory>('custom')
+  const [subcategory, setSubcategory] = useState('')
+  const [subcategoryMode, setSubcategoryMode] = useState<'none' | 'existing' | 'custom'>('none')
+  const [subcategoryOptions, setSubcategoryOptions] = useState<string[]>([])
+  const [subcategoryLoading, setSubcategoryLoading] = useState(false)
+  const [usageImageFile, setUsageImageFile] = useState<File | null>(null)
+  const [category, setCategory] = useState<PartCategory>(initialCategory)
   const [statuses, setStatuses] = useState<FileStatus[]>(() =>
-    files.map(file => ({ name: file.name, size: file.size, state: 'pending' as const })))
+    files.map(file => ({ name: file.name, size: file.size, included: true, state: 'pending' as const })))
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [renderNodes, setRenderNodes] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    let alive = true
+    setSubcategory('')
+    setSubcategoryMode('none')
+    setSubcategoryLoading(true)
+    fetch(`/api/part-library/group?category=${encodeURIComponent(category)}`, { cache: 'no-store' })
+      .then(response => response.json().then((result: FolderListResponse) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`)
+        const groups = Array.isArray(result.groups)
+          ? result.groups.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+          : []
+        if (alive) setSubcategoryOptions([...new Set(groups)].sort((a, b) => a.localeCompare(b, 'zh-CN')))
+      })
+      .catch(() => { if (alive) setSubcategoryOptions([]) })
+      .finally(() => { if (alive) setSubcategoryLoading(false) })
+    return () => { alive = false }
+  }, [category])
+
+  useEffect(() => {
+    let alive = true
+    files.forEach((file, index) => {
+      setStatuses(prev => prev.map((status, statusIndex) => statusIndex === index ? { ...status, inspecting: true } : status))
+      inspectModelFile(file)
+        .then(inspection => {
+          if (!alive) return
+          setStatuses(prev => prev.map((status, statusIndex) => statusIndex === index ? { ...status, inspection, inspecting: false } : status))
+          if (inspection.objects.length > 1) setRenderNodes(prev => ({ ...prev, [file.name]: inspection.objects[0].path }))
+        })
+        .catch(() => {
+          if (alive) setStatuses(prev => prev.map((status, statusIndex) => statusIndex === index ? { ...status, inspecting: false } : status))
+        })
+    })
+    return () => { alive = false }
+  }, [files])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -44,12 +98,21 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
   }, [busy, onClose])
 
   const importOne = async (file: File, index: number, importName: string) => {
+    const fileStatus = statuses[index]
     const query = new URLSearchParams({
       filename: file.name,
       name: importName,
       category,
       description: description.trim(),
+      subcategory: subcategory.trim(),
     })
+    if (fileStatus?.inspection) query.set('dimensionsMm', JSON.stringify([
+      fileStatus.inspection.dimensionsMm.x,
+      fileStatus.inspection.dimensionsMm.y,
+      fileStatus.inspection.dimensionsMm.z,
+    ]))
+    const renderNode = renderNodes[file.name]
+    if (renderNode) query.set('renderNode', renderNode)
     const folder = PART_CATEGORY_FOLDER[category]
     if (folder) query.set('folder', folder)
     const response = await fetch(`/api/part-library/import?${query}`, {
@@ -60,6 +123,23 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
     const result = await response.json().catch(() => ({}))
     if (!response.ok) throw new Error(result.error || `导入失败 (HTTP ${response.status})`)
     setStatuses(prev => prev.map((s, i) => i === index ? { ...s, state: 'ok' } : s))
+    return result as { packageId?: string; localId?: string }
+  }
+
+  const uploadUsageImage = async (target: { packageId?: string; localId?: string }) => {
+    if (!usageImageFile || !target.packageId || !target.localId) return
+    const query = new URLSearchParams({
+      packageId: target.packageId,
+      localId: target.localId,
+      filename: usageImageFile.name,
+    })
+    const response = await fetch(`/api/part-library/usage-image?${query}`, {
+      method: 'POST',
+      headers: { 'Content-Type': usageImageFile.type || 'application/octet-stream' },
+      body: usageImageFile,
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(result.error || `实装示例图上传失败 (HTTP ${response.status})`)
   }
 
   const submit = async () => {
@@ -70,12 +150,19 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
     }
     setBusy(true)
     setError('')
+    const selectedIndexes = statuses.map((status, index) => status.included ? index : -1).filter(index => index >= 0)
+    if (!selectedIndexes.length) {
+      setError('请至少保留一个要导入的模型文件')
+      setBusy(false)
+      return
+    }
     let failed = 0
     let succeeded = 0
-    for (let i = 0; i < files.length; i++) {
+    for (const i of selectedIndexes) {
       const importName = single ? name.trim() : fileStem(files[i].name)
       try {
-        await importOne(files[i], i, importName)
+        const imported = await importOne(files[i], i, importName)
+        if (single) await uploadUsageImage(imported)
         succeeded++
       } catch (cause) {
         failed++
@@ -120,10 +207,23 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
           <div className="part-import-list">
             {statuses.map((item, index) => (
               <div key={index} className="part-import-file-row">
+                {files.length > 1 && <label className="part-import-file-toggle" title={item.included ? '将此文件加入配件库' : '跳过此文件，不导入配件库'}>
+                  <input type="checkbox" checked={item.included} disabled={busy} onChange={event => setStatuses(prev => prev.map((status, statusIndex) => statusIndex === index ? { ...status, included: event.target.checked } : status))} />
+                  <span>{item.included ? '导入' : '跳过'}</span>
+                </label>}
                 <span className="part-import-file-icon">📦</span>
-                <div>
+                <div className="part-import-file-copy">
                   <b title={item.name}>{item.name}</b>
                   <small>{item.name.split('.').pop()?.toUpperCase()} · {readableSize(item.size)}</small>
+                  <small className="part-import-dimensions">{item.inspection ? `尺寸 ${dimensionsLabel(item.inspection.dimensionsMm)}` : item.inspecting ? '尺寸读取中…' : '尺寸暂不可读'}</small>
+                  {item.inspection && item.inspection.objects.length > 1 && (
+                    <label className="part-import-render-choice">
+                      <span>实际渲染</span>
+                      <select value={renderNodes[item.name] ?? ''} onChange={event => setRenderNodes(prev => ({ ...prev, [item.name]: event.target.value }))}>
+                        {item.inspection.objects.map(option => <option key={option.path} value={option.path}>{option.label} · {dimensionsLabel(option.dimensionsMm)}</option>)}
+                      </select>
+                    </label>
+                  )}
                   {item.error && <em className="part-import-file-error">{item.error}</em>}
                 </div>
                 <em className={'part-import-file-state ' + item.state}>
@@ -162,6 +262,29 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
               <small>{folderNote}</small>
             </label>
             <label>
+              <span>细分文件夹 <i>可选</i></span>
+              <select
+                value={subcategoryMode === 'custom' ? CUSTOM_SUBCATEGORY : subcategory}
+                disabled={subcategoryLoading}
+                onChange={event => {
+                  const value = event.target.value
+                  if (value === CUSTOM_SUBCATEGORY) {
+                    setSubcategoryMode('custom')
+                    setSubcategory('')
+                  } else {
+                    setSubcategoryMode(value ? 'existing' : 'none')
+                    setSubcategory(value)
+                  }
+                }}
+              >
+                <option value="">不指定（放在大类根目录）</option>
+                {subcategoryOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                <option value={CUSTOM_SUBCATEGORY}>自定义…</option>
+              </select>
+              {subcategoryMode === 'custom' && <input value={subcategory} maxLength={40} autoFocus placeholder="输入新的细分文件夹名称" onChange={event => setSubcategory(event.target.value)} />}
+              <small>{subcategoryLoading ? '正在读取已有细分文件夹…' : subcategoryMode === 'custom' ? '仅在没有合适的已有文件夹时使用；导入时会自动创建。' : '先从已有细分文件夹中选择；自定义选项固定在列表最后。'}</small>
+            </label>
+            <label>
               <span>说明 <i>可选</i></span>
               <textarea
                 value={description}
@@ -170,6 +293,11 @@ export function PartImportDialog({ files, onClose, onImported }: ImportProps) {
                 onChange={event => setDescription(event.target.value)}
               />
             </label>
+            {single && <label>
+              <span>实装示例图 <i>可选</i></span>
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setUsageImageFile(event.target.files?.[0] ?? null)} />
+              <small>{usageImageFile ? `已选择：${usageImageFile.name}` : '悬停配件缩略图时显示，例如装到宿舍板后的照片。'}</small>
+            </label>}
           </div>
 
           <div className="part-import-note">
@@ -200,10 +328,71 @@ interface RenameProps {
 export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
   const [name, setName] = useState(part.name)
   const [description, setDescription] = useState(part.description ?? '')
+  const [subcategory, setSubcategory] = useState(part.subcategory ?? '')
+  const [subcategoryMode, setSubcategoryMode] = useState<'none' | 'existing' | 'custom'>(part.subcategory ? 'existing' : 'none')
+  const [subcategoryOptions, setSubcategoryOptions] = useState<string[]>([])
+  const [subcategoryLoading, setSubcategoryLoading] = useState(false)
   const [sortOrder, setSortOrder] = useState(part.sortOrder ?? 0)
   const [category, setCategory] = useState<PartCategory>(part.category)
+  const [usageImageFile, setUsageImageFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    let alive = true
+    const sameCategory = category === part.category
+    setSubcategory(sameCategory ? (part.subcategory ?? '') : '')
+    setSubcategoryMode(sameCategory && part.subcategory ? 'existing' : 'none')
+    setSubcategoryLoading(true)
+    fetch(`/api/part-library/group?category=${encodeURIComponent(category)}`, { cache: 'no-store' })
+      .then(response => response.json().then((result: FolderListResponse) => ({ response, result })))
+      .then(({ response, result }) => {
+        if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`)
+        const groups = Array.isArray(result.groups)
+          ? result.groups.filter((value: unknown): value is string => typeof value === 'string' && value.trim().length > 0)
+          : []
+        if (!alive) return
+        const sorted = [...new Set(groups)].sort((a, b) => a.localeCompare(b, 'zh-CN'))
+        setSubcategoryOptions(sorted)
+        if (sameCategory && part.subcategory && !sorted.includes(part.subcategory)) setSubcategoryMode('custom')
+      })
+      .catch(() => { if (alive) setSubcategoryOptions([]) })
+      .finally(() => { if (alive) setSubcategoryLoading(false) })
+    return () => { alive = false }
+  }, [category, part.category, part.subcategory])
+
+  const replaceUsageImage = async () => {
+    if (!usageImageFile) return
+    if (!part.packageId || !part.localId) throw new Error('当前配件缺少资源包 ID，无法保存实装照片')
+    const query = new URLSearchParams({ packageId: part.packageId, localId: part.localId, filename: usageImageFile.name })
+    const response = await fetch(`/api/part-library/usage-image?${query}`, {
+      method: 'POST', headers: { 'Content-Type': usageImageFile.type || 'application/octet-stream' }, body: usageImageFile,
+    })
+    const result = await response.json().catch(() => ({}))
+    if (!response.ok) throw new Error(result.error || `实装图保存失败 (HTTP ${response.status})`)
+  }
+
+  const removeUsageImage = async () => {
+    if (!part.model.usageImage) return
+    if (!part.packageId || !part.localId) {
+      setError('当前配件缺少资源包 ID，无法删除实装照片')
+      return
+    }
+    if (!window.confirm('确定删除这张实际安装照片吗？模型和配件资料不会受影响。')) return
+    setBusy(true)
+    setError('')
+    try {
+      const query = new URLSearchParams({ packageId: part.packageId, localId: part.localId })
+      const response = await fetch(`/api/part-library/usage-image?${query}`, { method: 'DELETE' })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || `实装图删除失败 (HTTP ${response.status})`)
+      window.dispatchEvent(new Event('snapboard:part-library-updated'))
+      onRenamed()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+      setBusy(false)
+    }
+  }
 
   const submit = async () => {
     const cleanName = name.trim()
@@ -219,11 +408,13 @@ export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
           localId: part.localId,
           name: cleanName,
           description: description.trim(),
+          subcategory: subcategory.trim(),
           sortOrder,
         }),
       })
       const result = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(result.error || `修改失败 (HTTP ${response.status})`)
+      await replaceUsageImage()
       if (category !== part.category) {
         const moveResponse = await fetch('/api/part-library/batch', {
           method: 'POST',
@@ -275,8 +466,8 @@ export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
       <div className="part-import-modal compact" role="dialog" aria-modal="true" aria-labelledby="part-rename-title">
         <header>
           <div>
-            <strong id="part-rename-title">配件信息与文件位置</strong>
-            <span>名称、序号、分类和删除都在这里管理</span>
+            <strong id="part-rename-title">配件资料与展示</strong>
+            <span>名称、用途、分类、实装照片和文件位置</span>
           </div>
           <button type="button" onClick={onClose} disabled={busy} aria-label="关闭">×</button>
         </header>
@@ -302,6 +493,38 @@ export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
           <label>
             <span>说明</span>
             <textarea value={description} maxLength={240} onChange={event => setDescription(event.target.value)} />
+          </label>
+          <label>
+            <span>细分文件夹 <i>可选</i></span>
+            <select
+              value={subcategoryMode === 'custom' ? CUSTOM_SUBCATEGORY : subcategory}
+              disabled={subcategoryLoading}
+              onChange={event => {
+                const value = event.target.value
+                if (value === CUSTOM_SUBCATEGORY) {
+                  setSubcategoryMode('custom')
+                  setSubcategory('')
+                } else {
+                  setSubcategoryMode(value ? 'existing' : 'none')
+                  setSubcategory(value)
+                }
+              }}
+            >
+              <option value="">不指定（放在大类根目录）</option>
+              {subcategoryOptions.map(option => <option key={option} value={option}>{option}</option>)}
+              <option value={CUSTOM_SUBCATEGORY}>自定义…</option>
+            </select>
+            {subcategoryMode === 'custom' && <input value={subcategory} maxLength={40} autoFocus placeholder="输入新的细分文件夹名称" onChange={event => setSubcategory(event.target.value)} />}
+            <small>{subcategoryLoading ? '正在读取已有细分文件夹…' : subcategoryMode === 'custom' ? '当前名称不在已有目录中，将按新目录保存。' : '先从已有目录选择；自定义选项固定在最后。'}</small>
+          </label>
+          <label className="part-edit-usage-field">
+            <span>实际安装照片 <i>可选</i></span>
+            {part.model.usageImage && <img src={`/partLibrary/${part.model.usageImage}`} alt={`${part.name} 当前实装示例`} />}
+            <div className="part-edit-usage-actions">
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setUsageImageFile(event.target.files?.[0] ?? null)} />
+              {part.model.usageImage && <button type="button" className="danger" onClick={() => void removeUsageImage()} disabled={busy}>删除照片</button>}
+            </div>
+            <small>{usageImageFile ? `点击“保存信息”替换为：${usageImageFile.name}` : part.model.usageImage ? '可重新选择图片替换，或点击“删除照片”立即移除。' : '添加装到洞洞板后的真实照片，帮助用户理解用途。'}</small>
           </label>
         </div>
         {error && <div className="part-import-error">{error}</div>}

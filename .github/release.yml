@@ -1,0 +1,30 @@
+changelog:
+  exclude:
+    labels:
+      - documentation
+      - chore
+    authors:
+      - github-actions[bot]
+  categories:
+    - title: '🚀 新功能与用户体验'
+      labels:
+        - feature
+        - enhancement
+        - ui
+    - title: '🧮 几何、算法与制造'
+      labels:
+        - algorithm
+        - geometry
+        - manufacturing
+        - 3mf
+    - title: '🐛 修复'
+      labels:
+        - bug
+        - fix
+    - title: '📚 文档与工程维护'
+      labels:
+        - documentation
+        - chore
+    - title: '📦 其他变更'
+      labels:
+        - '*'

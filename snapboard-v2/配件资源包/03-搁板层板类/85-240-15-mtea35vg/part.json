@@ -1,0 +1,101 @@
+{
+  "id": "85-240-15-mtea35vg",
+  "name": "85-240-15",
+  "category": "shelf",
+  "sortOrder": 300,
+  "description": "EA哒哒哒",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "85-240-15.stl",
+    "print": "85-240-15.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      239,
+      95,
+      28.2
+    ]
+  },
+  "mount": {
+    "mode": "multi",
+    "anchors": [
+      {
+        "id": "a1",
+        "label": "吸附点 1",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          180,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          100,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      },
+      {
+        "id": "a3",
+        "label": "吸附点 3",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          20,
+          11.75,
+          140
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "required": true,
+        "axis": [
+          -0.38291098354328656,
+          0.923785244892942
+        ]
+      }
+    ],
+    "calibrationRequired": false,
+    "contactZ": 150
+  },
+  "defaultRotation": 0
+}

@@ -7,6 +7,7 @@ import type { PlacedPart } from '../partLibrary/types'
 /** 添加洞洞板 */
 export class AddBoardCommand implements Command {
   label = '添加洞洞板'
+  affectsSketch = false
   private board: Board
 
   constructor(board: Board) {
@@ -33,6 +34,7 @@ export class AddBoardCommand implements Command {
 /** 放置配件 (自动吸附到孔位) */
 export class PlacePartCommand implements Command {
   label = '放置配件'
+  affectsSketch = false
   private placed: PlacedPart
 
   constructor(placed: PlacedPart) {
@@ -59,6 +61,7 @@ export class PlacePartCommand implements Command {
 /** 移动已装配配件到另一组孔位（可撤销/重做）。 */
 export class MovePartCommand implements Command {
   label = '移动配件'
+  affectsSketch = false
   private before: PlacedPart | null = null
   private partId: string
   private after: PlacedPart
@@ -95,6 +98,7 @@ export class MovePartCommand implements Command {
 /** 移除配件 */
 export class RemovePartCommand implements Command {
   label = '移除配件'
+  affectsSketch = false
   private part: PlacedPart | null = null
   private partId: string
 

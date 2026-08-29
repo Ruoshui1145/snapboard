@@ -1,0 +1,33 @@
+{
+  "id": "obj_18_实体4-mtdxvewt",
+  "name": "obj_18_实体4",
+  "category": "custom",
+  "sortOrder": 190,
+  "description": "从网页导入；请设置默认朝向与装配吸附点",
+  "kind": "fixed",
+  "params": [],
+  "model": {
+    "preview": "obj_18_实体4.stl",
+    "print": "obj_18_实体4.stl",
+    "format": "stl",
+    "unit": "millimeter",
+    "upAxis": "z",
+    "scale": 1,
+    "orientation": [
+      0,
+      0,
+      0
+    ],
+    "dimensionsMm": [
+      24.5,
+      45,
+      4.5
+    ]
+  },
+  "mount": {
+    "mode": "free",
+    "anchors": [],
+    "calibrationRequired": true
+  },
+  "defaultRotation": 0
+}
