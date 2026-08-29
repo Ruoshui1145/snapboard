@@ -44,9 +44,9 @@ git push -u origin main
 
 如果仓库名使用小写，则将 URL 中的 `SnapBoard` 改为 `snapboard`。
 
-## GitHub Pages
+## GitHub Pages（历史备用，不是当前生产入口）
 
-推送后：
+当前生产网站使用 EdgeOne Pages / Makers；GitHub Pages 仅用于需要临时保留旧托管入口的情况。若确实要启用备用站点：
 
 1. 打开仓库 `Settings → Pages`；
 2. `Build and deployment → Source` 选择 `GitHub Actions`；
