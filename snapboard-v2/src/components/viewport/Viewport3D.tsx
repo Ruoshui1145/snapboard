@@ -586,7 +586,7 @@ export function Viewport3D() {
     }
     const targets = splitPanelTargets(splitResult.panels, splitCfg, side)
     const anchors = anchorsForSide(mount.anchors, side)
-    return { fit: fitPartAnchors(anchors, targets, point, 35, 4, undefined, occupiedIds, contactZForSide(mount.contactZ, side)), point }
+    return { fit: fitPartAnchors(anchors, targets, point, 35, 4, undefined, occupiedIds, contactZForSide(mount.contactZ, side), mount.slideY ?? 0), point }
   }
 
   /** 即使整组锚点尚未匹配，也把光标附近可用孔显示出来，让用户能看见应靠近的位置。 */
@@ -1112,7 +1112,7 @@ export function Viewport3D() {
       return
     }
     const desired = selectedPart.placement.rotationZ + THREE.MathUtils.degToRad(degrees)
-    const fit = fitPartAnchors(anchorsForSide(mount.anchors, side), targets, pivot, 8, 4, desired, occupiedTargetIds(selectedPart.id), contactZForSide(mount.contactZ, side))
+    const fit = fitPartAnchors(anchorsForSide(mount.anchors, side), targets, pivot, 8, 4, desired, occupiedTargetIds(selectedPart.id), contactZForSide(mount.contactZ, side), mount.slideY ?? 0)
     const angleError = fit
       ? Math.abs(Math.atan2(Math.sin(fit.rotationZ - desired), Math.cos(fit.rotationZ - desired)))
       : Infinity

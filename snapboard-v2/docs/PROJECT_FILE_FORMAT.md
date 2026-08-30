@@ -84,7 +84,7 @@ interface PartMountDefinition {
 }
 ```
 
-缺少 `axis` 的旧长圆孔锚点不会继续按无方向孔使用，必须打开标定器自动补算并保存。`PlacedPart.placement.targetIds` 是全局孔位占用依据，正背面共享同一 ID。
+缺少 `axis` 的旧长圆孔锚点会在装配入口按正式板竖直规格自动补为 `[0,1]`，无需重复标定；重新保存时会写回规范值。锚点可保存 `profile: { width, length }` 作为安装柱端面代理碰撞尺寸。`PlacedPart.placement.targetIds` 是全局孔位占用依据，正背面共享同一 ID。`mount.slideY` 保存接触面贴板后沿长孔向下滑移的锁止距离（mm）；纯圆孔装配为 0，通常省略该字段。
 
 坐标由 `workspace.project.config.pixelToMM` 转换为毫米；分割配置中的热床、孔径、厚度、倒角和间隙均为毫米。
 

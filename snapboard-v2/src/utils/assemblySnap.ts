@@ -28,6 +28,28 @@ export interface SplitAssemblyFrame {
   minY: number
 }
 
+/**
+ * 竖直长孔的代理碰撞求解：锚点从孔中心插入后，向下移动到安装柱底边与孔底边接触。
+ * 多个长孔同时参与时取最小行程，代表最先发生的碰撞；旧数据缺少端面尺寸时使用 5 mm 安装柱。
+ */
+export function estimateSlotLockTravel(
+  anchors: PartMountAnchor[],
+  slotLength = 15,
+  fallbackPostLength = 5,
+): number {
+  const travels = anchors
+    .filter(anchor => anchor.required !== false && anchor.accepts.includes('slot'))
+    .map(anchor => {
+      const measured = anchor.profile?.length
+      const postLength = Number.isFinite(measured) && (measured as number) > 0
+        ? Number(measured)
+        : fallbackPostLength
+      return Math.max(0, (slotLength - Math.min(slotLength, postLength)) / 2)
+    })
+  if (!travels.length) return 0
+  return Math.round(Math.min(...travels) * 1000) / 1000
+}
+
 export function splitAssemblyFrame(panels: SplitPanel[]): SplitAssemblyFrame {
   let minX = Infinity, maxX = -Infinity, minY = Infinity
   for (const panel of panels) {
@@ -93,7 +115,10 @@ export function splitPanelTargets(
 /** 背面装配等于先把零件绕 Y 轴翻转 180°，再在板面内旋转匹配孔阵列。 */
 export function anchorsForSide(anchors: PartMountAnchor[], side: 'front' | 'back'): PartMountAnchor[] {
   return anchors.map(anchor => {
-    const axis = anchor.axis ? stabilizeSlotAxis(anchor.axis) : undefined
+    // 正式洞洞板长孔固定为竖直。旧清单可能没有 axis；在装配边界统一补齐，
+    // 避免已完成锚点标定的零件被当成“待补方向”，也避免旧件发生 90° 误吸附。
+    const isSlot = anchor.accepts.includes('slot')
+    const axis = anchor.axis ? stabilizeSlotAxis(anchor.axis) : isSlot ? [0, 1] as [number, number] : undefined
     if (side === 'front') return axis === anchor.axis ? anchor : { ...anchor, axis }
     return {
       ...anchor,
@@ -163,6 +188,8 @@ export function fitPartAnchors(
   occupiedIds?: ReadonlySet<string>,
   /** 接触面局部 z (已按 side 翻转): 装配时接触面与板面贴合; 缺省退回锚点平面贴合 */
   contactZ?: number,
+  /** 标准挂钩插入贴面后沿长孔竖直方向向下滑移的锁止距离 (mm)。 */
+  slideY = 0,
 ): AssemblyFit | null {
   const anchors = anchorsInput.filter(anchor => anchor.required !== false)
   if (!anchors.length || !targets.length) return null
@@ -206,7 +233,7 @@ export function fitPartAnchors(
       ? first.z - (contactZ as number)
       : matched.reduce((sum, target, i) => sum + target.z - anchors[i].position[2], 0) / matched.length
     const candidate: AssemblyFit = {
-      position: [tx, ty, zOffset],
+      position: [tx, ty - Math.max(0, slideY), zOffset],
       rotationZ,
       targets: matched,
       error,

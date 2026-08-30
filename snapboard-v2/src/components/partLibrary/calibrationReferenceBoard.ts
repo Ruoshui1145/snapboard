@@ -46,10 +46,45 @@ export function createCalibrationReferenceBoard(): THREE.Group {
     })
     group.add(mesh)
   }
+  // 自动装配使用的板面代理碰撞层。它只参与标定演示，不进入正式板件或制造导出。
+  // 插入过程中显示为淡蓝色，接触面命中时由标定器切换成绿色反馈。
+  const collider = new THREE.Mesh(
+    new THREE.BoxGeometry(400, 400, 0.5),
+    new THREE.MeshBasicMaterial({
+      color: 0x62a8ff,
+      transparent: true,
+      opacity: 0.035,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  )
+  collider.name = 'calibration-board-collider'
+  collider.position.set(200, 200, cfg.thickness + 0.25)
+  collider.renderOrder = -2
+  group.add(collider)
   // 分割引擎输出为 0..400 全局坐标，移到四象限中心。
   group.position.set(-200, -200, 0)
   group.userData.referenceSize = 400
   group.userData.panelCount = result.panels.length
+  const seenTargets = new Set<string>()
+  const mountTargets: Array<{ kind: 'slot' | 'round'; x: number; y: number }> = []
+  const addTarget = (kind: 'slot' | 'round', x: number, y: number) => {
+    const key = `${kind}:${Math.round(x * 1000)},${Math.round(y * 1000)}`
+    if (seenTargets.has(key)) return
+    seenTargets.add(key)
+    mountTargets.push({ kind, x, y })
+  }
+  for (const panel of result.panels) {
+    panel.slots.forEach(slot => addTarget('slot', slot.x, slot.y))
+    panel.round_holes.forEach(hole => addTarget('round', hole.x, hole.y))
+    panel.edge_holes.forEach(hole => {
+      const onBoundary = Math.abs(hole.x - panel.x) < 0.5 || Math.abs(hole.x - (panel.x + panel.w)) < 0.5 ||
+        Math.abs(hole.y - panel.y) < 0.5 || Math.abs(hole.y - (panel.y + panel.h)) < 0.5
+      if (!onBoundary) addTarget('round', hole.x, hole.y)
+    })
+  }
+  group.userData.mountTargets = mountTargets
+  group.userData.thickness = cfg.thickness
   return group
 }
 

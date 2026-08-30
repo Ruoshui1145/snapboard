@@ -35,18 +35,18 @@
         ],
         "position": [
           207.435,
-          51.969,
-          205.159
+          48.5,
+          205.122
         ],
         "normal": [
           0,
-          0.079,
-          -0.997
+          0,
+          -1
         ],
         "required": true,
         "axis": [
-          -0.38411813449232807,
-          0.9232839534802574
+          0,
+          1
         ]
       },
       {
@@ -114,78 +114,6 @@
           0,
           1
         ]
-      },
-      {
-        "id": "a5",
-        "label": "吸附点 5",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          207.435,
-          20,
-          210.622
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a6",
-        "label": "吸附点 6",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          167.435,
-          20,
-          210.622
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a7",
-        "label": "吸附点 7",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          127.435,
-          20,
-          210.622
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a8",
-        "label": "吸附点 8",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          87.435,
-          20.759,
-          210.656
-        ],
-        "normal": [
-          0,
-          0.13,
-          -0.991
-        ],
-        "required": true
       }
     ],
     "calibrationRequired": false,

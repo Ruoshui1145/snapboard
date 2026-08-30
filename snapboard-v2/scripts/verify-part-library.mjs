@@ -49,7 +49,7 @@ assert.match(vite, /仅支持 POST 或 DELETE/)
 assert.match(vite, /usage-\$\{Date\.now\(\)\.toString\(36\)\}/)
 assert.match(viewport, /openCoveredAssemblyTargets/)
 assert.match(viewport, /occupiedTargetIds\(moving\.partId\)/)
-assert.match(types, /待补长孔方向/)
+assert.match(types, /标定状态只取决于是否已有有效锚点/)
 assert.match(sync, /(?:function|const) isUsageImage/)
 assert.match(dialog, /删除照片/)
 
@@ -59,4 +59,4 @@ assert.ok(index.packages.length >= 1)
 const legacyMissingAxes = index.parts.filter(part => typeof part.mount === 'object' &&
   part.mount.anchors?.some(anchor => anchor.accepts?.includes('slot') && !anchor.axis)).length
 
-console.log(`part library regression: ${CATEGORY_DIRECTORY_NAMES.length} categories, ${index.packages.length} packs, ${index.parts.length} parts, ${legacyMissingAxes} legacy parts require axis upgrade`)
+console.log(`part library regression: ${CATEGORY_DIRECTORY_NAMES.length} categories, ${index.packages.length} packs, ${index.parts.length} parts, ${legacyMissingAxes} legacy parts use vertical-axis compatibility`)

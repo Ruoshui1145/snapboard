@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 450" role="img" aria-labelledby="title desc">
+  <title id="title">主配件与通用附属件资源包</title>
+  <desc id="desc">展示主配件、通用连接件和紧固件共享资源，通过装配关系组成整体预览，切片时仍保持独立对象。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111a2b"/><stop offset="1" stop-color="#202c45"/></linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#62a8ff"/><stop offset="1" stop-color="#7d68c0"/></linearGradient>
+    <linearGradient id="aux" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#65d8c6"/><stop offset="1" stop-color="#288c87"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#65d8c6"/></marker>
+  </defs>
+  <rect width="1100" height="450" rx="24" fill="url(#bg)"/>
+  <text x="48" y="55" fill="#eff8ff" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="700">主配件 + 通用附属件：整体预览，独立打印</text>
+  <text x="50" y="83" fill="#93a8c1" font-family="Microsoft YaHei, sans-serif" font-size="14">共享连接件只维护一份资源，通过稳定 partId 被多个主配件引用</text>
+  <g transform="translate(55 130)">
+    <rect width="275" height="250" rx="18" fill="#172238" stroke="#385476"/>
+    <text x="22" y="40" fill="#8ebdff" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">主配件</text>
+    <path d="M64 100L166 66L220 98L115 139Z" fill="url(#primary)"/><path d="M64 100V174L115 211V139Z" fill="#376899"/><path d="M115 139L220 98V171L115 211Z" fill="#5f63a6"/>
+    <text x="22" y="226" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">托盘 / 挂钩 / 收纳盒</text>
+  </g>
+  <path d="M355 255H430" stroke="#65d8c6" stroke-width="5" marker-end="url(#arrow)"/>
+  <g transform="translate(450 130)">
+    <rect width="275" height="250" rx="18" fill="#172238" stroke="#385476"/>
+    <text x="22" y="40" fill="#65d8c6" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">通用附属件</text>
+    <rect x="60" y="85" width="42" height="92" rx="15" fill="url(#aux)"/><rect x="118" y="92" width="100" height="28" rx="14" fill="url(#aux)"/><circle cx="177" cy="160" r="20" fill="#ffd166"/>
+    <text x="22" y="226" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">连接键 / 背面锁扣 / 紧固件</text>
+  </g>
+  <path d="M750 255H825" stroke="#65d8c6" stroke-width="5" marker-end="url(#arrow)"/>
+  <g transform="translate(845 130)">
+    <rect width="205" height="250" rx="18" fill="#172238" stroke="#385476"/>
+    <text x="22" y="40" fill="#ffd166" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">导出策略</text>
+    <rect x="28" y="72" width="149" height="36" rx="8" fill="#263754" stroke="#65d8c6"/><text x="48" y="96" fill="#d9fff8" font-family="Microsoft YaHei, sans-serif" font-size="13">整体装配预览</text>
+    <rect x="28" y="124" width="68" height="60" rx="8" fill="#376899"/><rect x="108" y="124" width="68" height="60" rx="8" fill="#288c87"/>
+    <text x="42" y="211" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">3MF 独立对象</text>
+    <text x="42" y="231" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">按数量复用实例</text>
+  </g>
+</svg>

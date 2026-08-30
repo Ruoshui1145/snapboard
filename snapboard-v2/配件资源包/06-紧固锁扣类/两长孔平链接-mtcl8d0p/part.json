@@ -38,7 +38,19 @@
           0,
           -1
         ],
-        "required": true
+        "profile": {
+          "width": 4.119,
+          "length": 13.987,
+          "axis": [
+            0.002,
+            -1
+          ]
+        },
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
       },
       {
         "id": "a2",
@@ -56,11 +68,24 @@
           0,
           -1
         ],
-        "required": true
+        "profile": {
+          "width": 4.14,
+          "length": 13.987,
+          "axis": [
+            0.004,
+            1
+          ]
+        },
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
       }
     ],
     "calibrationRequired": false,
-    "contactZ": -4
+    "contactZ": -4,
+    "slideY": 0.506
   },
   "defaultRotation": 0
 }

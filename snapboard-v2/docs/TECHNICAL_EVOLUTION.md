@@ -145,6 +145,16 @@ Shape.holes → THREE.ExtrudeGeometry
 - 纹理复合板父对象整体移动、子零件独立工艺；
 - 导出进度、取消和制造警告。
 
+### 文档插图索引
+
+为了让日志不只依赖文字和零散 UI 截图，当前维护三张与代码同步的 SVG 示意图：
+
+- ![单一几何链](assets/geometry-single-source.svg) `geometry-single-source.svg`：2D 草图、分割/孔阵、3D 预览和 3MF 的数据流；
+- ![代理碰撞装配](assets/assembly-collision-flow.svg) `assembly-collision-flow.svg`：插入、接触面停止、长孔下滑锁止及纯圆孔 0 mm 特例；
+- ![主配件资源包](assets/part-bundle-workflow.svg) `part-bundle-workflow.svg`：主配件、通用连接件和独立打印对象之间的关系。
+
+SVG 为项目自有技术示意，不包含第三方模型、照片或商标素材；具体 UI 外观仍以浏览器实测截图为准。
+
 ## 4. 当前创新候选与证据边界
 
 | 候选点 | 当前可证明内容 | 不能过度宣称 |

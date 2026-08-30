@@ -92,60 +92,6 @@
           0,
           1
         ]
-      },
-      {
-        "id": "a4",
-        "label": "吸附点 4",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          124.13,
-          20.759,
-          88.292
-        ],
-        "normal": [
-          0,
-          0.13,
-          -0.991
-        ],
-        "required": true
-      },
-      {
-        "id": "a5",
-        "label": "吸附点 5",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          84.13,
-          20,
-          88.258
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a6",
-        "label": "吸附点 6",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          44.13,
-          20,
-          88.258
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
       }
     ],
     "calibrationRequired": false,

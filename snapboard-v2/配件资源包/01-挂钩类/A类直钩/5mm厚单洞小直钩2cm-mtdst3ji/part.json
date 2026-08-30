@@ -46,13 +46,14 @@
         ],
         "required": true,
         "axis": [
-          -0.2589693139543369,
-          0.9658855493432025
+          0,
+          1
         ]
       }
     ],
     "calibrationRequired": false,
-    "contactZ": -152.7
+    "contactZ": -152.7,
+    "slideY": 5
   },
   "defaultRotation": 0,
   "usageImage": "usage.jpg"

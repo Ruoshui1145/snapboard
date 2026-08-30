@@ -60,6 +60,14 @@ export interface PartMountAnchor {
   /** 长圆孔锚点的长轴方向（零件局部安装面内单位向量 X/Y，仅 slot 锚点有）。
    *  吸附时与板面长圆孔长轴做定向校验，防止 90° 旋转把椭圆/圆孔对角线调换。 */
   axis?: [number, number]
+  /** 安装柱端面的代理碰撞尺寸（mm）。长孔锚点以 width=X、length=Y 保存，
+   *  用于计算插入后向下滑移到孔底的停止距离。 */
+  profile?: {
+    width: number
+    length: number
+    /** 点选端面内检测到的长轴，仅用于首孔自动转向；圆孔可省略。 */
+    axis?: [number, number]
+  }
   required?: boolean
 }
 
@@ -69,6 +77,8 @@ export interface PartMountDefinition {
   /** 接触面: 标定时点选的、与板面贴合的端面 (零件局部 z 坐标 mm)。
    *  装配时接触面与板面贴合, 锚点只负责 XY 孔位对齐; 未设置时退回锚点平面贴合。 */
   contactZ?: number
+  /** 插入并贴面后，沿板面长孔竖直方向向下滑移到卡止位置的距离 (mm)。 */
+  slideY?: number
   /** 已上传模型但尚未在装配校准器中确认局部锚点 */
   calibrationRequired?: boolean
   /** 上传槽位预期使用的孔型，校准前用于 UI 提示 */
@@ -189,11 +199,11 @@ export const partPreviewPath = (part: PartDefinition): string | null =>
 export const mountAnchorCount = (part: PartDefinition): number =>
   typeof part.mount === 'object' ? part.mount.anchors.length : part.mount === 'free' ? 0 : 1
 
-/** 旧标定若包含长圆孔锚点但没有 axis，优先由同步器按同件一致方向补齐；无法推断时必须打开标定器补算。 */
+/** 长圆孔方向由正式板规格固定为竖直；标定状态只取决于是否已有有效锚点。 */
 export const mountNeedsCalibration = (part: PartDefinition): boolean => {
   if (typeof part.mount !== 'object') return part.mount !== 'free' && mountAnchorCount(part) === 0
   if (part.mount.calibrationRequired || part.mount.anchors.length === 0) return true
-  return part.mount.anchors.some(anchor => anchor.accepts.includes('slot') && !anchor.axis)
+  return false
 }
 
 export const mountStatusLabel = (part: PartDefinition): string => {
@@ -201,12 +211,6 @@ export const mountStatusLabel = (part: PartDefinition): string => {
     const expected = typeof part.mount === 'object'
       ? part.mount.expected?.map(kind => kind === 'slot' ? '长孔' : '圆孔').join('+')
       : undefined
-    if (typeof part.mount === 'object') {
-      const slotAnchors = part.mount.anchors.filter(anchor => anchor.accepts.includes('slot'))
-      const missing = slotAnchors.filter(anchor => !anchor.axis).length
-      if (missing && missing < slotAnchors.length) return `长孔方向 ${slotAnchors.length - missing}/${slotAnchors.length}`
-      if (missing) return '待补长孔方向'
-    }
     return expected ? `待标定 ${expected}` : '待标定锚点'
   }
   const count = mountAnchorCount(part)

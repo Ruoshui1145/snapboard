@@ -29,24 +29,6 @@
           "slot"
         ],
         "position": [
-          22.557,
-          1007.4,
-          -8.935
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a2",
-        "label": "吸附点 2",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
           2.557,
           1027.4,
           -8.935
@@ -56,7 +38,49 @@
           0,
           -1
         ],
-        "required": true
+        "profile": {
+          "width": 4.117,
+          "length": 13.993,
+          "axis": [
+            0.002,
+            1
+          ]
+        },
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "slot"
+        ],
+        "position": [
+          22.557,
+          1007.4,
+          -8.935
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "profile": {
+          "width": 4.196,
+          "length": 13.989,
+          "axis": [
+            0.01,
+            1
+          ]
+        },
+        "required": true,
+        "axis": [
+          0,
+          1
+        ]
       },
       {
         "id": "a3",
@@ -74,11 +98,16 @@
           0,
           -1
         ],
+        "profile": {
+          "width": 4.096,
+          "length": 4.099
+        },
         "required": true
       }
     ],
     "calibrationRequired": false,
-    "contactZ": -4.035
+    "contactZ": -4.035,
+    "slideY": 0.503
   },
   "defaultRotation": 0
 }

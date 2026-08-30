@@ -30,8 +30,8 @@
 - `src/utils/boardMesh.ts`：预览和制造板件实体网格；
 - `src/components/viewport/Viewport3D.tsx`：场景、相机、灯光、配件预览和吸附；
 - `src/components/texture/TextureStudio.tsx`：纹理源、PETG LUT、调色和图片定位；
-- `src/utils/slotAxisProbe.ts`：长圆孔安装柱/板孔端面长轴探测；
-- `src/utils/mountAxis.ts`：消除网格环形采样造成的小角度主轴抖动；
+- `src/utils/slotAxisProbe.ts`：旧数据诊断用的长圆孔端面长轴探测，不再决定正式标定方向；
+- `src/utils/mountAxis.ts`：兼容旧数据并把正式板长孔轴归一为竖直方向；
 - `src/utils/assemblySide.ts`：固定视角优先、自由视角按相机 Z 判断正背装配面；
 - `src/utils/mountCalibrationRepair.ts`：恢复旧版被误记为圆孔的接触面数据；
 - `scripts/part-category-rules.mjs`：Vite 与同步器共享的 8 类目录词表；
@@ -58,13 +58,13 @@
 - 彩色版画与质感贴面均由一个父对象的 `<components>` 绑定全部制造层；纹理 PEI 方案把装饰面翻到 z=0，避免 fuzzy skin 破坏孔壁；
 - 板面图片交互通过 Three.js Raycaster 命中装配平面，拖动修改 `offsetX/offsetY`，滚轮修改 `scale`；
 - 导出前每条无向边必须恰好由两个三角形共享，否则阻止导出。
-- `PartMountAnchor.axis` 与 `AssemblyTarget.axis` 做平行约束，缺失旧轴向时必须重新标定；
+- `PartMountAnchor.axis` 与 `AssemblyTarget.axis` 做平行约束；正式板长孔固定为 `[0,1]`，旧清单缺失轴向时在装配入口自动补齐，无需重复标定；
 - `occupiedIds` 在正背面共用，自动装配使用幂等 `openEdgeHole` 打通候选圆孔；
-- `contactZForSide` 负责接触面正背面翻转，装配 Z 位移优先按接触面计算。
+- `contactZForSide` 负责接触面正背面翻转，装配 Z 位移优先按接触面计算；锚点 `profile` 提供安装柱端面代理尺寸，`slideY` 保存碰到长孔底部时的下滑距离；纯圆孔安装固定为 0。
 - 同一标定默认允许双面装配：正背面锁定视角覆盖自动判断，自由视角以板厚中面为界自动选择装配侧。
 - 第二栏主工作区状态直接写入 `splitOptionsOpen / partsOpen / textureStudioOpen`：分割同步切换 2D，配件与纹理同步切换 3D，并通过布局事件展开右栏、收起左栏。右栏为全高整列，业务工作区一级入口在其顶部 tab 条；2D/3D 滑块开关位于轮廓类型卡右侧，只改 `viewMode`。
 - 左/右/顶三侧收起态统一为玻璃细带 + 悬停玻璃滑出（`workspace-rail` / `.tb.is-collapsed`，整条可点击展开）；配件库与分割结果区采用吸顶玻璃头部，滚动内容从玻璃下模糊经过。
-- 标定器与拖拽预览统一用面内胶囊几何表示 `slot`；接近 X/Y 主轴的采样结果会归正，无完整 fit 时只显示最近一个兼容引导孔。
+- 标定器与拖拽预览统一用面内胶囊几何表示 `slot`；标定器用板面薄 Box 与安装柱端面尺寸做代理碰撞，自动执行“插入→接触面碰板停止→向下滑移碰底停止”。默认 UI 只保留最小装配流程，分步按钮、朝向数值和距离覆盖位于高级折叠区；无完整 fit 时只显示最近一个兼容引导孔。
 
 ## 4. 文件接口
 

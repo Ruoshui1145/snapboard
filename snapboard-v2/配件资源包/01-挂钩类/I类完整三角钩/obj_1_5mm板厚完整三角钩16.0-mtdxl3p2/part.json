@@ -26,7 +26,7 @@
     ]
   },
   "mount": {
-    "mode": "multi",
+    "mode": "single",
     "anchors": [
       {
         "id": "a1",
@@ -46,48 +46,14 @@
         ],
         "required": true,
         "axis": [
-          -0.2589693139543369,
-          0.9658855493432025
+          0,
+          1
         ]
-      },
-      {
-        "id": "a2",
-        "label": "吸附点 2",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          128,
-          -16.645,
-          -287.088
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
-      },
-      {
-        "id": "a3",
-        "label": "吸附点 3",
-        "accepts": [
-          "round"
-        ],
-        "position": [
-          128,
-          -0.82,
-          -281.508
-        ],
-        "normal": [
-          0,
-          0,
-          -1
-        ],
-        "required": true
       }
     ],
-    "calibrationRequired": false
+    "calibrationRequired": false,
+    "contactZ": -281.508,
+    "slideY": 5
   },
   "defaultRotation": 0
 }

@@ -25,7 +25,7 @@
     ]
   },
   "mount": {
-    "mode": "multi",
+    "mode": "single",
     "anchors": [
       {
         "id": "a1",
@@ -45,27 +45,9 @@
         ],
         "required": true,
         "axis": [
-          -0.3878782253528581,
-          0.9217106282869463
+          -0.38787822535285815,
+          0.9217106282869464
         ]
-      },
-      {
-        "id": "a2",
-        "label": "吸附点 2",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          113.19,
-          3.294,
-          -113.295
-        ],
-        "normal": [
-          -0.001,
-          0,
-          -1
-        ],
-        "required": true
       }
     ],
     "calibrationRequired": false,

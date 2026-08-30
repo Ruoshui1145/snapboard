@@ -37,6 +37,9 @@ assert.equal(occupied, null, '已占用孔不能被第二个零件复用')
 const contactFit = snap.fitPartAnchors([slotAnchor], [slotTarget], { x: 0, y: 0 }, 10, 1, 0, undefined, -3)
 assert.ok(contactFit)
 assert.equal(contactFit.position[2], 7, '板面 z=4、接触面 z=-3 时零件原点应放在 z=7')
+const lockedFit = snap.fitPartAnchors([slotAnchor], [slotTarget], { x: 0, y: 0 }, 10, 1, 0, undefined, -3, 4.5)
+assert.ok(lockedFit)
+assert.equal(lockedFit.position[1], -4.5, '贴面后应沿长孔 Y 方向向下滑移到锁止位置')
 assert.equal(snap.contactZForSide(-3, 'back'), 3)
 const backContactFit = snap.fitPartAnchors([slotAnchor], [{ ...slotTarget, z: 0 }], { x: 0, y: 0 }, 10, 1, 0, undefined, snap.contactZForSide(-3, 'back'))
 assert.equal(backContactFit.position[2], -3)
@@ -67,10 +70,19 @@ round.updateMatrixWorld(true)
 assert.equal(probe.deriveSlotAxis(round, { id: 'round', accepts: ['slot'], position: [0, 0, 2], normal: [0, 0, 1] }), undefined)
 
 const legacyPart = { id: 'legacy', category: 'base', name: 'legacy', params: [], model: {}, mount: { mode: 'single', anchors: [{ id: 'a1', accepts: ['slot'], position: [0, 0, 0] }] }, defaultRotation: 0 }
-assert.equal(partTypes.mountNeedsCalibration(legacyPart), true, '缺少 slot axis 的旧标定必须回到标定器补算')
+assert.equal(partTypes.mountNeedsCalibration(legacyPart), false, '已有长孔锚点的旧标定不应因缺少 axis 被误报为待标定')
+assert.deepEqual(snap.anchorsForSide(legacyPart.mount.anchors, 'front')[0].axis, [0, 1], '旧长孔锚点必须在装配入口自动补为竖直轴')
+assert.equal(snap.estimateSlotLockTravel(legacyPart.mount.anchors), 5, '缺少端面尺寸的旧长孔锚点应使用 5mm 默认安装柱')
+assert.equal(snap.estimateSlotLockTravel([{ ...slotAnchor, profile: { width: 4.8, length: 7 } }]), 4, '7mm 安装柱在 15mm 长孔内应下滑 4mm 后碰底')
+assert.equal(snap.estimateSlotLockTravel([
+  { ...slotAnchor, profile: { width: 4.8, length: 5 } },
+  { ...slotAnchor, id: 'slot-b', profile: { width: 4.8, length: 9 } },
+]), 3, '多个安装柱应在最先碰底的 3mm 处停止')
+assert.equal(snap.estimateSlotLockTravel([{ id: 'round-only', accepts: ['round'], position: [0, 0, 0] }]), 0, '纯圆孔紧固件只插入贴面，下滑距离必须为 0')
 assert.deepEqual(mountAxis.stabilizeSlotAxis([-0.131, 0.991]), [0, 1], '采样导致的小角度偏斜应归正为竖直长轴')
+assert.deepEqual(mountAxis.stabilizeSlotAxis([-Math.sin(Math.PI / 12), Math.cos(Math.PI / 12)]), [0, 1], '15° 采样偏斜也必须归正，避免装配整体歪转')
 const diagonalAxis = mountAxis.stabilizeSlotAxis([Math.SQRT1_2, Math.SQRT1_2])
-assert.ok(Math.abs(diagonalAxis[0] - Math.SQRT1_2) < 1e-9 && Math.abs(diagonalAxis[1] - Math.SQRT1_2) < 1e-9, '真实斜向长轴必须保留')
+assert.ok(Math.abs(diagonalAxis[0] - Math.SQRT1_2) < 1e-9 && Math.abs(diagonalAxis[1] - Math.SQRT1_2) < 1e-9, '旧诊断数据中的真实斜向长轴仍可保留')
 assert.equal(assemblySide.assemblySideForView('free', 100, 4), 'front', '自由视角相机位于 +Z 时应装在正面')
 assert.equal(assemblySide.assemblySideForView('free', -100, 4), 'back', '自由视角相机绕到 -Z 时应装在背面')
 assert.equal(assemblySide.assemblySideForView('front', -100, 4), 'front', '正面锁定必须覆盖相机位置')
@@ -94,4 +106,4 @@ const coveredTarget = { ...slotTarget, id: 'covered', covered: true, source: { p
 assert.equal(snap.openCoveredAssemblyTargets([coveredTarget, coveredTarget], (...args) => opened.push(args)), 1)
 assert.equal(opened.length, 1, '同一候选孔即使被重复引用也只能打通一次')
 
-console.log('assembly snap regression: axis, occupancy, contactZ and legacy axis probe OK')
+console.log('assembly snap regression: axis, occupancy, contactZ, proxy collision travel and round-only zero offset OK')

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 430" role="img" aria-labelledby="title desc">
+  <title id="title">SnapBoard 单一几何链</title>
+  <desc id="desc">同一份工程几何从二维草图经过分割和孔阵生成，驱动三维预览和3MF制造导出。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111a2b"/><stop offset="1" stop-color="#202c45"/></linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#253653"/><stop offset="1" stop-color="#18243a"/></linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#65d8c6"/></marker>
+  </defs>
+  <rect width="1100" height="430" rx="24" fill="url(#bg)"/>
+  <text x="48" y="55" fill="#eff8ff" font-family="Microsoft YaHei, sans-serif" font-size="25" font-weight="700">单一几何链：2D、3D 与 3MF 使用同一份工程数据</text>
+  <text x="50" y="83" fill="#93a8c1" font-family="Microsoft YaHei, sans-serif" font-size="14">设计坐标不因预览、打印排盘或标签显示而改写</text>
+  <g transform="translate(44 128)">
+    <rect width="220" height="232" rx="16" fill="url(#card)" stroke="#3d6689"/>
+    <text x="22" y="38" fill="#65d8c6" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">01  2D 草图</text>
+    <path d="M40 78H170V145H115V175H40Z" fill="none" stroke="#65d8c6" stroke-width="5"/>
+    <circle cx="65" cy="108" r="8" fill="#ffd166"/><rect x="100" y="100" width="8" height="28" rx="4" fill="#8ebdff"/>
+    <text x="22" y="210" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">外轮廓 · 内孔 · 尺寸约束</text>
+  </g>
+  <path d="M278 244H340" stroke="#65d8c6" stroke-width="5" marker-end="url(#arrow)"/>
+  <g transform="translate(354 128)">
+    <rect width="220" height="232" rx="16" fill="url(#card)" stroke="#3d6689"/>
+    <text x="22" y="38" fill="#65d8c6" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">02  分割与孔阵</text>
+    <rect x="34" y="72" width="64" height="64" fill="#3c82bb" opacity=".8"/><rect x="104" y="72" width="64" height="64" fill="#8c78b7" opacity=".8"/>
+    <path d="M34 145H168" stroke="#ffd166" stroke-dasharray="6 5" stroke-width="2"/>
+    <text x="41" y="98" fill="#eff8ff" font-family="Microsoft YaHei, sans-serif" font-size="12">P1</text><text x="111" y="98" fill="#eff8ff" font-family="Microsoft YaHei, sans-serif" font-size="12">P2</text>
+    <text x="22" y="210" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">母阵 · 安全域 · 接缝孔</text>
+  </g>
+  <path d="M588 244H650" stroke="#65d8c6" stroke-width="5" marker-end="url(#arrow)"/>
+  <g transform="translate(664 128)">
+    <rect width="180" height="232" rx="16" fill="url(#card)" stroke="#3d6689"/>
+    <text x="22" y="38" fill="#65d8c6" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">03  3D 预览</text>
+    <path d="M42 93L95 67L142 91L88 119Z" fill="#72e1cf" opacity=".85"/><path d="M42 93V147L88 174V119Z" fill="#3187a9"/><path d="M88 119L142 91V146L88 174Z" fill="#4a9baf"/>
+    <circle cx="99" cy="112" r="7" fill="#ffd166"/>
+    <text x="22" y="210" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">孔位 · 配件 · 接触面</text>
+  </g>
+  <path d="M858 244H920" stroke="#65d8c6" stroke-width="5" marker-end="url(#arrow)"/>
+  <g transform="translate(934 128)">
+    <rect width="125" height="232" rx="16" fill="url(#card)" stroke="#3d6689"/>
+    <text x="18" y="38" fill="#65d8c6" font-family="Microsoft YaHei, sans-serif" font-size="18" font-weight="700">04  3MF</text>
+    <path d="M30 82H95V151H30Z" fill="none" stroke="#ffd166" stroke-width="4"/><path d="M30 82L50 68H115V137L95 151" fill="none" stroke="#8ebdff" stroke-width="3"/>
+    <text x="18" y="210" fill="#9ab0c9" font-family="Microsoft YaHei, sans-serif" font-size="12">闭合网格</text>
+  </g>
+</svg>

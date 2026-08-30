@@ -225,6 +225,16 @@ const partCalibrationApi = () => ({
           if (anchor.normal !== undefined && (!Array.isArray(anchor.normal) || anchor.normal.length !== 3 || !anchor.normal.every(Number.isFinite))) {
             throw new Error('锚点端面法向无效')
           }
+          if (anchor.profile !== undefined && (
+            typeof anchor.profile !== 'object' ||
+            !Number.isFinite(anchor.profile.width) || !Number.isFinite(anchor.profile.length) ||
+            anchor.profile.width <= 0 || anchor.profile.length <= 0 ||
+            anchor.profile.width > 1000 || anchor.profile.length > 1000
+          )) throw new Error('安装柱碰撞尺寸无效')
+          if (anchor.profile?.axis !== undefined && (
+            !Array.isArray(anchor.profile.axis) || anchor.profile.axis.length !== 2 ||
+            !anchor.profile.axis.every(Number.isFinite) || Math.hypot(anchor.profile.axis[0], anchor.profile.axis[1]) < 0.5
+          )) throw new Error('安装柱端面主轴无效')
           if (anchor.axis !== undefined) {
             if (!Array.isArray(anchor.axis) || anchor.axis.length !== 2 || !anchor.axis.every(Number.isFinite)) throw new Error('长圆孔长轴无效')
             const length = Math.hypot(anchor.axis[0], anchor.axis[1])
@@ -232,8 +242,17 @@ const partCalibrationApi = () => ({
             anchor.axis = [anchor.axis[0] / length, anchor.axis[1] / length]
           }
         }
+        const calibrationAnchors = anchors as Array<{ accepts: string[]; axis?: [number, number] }>
+        for (const anchor of calibrationAnchors) {
+          if (!anchor.accepts.includes('slot')) continue
+          // 标定器的参考板定义了最终安装坐标：正确装配时长孔统一沿板面 Y 轴。
+          anchor.axis = [0, 1]
+        }
         if (body.contactZ !== null && body.contactZ !== undefined && (!Number.isFinite(body.contactZ) || Math.abs(body.contactZ) > 10000)) {
           throw new Error('接触面坐标无效')
+        }
+        if (body.slideY !== null && body.slideY !== undefined && (!Number.isFinite(body.slideY) || body.slideY < 0 || body.slideY > 12)) {
+          throw new Error('长孔锁止下滑距离应为 0–12 mm')
         }
 
         const root = process.cwd()
@@ -250,6 +269,8 @@ const partCalibrationApi = () => ({
         // 接触面 (标定时点选的贴合端面局部 z): 装配时接触面与板面贴合
         if (Number.isFinite(body.contactZ)) manifest.mount.contactZ = Number(body.contactZ)
         else delete manifest.mount.contactZ
+        if (Number.isFinite(body.slideY) && Number(body.slideY) > 0) manifest.mount.slideY = Number(body.slideY)
+        else delete manifest.mount.slideY
         await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8')
         await runPartSync(root)
         res.statusCode = 200

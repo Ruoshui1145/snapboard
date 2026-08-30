@@ -20,7 +20,7 @@
     ]
   },
   "mount": {
-    "mode": "single",
+    "mode": "multi",
     "anchors": [
       {
         "id": "a1",
@@ -38,6 +38,32 @@
           0,
           -1
         ],
+        "profile": {
+          "width": 4.095,
+          "length": 4.096
+        },
+        "required": true
+      },
+      {
+        "id": "a2",
+        "label": "吸附点 2",
+        "accepts": [
+          "round"
+        ],
+        "position": [
+          5.169,
+          5.168,
+          -17.025
+        ],
+        "normal": [
+          0,
+          0,
+          -1
+        ],
+        "profile": {
+          "width": 4.094,
+          "length": 4.097
+        },
         "required": true
       }
     ],

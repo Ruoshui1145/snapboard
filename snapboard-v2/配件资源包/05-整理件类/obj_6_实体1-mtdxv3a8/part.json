@@ -70,42 +70,6 @@
           0,
           1
         ]
-      },
-      {
-        "id": "a3",
-        "label": "吸附点 3",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          415.2,
-          11.259,
-          168.799
-        ],
-        "normal": [
-          0,
-          0.131,
-          -0.991
-        ],
-        "required": true
-      },
-      {
-        "id": "a4",
-        "label": "吸附点 4",
-        "accepts": [
-          "slot"
-        ],
-        "position": [
-          455.2,
-          11.759,
-          168.933
-        ],
-        "normal": [
-          0,
-          0.383,
-          -0.924
-        ],
-        "required": true
       }
     ],
     "calibrationRequired": false,

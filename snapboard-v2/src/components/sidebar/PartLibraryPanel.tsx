@@ -510,6 +510,7 @@ export function PartLibraryPanel({ onDragPart, onDragEnd, headerless }: Props) {
       )}
       {calibrating && (
         <PartMountCalibrator
+          key={calibrating.id}
           part={calibrating}
           onClose={() => setCalibrating(null)}
           onSaved={() => {
@@ -531,6 +532,7 @@ export function PartLibraryPanel({ onDragPart, onDragEnd, headerless }: Props) {
       )}
       {renaming && (
         <PartRenameDialog
+          key={renaming.id}
           part={renaming}
           onClose={() => setRenaming(null)}
           onRenamed={() => setRenaming(null)}
@@ -538,6 +540,7 @@ export function PartLibraryPanel({ onDragPart, onDragEnd, headerless }: Props) {
       )}
       {previewing && (
         <PartPreviewDialog
+          key={previewing.id}
           part={previewing}
           onClose={() => setPreviewing(null)}
           onEdit={() => { setRenaming(previewing); setPreviewing(null) }}
