@@ -1,6 +1,30 @@
 # SnapBoard 第三方资源说明
 
-更新时间：2026-08-29
+更新时间：2026-09-04
+
+## Lumina Studio
+
+- 上游项目：Lumina Layers / Lumina Studio
+- 上游仓库：<https://github.com/lumina-layer-studio/Lumina-Layers>
+- 上游许可证：GNU General Public License v3.0
+- 本地许可证副本：`vendor/lumina-studio/source/LICENSE`
+- 本项目发行许可证：GPL-3.0-only
+
+SnapBoard 1.0 Public Beta的彩色工作流当前包含或调用以下Lumina相关内容：
+
+- `vendor/lumina-studio/source/`：上游来源与审计副本；
+- `vendor/lumina-studio/runtime-template/bambu_config_template.json`：第三方原始3MF/Bambu模板归档；
+- `snapboard-v2/src/assets/snapcolor-bambu-config-template.json`：当前运行时模板副本；
+- `snapboard-v2/public/snapcolor/luts/*.npy`：以SnapColor产品路径随运行版本使用的颜色查找表；
+- `snapboard-v2/src/utils/snapColorLut.ts`及其调用：SnapColor命名的LUT读取、匹配、旧ID迁移与层配方适配；
+- `snapboard-v2/src/utils/export3mf.ts`：使用上述校准数据与模板的组合导出路径；
+- `snapboard-v2/src/components/texture/TextureStudio.tsx`与`src/utils/boardTexture.ts`：前端选择和颜色映射接线。
+
+Lumina Studio版权所有者保留其原有权利。SnapBoard对上述内容所做的适配、界面接线、板件几何整合和3MF组合修改随本项目源码一同按GPLv3提供；该声明不把Lumina商标、社区名称、用户作品或Wiki素材转让给SnapBoard。
+
+Lumina Wiki原创材料默认采用CC BY-NC-SA 4.0，除非页面另有说明。Wiki正文、截图和教程图片不作为SnapBoard商业宣传素材直接复制；引用时只链接来源或取得额外授权。
+
+## 第三方模型与测试资源
 
 仓库中的部分 STL、3MF、STEP 转换模型和安装示例图片来自 MakeWorld 等公开模型页面的抓取或测试导入，仅用于：
 
@@ -10,7 +34,7 @@
 
 这些资源不代表 SnapBoard 拥有其版权、商标、模型授权或商业再分发权。当前版本不以这些资源进行商业销售、代打印收费或其他商业化使用；商业化前必须逐个确认作者、平台条款和授权范围，并替换为已取得授权的模型，或从仓库移除对应资源。
 
-软件自有代码、文档和算法仍按仓库根目录许可证/发布说明处理；该声明不会改变任何第三方资源原有许可证，也不构成对第三方资源的再授权。若资源作者要求署名、限制分发或下架，请在商业化前联系项目维护者并处理对应资源。
+软件自有代码、文档和算法按仓库根目录GPL-3.0-only处理；该声明不会改变任何第三方资源原有许可证，也不构成对第三方资源的再授权。若资源作者要求署名、限制分发或下架，请在商业化前联系项目维护者并处理对应资源。
 
 ## 资源范围
 
