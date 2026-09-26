@@ -10,6 +10,8 @@ SnapBoard 输出可编辑项目快照和多盘 3MF。3MF 在浏览器端生成�
 
 不同切片软件可能忽略供应商专用元数据，因此 3MF 使用标准 Core 网格，并将 Bambu/Orca 盘位映射放在 `Metadata/model_settings.config`；相同制造几何复用 object，多个摆放位置使用 build item 实例。
 
+SnapBoard 原生导出目前定位为制造几何与项目交换包，不承诺无需处理即可作为 MakerWorld 打印配置发布。发布前应在稳定版 Bambu Studio 中重新选择目标打印机、喷嘴、系统工艺和耗材，重新切片所有打印板并另存为新的项目 3MF。MakerWorld 页面选择的打印机和喷嘴必须与 3MF 内部工艺预设完全匹配。
+
 ## 导出阻断条件
 
 - 非闭合网格；
