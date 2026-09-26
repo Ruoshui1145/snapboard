@@ -1,6 +1,6 @@
 # SnapBoard 技术创新与迭代路径
 
-更新时间：2026-08-29
+更新时间：2026-09-25
 
 本文回答三个问题：SnapBoard 的技术难点是什么、代码是怎样逐步解决的、哪些结果可以作为科创证据。除“当前实现”外，所有未来内容都明确标记为规划或实验，不把路线图当成已完成能力。
 
@@ -23,6 +23,38 @@ Three.js Shape/Path → ExtrudeGeometry
 ```
 
 SnapBoard 的核心不是单独的画图器或渲染器，而是让同一份毫米几何在 2D、分割、3D 装配和 3MF 制造之间保持不变量：轮廓不变、孔位语义不变、板厚不变、制造网格可验证。
+
+## 1.1 工作台 UI 与可用性演进（当前实现）
+
+UI 也遵循“状态可解释、内容可到达”的工程原则：
+
+- 分割参数配置从结果吸顶层移出，结果摘要与警告才使用独立覆盖层；因此展开大量参数不会把板件列表推到不可见或形成嵌套滚动；
+- 配件库用 IntersectionObserver 观察 24px 置顶哨兵，向下滚动后收拢为单行“当前分类 / 搜索 / 工具”，回到顶部自动展开；大类/细分下拉避免标签裁切，也不使用 scroll 事件每帧触发渲染；
+- 1024px 以下右栏转为覆盖式抽屉，主画布保持至少 480px 的内部工作宽度；侧栏宽度按视口分档并在 resize 时重新约束；
+- 画布操作提示改为 DOM `role=status`，首启清单和上下文提示使用 localStorage 可关闭，不做强制模态巡演；
+- 统一玻璃层 token，覆盖滚动内容的吸顶/吸底层保持高不透明度；配件吸附、板件渐入和提示动效在 `prefers-reduced-motion` 下关闭。
+
+这些改动的验收入口是 `npm run verify:ui-layout` 和真实浏览器冒烟；布局回归不能由几何脚本代替。
+
+## 1.2 从屏幕编号到制造内生的装配标识（2026-09-04）
+
+早期 `makePanelLabel()` 只在 Three.js 正面显示 Sprite，既不会进入 3MF，也不能解决打印完成后的板件混淆。本轮把装配身份提升为制造数据：最终 `SplitPanel[]` 先建立共享边邻接图，稳定生成全局 P 板号和 J 接缝关系；实体接缝只显示两侧同位置、面对面的短数字箭头，完整板号关系留在 UI/3MF 装配表。正面 Sprite 同时启用深度遮挡，禁止从背面或自由视角穿透板体。
+
+最初尝试把 5×7 字形的数百个小矩形直接作为背面薄层孔环；在规则孔阵板上，earcut 会因大量共线微孔出现 T 型三角边，双板测试产生 116–384 条异常边。最终改为“每组文字只扣一个浅凹底框，字形作为同材质闭合小实体齐平填回”，既保持背面不凸出，也把负轮廓数量降到每组一个。制造失败仍按单板回退，不取消原有闭合网格闸门。
+
+该链路同时修复了对象复用语义：原 `panelSignature()` 有意忽略 `panel.id`，尺寸与孔位相同的板可复用一个 3MF object；永久编号出现后必须把标识签名加入 key，否则多块板会打印相同编号。实现与测试详见 [`BACK_ASSEMBLY_MARKING.md`](BACK_ASSEMBLY_MARKING.md) 和 `verify-assembly-marking.mjs`。
+
+接缝标识经历了“`J02-P01` 长串放在板内 → 贴边短数字 → 大号优先的贴边短数字”三次调整。最终做法不要求用户记住板号：两个同号三角箭头位于接缝两侧同一投影位置并面对面；规划器沿整条接缝搜索共同孔隙，优先使用4.2mm数字/4.0mm箭头，失败后才降为中号或小号。完整J/P关系只进入界面和assembly-map。
+
+制造成功与视觉可见也必须分开判断。标识与基材同耗材，在切片器的耗材着色下不会呈现第二种颜色；普通板应检查底面/首层，装饰面朝热床的复合板应检查顶面/末层。导出汇总通过 `markingAppliedCount/markingRequestedCount` 给出制造事实，对象名只有实际网格成功才带“背面凹刻”，不能用“可能是视角问题”掩盖安全回退。
+
+接入 UI 后还暴露出一次 React 19 状态快照问题：在 Zustand selector 内以 `?? []` 回退会在无分割结果时不断生成新引用。取消分割将 `splitResult` 设为 `null` 后，React 进入无限被动更新并卸载整棵应用，外观即“自动分割后白屏”。修复原则是 selector 只返回 store 中的稳定引用，空数组在组件模块级复用；`verify-assembly-marking.mjs` 固化了禁止 selector 内分配空数组的检查。
+
+## 1.3 切片盘名与板号同源（2026-09-25）
+
+装配标识做到制造内生之后，仍有一处身份信息游离在体系外：3MF 在切片软件里的盘名（`plater_name`）一直按盘序编「SnapBoard 板件 第 N 盘」。盘序是排盘结果，P 编号是几何顺序，两者只在"每盘恰好装一块板"时偶然一致；一盘装不下整单板件时必然错位——盘 1 可能装 P01 和 P02 各一部分，盘 2 才是 P03。用户拿着背面刻着 P01 的板子，在切片软件的"第 1 盘 / 第 2 盘"里找不到确定的对应关系，配件盘号同样与任何编号都对不上。
+
+修复原则与 §1.2 相同：凡是给人看的板件身份，都必须来自 `stablePanelIds()` 这同一个来源。盘名改为从盘内实例对象名提取 P 编号——板件盘 `SnapBoard 板件 P01`（一盘多板用「、」连接），配件盘只叫 `SnapBoard 配件`（多盘才补序号），试样盘保持「试样（先打印）」并去掉盘序。至此切片盘名、板件背面刻字、逐板导出文件名三处身份必然一致，不再存在"第几盘"这套会漂移的平行编号。该行为由 `verify:native-process` 的盘名回归断言锁定；旧文件无法追溯修复，只能重新导出。
 
 ## 2. 自动分割算法的演进
 
@@ -130,7 +162,7 @@ Shape.holes → THREE.ExtrudeGeometry
 
 ### 阶段 E：纹理与复合制造层
 
-纹理工作室将板件外观分成贴图纹理、材质贴面和 Lumina PETG 光学叠色。`boardTexture.ts` 负责图片映射与板件掩膜，`luminaLut.ts` 负责颜色/耗材配方；3D 中的父对象移动和 3MF 中的 `<components>` 绑定保持一致。
+纹理工作室将板件外观分成贴图纹理、材质贴面和 SnapColor PETG 光学叠色。`boardTexture.ts` 负责图片映射与板件掩膜，`snapColorLut.ts` 负责颜色/耗材配方；3D 中的父对象移动和 3MF 中的 `<components>` 绑定保持一致。
 
 当前制造层明确区分：结构基材、承托/贴面层和光学叠色层。渲染材质、虚线边框、标签和相机信息只存在于预览，不写入制造实体。
 
@@ -150,7 +182,11 @@ Shape.holes → THREE.ExtrudeGeometry
 为了让日志不只依赖文字和零散 UI 截图，当前维护三张与代码同步的 SVG 示意图：
 
 - ![单一几何链](assets/geometry-single-source.svg) `geometry-single-source.svg`：2D 草图、分割/孔阵、3D 预览和 3MF 的数据流；
+- ![异形分割算法](assets/split-algorithm-pipeline.svg) `split-algorithm-pipeline.svg`：安全域、热床候选、融合评分、母阵裁取和验证；
+- ![智能装配约束](assets/assembly-constraint-system.svg) `assembly-constraint-system.svg`：孔型、轴向、孔距、接触面、正背面占孔和自动打孔；
 - ![代理碰撞装配](assets/assembly-collision-flow.svg) `assembly-collision-flow.svg`：插入、接触面停止、长孔下滑锁止及纯圆孔 0 mm 特例；
+- ![纹理分层制造](assets/texture-manufacturing-stack.svg) `texture-manufacturing-stack.svg`：图片定位、结构基层、彩色/质感表层和材料参数；
+- ![3MF 导出校验](assets/export3mf-verification.svg) `export3mf-verification.svg`：闭合网格、排盘、对象实例、材料和降级交付；
 - ![主配件资源包](assets/part-bundle-workflow.svg) `part-bundle-workflow.svg`：主配件、通用连接件和独立打印对象之间的关系。
 
 SVG 为项目自有技术示意，不包含第三方模型、照片或商标素材；具体 UI 外观仍以浏览器实测截图为准。
