@@ -1,15 +1,8 @@
+# Optional historical Pages preview. The public product homepage is https://snapboard.cn/.
+# Pages must be enabled explicitly before a maintainer runs this workflow.
 name: Deploy SnapBoard Public Site
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'snapboard-v2/**'
-      - 'scripts/build-public-site.mjs'
-      - 'apps/wiki/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/wiki-pages.yml'
   workflow_dispatch:
 
 permissions:
