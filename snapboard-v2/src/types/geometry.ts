@@ -1,4 +1,6 @@
 // ============ SnapBoard v2 几何类型定义 ============
+import type { TextureComposition } from '../utils/textureComposition'
+import type { TexturePatternConfig } from '../utils/texturePatterns'
 
 /** 2D 点 (像素坐标) */
 export interface Point2D {
@@ -23,13 +25,42 @@ export interface ArcEntity {
   /** 半径 (像素) */
   radius: number
   sweep: Sweep
+  /**
+   * true = 半径由尺寸约束驱动 (圆心固定, 端点随半径变化)。
+   * false / 缺省 = 半径由两端点与圆心反算 (端点固定, 圆心随端点漂移)。
+   * 可选字段: 旧工程没有该字段, 一律按 false 处理 (向后兼容)。
+   */
+  radiusDriving?: boolean
+}
+
+/**
+ * 槽口参数化尺寸 (毫米语义与像素语义共用结构, 数值单位由使用处决定)。
+ * 与 SKÅDIS 胶囊孔同构: width = W_slot (5mm), length = H_slot (15mm)。
+ */
+export interface SlotParams {
+  /** 槽口总长 (含两端半圆) */
+  length: number
+  /** 槽口宽度 (短轴 = 2 × 端部半圆半径) */
+  width: number
+}
+
+/** 板型库/用户导入轮廓的可追溯来源；只保存可序列化元数据，不保存原始文件正文。 */
+export interface ContourSourceMetadata {
+  kind: 'preset' | 'svg' | 'image' | 'dxf'
+  id?: string
+  fileName?: string
+  /** 生成/导入时的用户参数，便于后续重新打开板型库编辑。 */
+  params?: Record<string, string | number | boolean>
 }
 
 /** 2D 轮廓 */
 export interface Contour {
+  /** CAD geometry is immutable; only manufacturing role and whole-contour removal are allowed. */
+  geometryLocked?: boolean
   id: string
   type: 'outer' | 'inner'
   name: string
+  source?: ContourSourceMetadata
   /** 顶点序列 (像素坐标, 世界坐标) */
   points: Point2D[]
   /** 创建时吸附到固定草图原点的顶点；尺寸求解必须保持该点不动 */
@@ -40,6 +71,12 @@ export interface Contour {
   shape?: 'circle' | 'slot' | 'polygon'
   /** 槽口 (胶囊): 两点定中心线, slotWidth 定宽度 */
   slotWidth?: number
+  /**
+   * 槽口参数化 (可选; 缺省时回退到 slotWidth 旧逻辑, 保证旧工程行为不变)。
+   * length = 槽口总长 (中心线长 + 宽度), width = 短轴宽 = 2 × 端部半圆半径。
+   * 与 slotWidth 并存时以 slotParams.width 为准, 写入时同步回写 slotWidth。
+   */
+  slotParams?: SlotParams
   /** 圆心 (circle 用; polygon 用=中心) */
   center?: Point2D
   /** 半径 (像素; circle 用; polygon 用=参考圆半径 内切=顶点半径/外切=边心距) */
@@ -72,6 +109,16 @@ export type ConstraintType =
   | 'parallel'        // 平行
   | 'perpendicular'   // 垂直关系
   | 'equal'           // 相等
+  // ↓ 以下为草图内核扩展新增 (阶段 0 数据模型)。均为可选能力,
+  //   旧工程不含这些类型; 求解层暂未接入时按"无数值的几何关系"处理。
+  | 'slotWidth'       // 槽口宽度 (短轴 = 2 × 端部半径)
+  | 'arcAngle'        // 弧心角 (弧两端点相对圆心的夹角)
+  | 'concentric'      // 同心 (两弧/圆共享圆心)
+  | 'coradial'        // 共径 (两弧/圆半径相等)
+  | 'tangent'         // 相切 (线-弧 / 弧-弧 / 圆-弧)
+  | 'symmetric'       // 对称 (关于中心线镜像)
+  | 'midpoint'        // 中点 (点保持在边的中点)
+  | 'fix'             // 固定 (锁定尺寸与位置)
 
 /** 尺寸标注 = 约束 (核心设计: 标注即约束) */
 export interface Constraint {
@@ -261,6 +308,8 @@ export type ToolId =
 export type SketchState = 'under' | 'fully' | 'over'
 
 export interface UIState {
+  /** Unsaved structure candidate; never serialized as the applied manufacturing model. */
+  structurePreviewPanels?: SplitPanel[] | null
   activeTool: ToolId
   /** 最近一次使用的绘图工具 (线/矩形/圆…); 中键轮盘【返回上一步】用 */
   lastDrawTool: ToolId
@@ -272,10 +321,16 @@ export interface UIState {
   selectedFeatureId: string | null
   /** 选中的轮廓 id */
   selectedContourId: string | null
+  /** 框选/组变换中的轮廓集合；selectedContourId 是其中的主轮廓。 */
+  selectedContourIds: string[]
   /** 选中的约束 id */
   selectedConstraintId: string | null
   /** 3D 装配视口中选中的配件实例 id */
   selectedPartId: string | null
+  /** 纹理工作室当前选中的图片图层；仅属会话 UI，不写入工程文件。 */
+  selectedTextureLayerId: string | null
+  selectedBackTextureLayerId: string | null
+  textureEditSide: 'front' | 'back'
   /** 轮廓求解状态 (contourId → under/fully/over) */
   solveStates: Record<string, SketchState>
   /** 新建轮廓类型: outer 板轮廓 / inner 开孔 (挖空, 如插座空位) */
@@ -298,23 +353,49 @@ export interface UIState {
   splitOptionsOpen: boolean
   /** 右侧栏配件库面板是否展开 (打开时与分割引擎互斥，也可手动全部收起) */
   partsOpen: boolean
+  /** 配件布局之后的受力镂空轻量化试验工作区。 */
+  structureOpen: boolean
   /** 3D 视口上的纹理工作室是否展开。 */
   textureStudioOpen: boolean
+  /** 遮挡分析工作区是否展开。 */
+  occlusionAnalysisOpen: boolean
 }
 
-export type BoardTextureSource = 'preset' | 'image'
+export type BoardTextureSource = 'preset' | 'image' | 'composition' | 'pattern'
 export type BoardTextureFit = 'cover' | 'contain' | 'stretch' | 'tile'
 export type BoardTextureColorMode = 'original' | 'mono' | 'posterize'
 export type BoardTextureModelingMode = 'high-fidelity' | 'pixel' | 'vector'
-export type BoardSurfaceMode = 'lumina' | 'veneer'
+export type BoardSurfaceMode = 'snapcolor' | 'veneer' | 'woodgrain'
 export type BoardSurfaceFinish = 'textured-pei' | 'smooth-top'
+export type BoardVeneerPrintGoal = 'standard' | 'frosted' | 'clear-experimental'
 export type BoardTextureLutId =
-  | 'aliz-petg-rybw'
-  | 'aliz-petg-cmyw'
-  | 'mochuang-petg-bw'
-  | 'aliz-petg-5color'
-  | 'aliz-petg-6color'
-  | 'aliz-petg-8color'
+  | 'snapcolor-petg-rybw'
+  | 'snapcolor-petg-cmyw'
+  | 'snapcolor-petg-bw'
+  | 'snapcolor-petg-5color'
+  | 'snapcolor-petg-6color'
+  | 'snapcolor-petg-8color'
+  | 'snapcolor-petg-coobeen-rybw'
+  | 'snapcolor-petg-kynix-rybw'
+  | 'snapcolor-petg-sunlu-rybw'
+  | 'snapcolor-petg-tianrui-rybw'
+  | 'snapcolor-petg-biying-rybw'
+  | 'snapcolor-petg-generic-rybw'
+  | `snapcolor-farm:${string}`
+
+/**
+ * 板面纹理避让矩形。坐标相对整板包围盒归一化到 0~1，原点在左下角。
+ * 避让区只把纹理画布回填为基材色，不改变板件、孔位或制造网格拓扑。
+ */
+export interface BoardTextureAvoidZone {
+  id: string
+  name: string
+  x: number
+  y: number
+  width: number
+  height: number
+  enabled: boolean
+}
 
 /**
  * 洞洞板全局纹理。所有分割板共享同一设计坐标系，避免每块板从图片左上角重新开始。
@@ -327,6 +408,24 @@ export interface BoardTextureConfig {
   imageDataUrl?: string
   imageName?: string
   imageAspect?: number
+  /** Independent image viewed from the back; the front keeps the existing composition. */
+  backEnabled?: boolean
+  backImageDataUrl?: string
+  backImageName?: string
+  backImageAspect?: number
+  backFit?: BoardTextureFit
+  backScale?: number
+  backOffsetX?: number
+  backOffsetY?: number
+  backRotation?: number
+  /** Back uses the same editor and thin-layer renderer as the front. Legacy backImage* remains readable. */
+  backTexture?: BoardTextureConfig
+  /** 多图片资源与图层；数组顺序即从底到顶的绘制顺序。 */
+  composition: TextureComposition
+  /** 程序化数学密铺配置。 */
+  pattern: TexturePatternConfig
+  /** 局部纹理留白/视觉核心保护区。 */
+  avoidZones: BoardTextureAvoidZone[]
   fit: BoardTextureFit
   /** 图案相对基础适配尺寸的百分比。 */
   scale: number
@@ -342,8 +441,12 @@ export interface BoardTextureConfig {
   colorMode: BoardTextureColorMode
   /** 黑白/海报色阶数量；只负责设计端预处理，不等于耗材数量。 */
   colorCount: number
-  /** Lumina 建模模式：高保真 0.1~0.2mm 采样、像素艺术、SVG 矢量源。 */
+  /** SnapColor 建模模式；当前产品入口只开放高保真图片，pixel/vector 保留作旧工程兼容。 */
   modelingMode: BoardTextureModelingMode
+  /** Continuous manufacturing contours; false retains the V1.1 grid path for comparison. */
+  manufacturingContours?: boolean
+  /** Standard preserves existing export; fine uses physical sampling and bounded shared-boundary fitting. */
+  manufacturingEdgeQuality?: 'standard' | 'fine'
   /** 校准色卡/LUT；决定基础耗材、实测颜色与 5 层叠色配方。 */
   lutId: BoardTextureLutId
   /** 高保真颜色量化细节。它只减少噪点，不限制最终可呈现的 LUT 颜色数。 */
@@ -354,19 +457,42 @@ export interface BoardTextureConfig {
   cleanup: boolean
   /** 顶部彩色嵌件总厚度；其中最后 5×0.08mm 为光学叠色，其余为白色承托层。 */
   textureThickness: number
+  /** SnapColor 彩色层是否在外轮廓与全部孔壁增加基材色单线封边。 */
+  edgeSealEnabled: boolean
+  /** 基材封边的名义宽度 (mm)；默认 0.5mm，约等于 0.4mm 喷嘴的一道外墙。 */
+  edgeSealWidth: number
   /** 像素艺术模式的色块尺寸；高保真/SVG 模式不使用此值。 */
   pixelSize: number
-  /** 彩色版画使用 Lumina 多色光学层；质感贴面只使用一卷表层 PETG。 */
+  /**
+   * 制造采样精度倍率（1 = 自动预算）。叠色图案的杂色斑来自抗锯齿边缘在粗格点上的量化，
+   * 需要更干净的色界时调高；格数与耗时同比上升。
+   */
+  samplingDetail?: number
+  /**
+   * 制造导出的输出方式：单个 3MF（默认）或每块板一个 3MF 再打包成 zip。
+   * 高精度下单文件会大到不好用；逐板导出仍共用同一份世界格点与间距。
+   */
+  manufacturingOutput?: 'single' | 'perPanel'
+  /** 彩色版画使用 SnapColor 多色光学层；质感贴面只使用一卷表层 PETG。 */
   surfaceMode: BoardSurfaceMode
+  woodGrain: import('../utils/woodGrain').WoodGrainConfig
   /** 基材与表层在切片器中的耗材显示名称。 */
   baseMaterialName: string
   surfaceMaterialName: string
+  /** 单卷贴面耗材类别；与品牌、颜色分开，避免从名称猜工艺。 */
+  surfaceMaterialKind: 'decorative-petg' | 'transparent-petg'
+  /** 打印目标只作用于单卷贴面，不改变 SnapColor 光学层。 */
+  surfacePrintGoal: BoardVeneerPrintGoal
+  surfaceProfileVersion: 1
+  /** 实际料卷资料优先于目标预设；未填写时仍须在切片器核对耗材配置。 */
+  surfaceFilamentVendor: string
+  surfacePrintOverrides: { nozzleTempC?: number; flowRatio?: number; maxFlowMm3s?: number; fanPercent?: number }
   /** 基材与单材质贴面的耗材颜色。 */
   baseColor: string
   surfaceColor: string
   /** 细磨砂通过装饰面朝下贴合纹理 PEI 热床实现，避免 fuzzy skin 破坏孔壁。 */
   surfaceFinish: BoardSurfaceFinish
-  /** 结构基材稀疏填充率；Lumina/贴面层仍按自身对象参数打印。 */
+  /** 结构基材稀疏填充率；SnapColor/贴面层仍按自身对象参数打印。 */
   baseInfillDensity: number
 }
 
@@ -458,6 +584,8 @@ export interface HolePos {
   knocked?: boolean
   /** 用户是否在 2D/3D 中手动覆盖过自动推荐状态; 重新分割时按坐标保留 */
   manual?: boolean
+  /** 单孔编辑前的类型/状态；孔心不变，用于恢复及重新分板。 */
+  editOrigin?: { group: 'slots' | 'round_holes' | 'edge_holes'; index?: number; knocked?: boolean; manual?: boolean }
 }
 
 /** 单块分割后的板材 (全局坐标 mm) */
@@ -478,12 +606,19 @@ export interface SplitPanel {
   roundIdx?: number[]
   /** 竖向长圆孔(胶囊) 5×15；坐标为全局 mm，来自原始轮廓唯一 A/B 母阵的板内裁取。 */
   slots: HolePos[]
-  /** 通圆孔 (新设计下恒为空; 圆孔以边缘敲落孔形式存在) */
+  /** 已开启的独立圆孔；单孔编辑把原长孔改为圆孔时也存于此数组。 */
   round_holes: HolePos[]
   /** 候选圆孔默认 φ5；板边孔是结构缺口，板内孔由 knocked 决定是否真正贯通。 */
   edge_holes: HolePos[]
+  /** 用户关闭的原孔位，仅供选取/提示，不参与制造开孔。 */
+  closed_holes?: HolePos[]
   /** 板内通孔轮廓 (全局 mm 坐标); 例如墙面插座、开关盒等避让孔 */
   cutouts?: Point2D[][]
+  /** 独立于草图和分板规划的制造镂空；仅 3D 预览与制造导出读取。 */
+  latticeCutouts?: Point2D[][]
+  latticeOptions?: { fillWindows: boolean; cellPitchMm: number; cellRibMm: number; openCoreCaps: boolean }
+  /** 贴墙线稿保真：独立制造层，托底和凹刻不依赖背光。 */
+  latticeFace?: LatticeFaceData
   /**
    * 四角是否保留圆角 (顺序 [底左, 底右, 顶右, 顶左]):
    * 仅装配外轮廓的凸角为 true, 接缝/内部 T 型角为 false (直角),
@@ -512,6 +647,13 @@ export interface SplitInput {
   points: Point2D[]
   /** 内孔轮廓 (挖空区域, 可选) */
   holes?: Point2D[][]
+  /** 已按板件生成的结构镂空：参与制造开孔，不驱动板缝重新规划。 */
+  passiveHoles?: Point2D[][]
+  /**
+   * auto：分板器可为新生成的板材外凸角应用配置圆角；
+   * preserve-source：SVG/图片/预制板型已经定义了外观，只保留源轮廓，不再二次加圆角。
+   */
+  cornerPolicy?: 'auto' | 'preserve-source'
 }
 
 // 运行时默认参数常量来自引擎模块 (仅常量, 无类型循环)
@@ -537,4 +679,50 @@ export interface SplitResultState {
   warnings: string[]
   config: SplitConfig
   ts: number
+  /** 已应用的 3MF 连筋样式；旧草图镂空工程可留空，更新时迁移。 */
+  openLatticeStyle?: 'organic' | 'hex' | 'diamond' | 'honeycomb' | 'ribs' | 'svg' | 'flower'
+  /** 自定义窗花原始 SVG；用于重新打开工程后继续更新镂空。 */
+  openLatticeSvg?: string
+  /** 自定义 SVG 在整组板件上的位置、尺寸与朝向。 */
+  openLatticePlacement?: SvgLatticePlacement
+  openLatticeSvgOptions?: SvgLatticeOptions
+  /** 参考镂空的整面保留厚度；0 / 缺省表示完全贯通。 */
+  openLatticeSurfaceMm?: number
+}
+
+export interface SvgLatticeOptions {
+  mode: 'cutout' | 'fidelity'
+  lineWidthMm: number
+  backingMm: number
+  /** 缺省保留旧版局部托底；whole 为全板连续薄面。 */
+  coverage?: 'artwork' | 'whole'
+  padShape?: 'rectangle' | 'silhouette' | 'contour'
+  outlineGapMm?: number
+  contrastColor?: string
+  baseStyle?: 'organic' | 'hex' | 'diamond' | 'honeycomb' | 'ribs'
+  sourceLayerId?: string
+  sourceSignature?: string
+}
+
+export interface LatticeFaceData {
+  /** 保留原线稿，孔位或板厚改变时重新裁切制造层。 */
+  source?: { artwork: Point2D[][][]; options: SvgLatticeOptions; signature: string;
+    templateStyle?: 'organic' | 'hex' | 'diamond' | 'honeycomb' | 'ribs'; silhouette?: Point2D[][][] }
+  layers: Array<{
+    role: 'structure' | 'backing' | 'face' | 'detail'
+    /** 多边形 → 外环与内环 → 顶点；全局 mm。 */
+    polygons: Point2D[][][]
+    zMin: number
+    zMax: number
+  }>
+  contrastColor?: string
+}
+
+export interface SvgLatticePlacement {
+  offsetX: number
+  offsetY: number
+  scale: number
+  rotationDeg: number
+  flipX: boolean
+  flipY: boolean
 }

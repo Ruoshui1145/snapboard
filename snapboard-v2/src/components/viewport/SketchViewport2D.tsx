@@ -2,37 +2,41 @@
 // 渲染: 折线+弧实体边 / 无限长构造线 / 圆 / 槽口(含R标注) / 多边形(中心标记)
 // 预览: line/rect/circle(实时R)/polygon(参考圆+中心)/slot(实时宽+R)/arc/拖动/擦除高亮
 // 吸附高亮: 金色圆环+十字+标签; 内轮廓(开孔)固定红
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { panelHoleEntries } from '../../utils/holeEditing'
 import { useAppStore } from '../../store/useAppStore'
 import { playHoleTapSound } from '../../utils/interactionSound'
 import { viewportCamera } from '../../engine/viewportCamera'
 import type { ArcEntity, Constraint, Contour, Feature, Point2D, SplitPanel, SplitConfig } from '../../types/geometry'
 import type { GuideLine, SketchPreview } from '../../hooks/useSketchTool'
-import { contourCenter, edgeArc, ptSegDist, standaloneArc } from '../../utils/entities'
+import { edgeArc, ptSegDist, standaloneArc } from '../../utils/entities'
+import { contourDimensionCenter } from '../../utils/constraintGeometry'
 import { circumcenter, normAngle, getCircleArcSegments } from '../../utils/arc'
 import {
   DIMENSION_LABEL_FONT, DIMENSION_LABEL_RADIUS, dimensionLabelBounds,
 } from '../../utils/dimensionLabel'
+import { selectionBounds as geometrySelectionBounds } from '../../utils/selectionTransform'
+import { resolveCollinearEdgeChain } from '../../utils/collinearChain'
 
 // ---- 主题色 (深灰中性 + 青绿强调) ----
 const C = {
-  bg: '#1c1f26',
-  panel: '#23262e',
-  border: '#353a45',
-  text: '#d7dbe2',
-  textDim: '#8b93a3',
-  accent: '#3ec6b0',        // 青绿强调
-  outer: '#57c7b5',         // 外轮廓
-  inner: '#ff6b6b',         // 内轮廓 (开孔)
-  stateUnder: '#4fc3f7',
-  stateFully: '#d8dde6',
+  bg: '#151922',
+  panel: '#222833',
+  border: '#3b4657',
+  text: '#e0e7f2',
+  textDim: '#99a9bf',
+  accent: '#7cdccd',        // 青绿强调
+  outer: '#7cdccd',         // 外轮廓
+  inner: '#ff8d9a',         // 内轮廓 (开孔)
+  stateUnder: '#77c7ec',
+  stateFully: '#d7e0ef',
   stateOver: '#ff6b6b',
-  select: '#ffd166',        // 选中金
-  snap: '#ffd166',
+  select: '#edc980',        // 选中金
+  snap: '#edc980',
   erase: '#ff6b6b',
-  construction: 'rgba(255,255,255,0.32)',
-  dim: '#3ec6b0',           // 尺寸标注
-  geom: '#b39ddb',          // 几何关系
+  construction: 'rgba(182,202,232,0.35)',
+  dim: '#7cdccd',           // 尺寸标注
+  geom: '#b7a4e5',          // 几何关系
 }
 
 interface Camera {
@@ -42,6 +46,7 @@ interface Camera {
 }
 
 interface Props {
+  active?: boolean
   onCanvasClick?: (pos: Point2D) => void
   onCanvasMove?: (pos: Point2D) => void
   onCanvasMouseDown?: (pos: Point2D) => void
@@ -54,9 +59,10 @@ interface Props {
 }
 
 export function SketchViewport2D({
-  onCanvasClick, onCanvasMove, onCanvasMouseDown, onCanvasMouseUp, onCanvasDoubleClick, preview, hint, hoverConstraintId,
+  onCanvasClick, onCanvasMove, onCanvasMouseDown, onCanvasMouseUp, onCanvasDoubleClick, preview, hint, hoverConstraintId, active = true,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const drawnInputsRef = useRef<unknown[] | null>(null)
   const [camera, setCamera] = useState<Camera>({ offsetX: 80, offsetY: 80, scale: 1 })
   const cameraRef = useRef(camera)
   cameraRef.current = camera
@@ -72,16 +78,23 @@ export function SketchViewport2D({
   }, [camera])
 
   const activeSketchId = useAppStore(s => s.ui.activeSketchId)
+  const activeTool = useAppStore(s => s.ui.activeTool)
   const selectedContourId = useAppStore(s => s.ui.selectedContourId)
+  const selectedContourIds = useAppStore(s => s.ui.selectedContourIds)
   const selectedConstraintId = useAppStore(s => s.ui.selectedConstraintId)
   const solveStates = useAppStore(s => s.ui.solveStates)
   // ---- 自动分割结果 (分割预览覆盖层) ----
   const splitResult = useAppStore(s => s.splitResult)
   const splitCfg = useAppStore(s => s.splitConfig)
   const toggleEdgeHole = useAppStore(s => s.toggleEdgeHole)
+  const holeEditMode = useAppStore(s => s.holeEditMode)
+  const selectedHole = useAppStore(s => s.selectedHole)
+  const selectableHoles = useMemo(() => (splitResult?.panels ?? []).flatMap(panel =>
+    (holeEditMode ? panelHoleEntries(panel) : panelHoleEntries(panel).filter(item => item.group === 'edge_holes' || item.group === 'closed_holes'))
+      .map(entry => ({ ...entry, panel }))), [splitResult, holeEditMode])
   const [hoverEdgeHole, setHoverEdgeHole] = useState(false)
   const pendingEdgeHoleRef = useRef<{
-    panelId: string; panelX: number; panelY: number; holeX: number; holeY: number
+    panelId: string; panelX: number; panelY: number; holeX: number; holeY: number; panel: SplitPanel
   } | null>(null)
 
   const sketch = project.parts
@@ -90,8 +103,44 @@ export function SketchViewport2D({
     | { type: 'sketch'; contours: Contour[] }
     | undefined
 
+  useEffect(() => {
+    const fitActiveSketch = () => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const state = useAppStore.getState()
+      const active = state.project.parts
+        .flatMap(part => part.features)
+        .find(feature => feature.type === 'sketch' && feature.id === state.ui.activeSketchId)
+      if (!active || active.type !== 'sketch') return
+      const points = active.contours
+        .filter(contour => !contour.construction && !contour.infinite)
+        .flatMap(contour => contour.points)
+      if (points.length === 0) return
+      const minX = Math.min(...points.map(point => point.x))
+      const maxX = Math.max(...points.map(point => point.x))
+      const minY = Math.min(...points.map(point => point.y))
+      const maxY = Math.max(...points.map(point => point.y))
+      const width = Math.max(1, maxX - minX)
+      const height = Math.max(1, maxY - minY)
+      const cssWidth = canvas.clientWidth || canvas.width
+      const cssHeight = canvas.clientHeight || canvas.height
+      const padding = Math.max(42, Math.min(cssWidth, cssHeight) * 0.1)
+      const scale = Math.max(0.1, Math.min(10,
+        Math.min((cssWidth - padding * 2) / width, (cssHeight - padding * 2) / height)))
+      setCamera({
+        scale,
+        offsetX: cssWidth / 2 - ((minX + maxX) / 2) * scale,
+        offsetY: cssHeight / 2 - ((minY + maxY) / 2) * scale,
+      })
+    }
+    window.addEventListener('snapboard:fit-active-sketch', fitActiveSketch)
+    const initialFit = requestAnimationFrame(fitActiveSketch)
+    return () => { cancelAnimationFrame(initialFit); window.removeEventListener('snapboard:fit-active-sketch', fitActiveSketch) }
+  }, [activeSketchId, project.metadata.createdAt])
+
   // ★ 按需重绘
   useEffect(() => {
+    if (!active) return
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -100,11 +149,16 @@ export function SketchViewport2D({
     const resize = () => {
       const rect = canvas.parentElement?.getBoundingClientRect()
       if (rect) {
-        canvas.width = rect.width
-        canvas.height = rect.height
+        const width = Math.max(1, Math.round(rect.width))
+        const height = Math.max(1, Math.round(rect.height))
+        if (canvas.width === width && canvas.height === height) return false
+        canvas.width = width
+        canvas.height = height
+        return true
       }
+      return false
     }
-    resize()
+    const resized = resize()
 
     const draw = () => {
       const { offsetX, offsetY, scale } = cameraRef.current
@@ -127,6 +181,11 @@ export function SketchViewport2D({
       // 坐标系原点标志 (X/Y 小标志)
       drawOriginMarker(ctx, cameraRef.current)
 
+      const effectiveSelectionIds = selectedContourIds.length > 0
+        ? selectedContourIds
+        : selectedContourId ? [selectedContourId] : []
+      let selectedForFrame: Contour[] = []
+
       // 绘制轮廓 + 约束
       if (sketch) {
         const splitSourceIds = new Set(splitResult?.sources.flatMap(src => src.sourceIds ?? [src.contourId]) ?? [])
@@ -136,8 +195,10 @@ export function SketchViewport2D({
           if (splitSourceIds.has(c.id)) continue
           drawContour(ctx, c, cameraRef.current)
         }
-        const sel = sketch.contours.find(c => c.id === selectedContourId)
-        if (sel && !splitSourceIds.has(sel.id)) drawContour(ctx, sel, cameraRef.current, C.select, true)
+        selectedForFrame = sketch.contours.filter(contour => effectiveSelectionIds.includes(contour.id))
+        for (const selected of selectedForFrame) {
+          if (!splitSourceIds.has(selected.id)) drawContour(ctx, selected, cameraRef.current, C.select, true)
+        }
         for (const cc of sketch.contours) {
           for (const cons of cc.constraints) {
             drawConstraint(ctx, cc, cons, cameraRef.current)
@@ -149,36 +210,31 @@ export function SketchViewport2D({
       if (splitResult && splitResult.panels.length > 0) {
         drawSplitPreview(ctx, splitResult.panels, splitCfg, cameraRef.current)
       }
+      if (holeEditMode && selectedHole && !selectedHole.spatialKey) {
+        ctx.beginPath(); ctx.arc(camera.offsetX + selectedHole.x / pixelToMM * camera.scale,
+          camera.offsetY - selectedHole.y / pixelToMM * camera.scale, 12, 0, Math.PI * 2)
+        ctx.strokeStyle = '#ffdf82'; ctx.lineWidth = 2; ctx.stroke()
+      }
 
-      // 空画布引导
-      if (!sketch || sketch.contours.length === 0) {
-        ctx.font = '15px sans-serif'
-        ctx.fillStyle = 'rgba(255,255,255,0.22)'
-        ctx.textAlign = 'center'
-        ctx.fillText('从顶部工具栏选择工具开始绘制 (P 直线 · R 矩形 · C 圆 · A 弧 · G 多边形)', canvas.width / 2, canvas.height / 2)
-        ctx.textAlign = 'left'
+      if (activeTool === 'select' && selectedForFrame.length > 0
+          && preview?.kind !== 'groupTransform' && preview?.kind !== 'marquee') {
+        const bounds = geometrySelectionBounds(selectedForFrame)
+        if (bounds) drawSelectionFrame(ctx, bounds, cameraRef.current)
       }
 
       // 绘制中的实时预览 (橡皮筋)
       if (preview) drawPreview(ctx, preview, cameraRef.current)
 
-      // 操作提示
-      if (hint) {
-        ctx.font = '13px sans-serif'
-        const w = ctx.measureText(hint).width
-        ctx.fillStyle = 'rgba(35,38,46,0.92)'
-        ctx.fillRect(canvas.width / 2 - w / 2 - 14, canvas.height - 48, w + 28, 28)
-        ctx.strokeStyle = 'rgba(62,198,176,0.55)'
-        ctx.strokeRect(canvas.width / 2 - w / 2 - 14, canvas.height - 48, w + 28, 28)
-        ctx.fillStyle = C.accent
-        ctx.fillText(hint, canvas.width / 2 - w / 2, canvas.height - 28)
-      }
     }
 
-    draw()
-    const redrawAtCurrentSize = () => {
-      resize()
+    const inputs = [camera, sketch, selectedContourId, selectedContourIds, selectedConstraintId,
+      solveStates, preview, pixelToMM, splitResult, splitCfg, activeTool, holeEditMode, selectedHole]
+    if (resized || !drawnInputsRef.current?.every((value, index) => value === inputs[index])) {
       draw()
+      drawnInputsRef.current = inputs
+    }
+    const redrawAtCurrentSize = () => {
+      if (resize()) draw()
     }
     const parent = canvas.parentElement
     const resizeObserver = new ResizeObserver(redrawAtCurrentSize)
@@ -189,7 +245,7 @@ export function SketchViewport2D({
       window.removeEventListener('resize', redrawAtCurrentSize)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- drawContour/drawPreview 仅在本 effect 内使用
-  }, [camera, sketch, selectedContourId, selectedConstraintId, solveStates, preview, hint, pixelToMM, hoverConstraintId, splitResult, splitCfg])
+  }, [active, camera, sketch, selectedContourId, selectedContourIds, selectedConstraintId, solveStates, preview, pixelToMM, splitResult, splitCfg, activeTool, holeEditMode, selectedHole])
 
   /** 轮廓状态色: 蓝欠定义 / 白完全定义 / 红过定义; 内轮廓固定红 (开孔) */
   const stateColor = (c: Contour): string | null => {
@@ -202,6 +258,41 @@ export function SketchViewport2D({
 
   const sx = (p: Point2D, cam: Camera) => cam.offsetX + p.x * cam.scale
   const sy = (p: Point2D, cam: Camera) => cam.offsetY + p.y * cam.scale
+
+  const drawSelectionFrame = (
+    ctx: CanvasRenderingContext2D,
+    bounds: NonNullable<ReturnType<typeof geometrySelectionBounds>>,
+    cam: Camera,
+  ) => {
+    const left = sx({ x: bounds.minX, y: 0 }, cam)
+    const right = sx({ x: bounds.maxX, y: 0 }, cam)
+    const top = sy({ x: 0, y: bounds.minY }, cam)
+    const bottom = sy({ x: 0, y: bounds.maxY }, cam)
+    const centerX = (left + right) / 2
+    const rotationY = top - 30
+    ctx.save()
+    ctx.strokeStyle = 'rgba(192, 132, 252, .95)'
+    ctx.fillStyle = '#c084fc'
+    ctx.lineWidth = 1.4
+    ctx.setLineDash([6, 4])
+    ctx.strokeRect(left, top, right - left, bottom - top)
+    ctx.setLineDash([])
+    ctx.beginPath()
+    ctx.moveTo(centerX, top)
+    ctx.lineTo(centerX, rotationY)
+    ctx.stroke()
+    for (const point of [[left, top], [right, top], [right, bottom], [left, bottom]] as const) {
+      ctx.fillRect(point[0] - 4, point[1] - 4, 8, 8)
+      ctx.strokeStyle = '#1c1f26'
+      ctx.strokeRect(point[0] - 4, point[1] - 4, 8, 8)
+    }
+    ctx.beginPath()
+    ctx.arc(centerX, rotationY, 6, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.strokeStyle = '#1c1f26'
+    ctx.stroke()
+    ctx.restore()
+  }
 
   /** 按 id 找轮廓 (预览渲染共用) */
   const findContourById = (id: string): Contour | undefined =>
@@ -428,12 +519,12 @@ export function SketchViewport2D({
       // ---- 候选圆孔 (φ5): 已启用=真实通孔; 未启用=完整板面上的虚线位置提示 ----
       const jr = Math.max(0.6, (cfg.jointDiameter / 2 / px) * S)
       ctx.lineWidth = Math.max(0.8, S)
-      for (const eh of p.edge_holes) {
+      for (const eh of [...p.edge_holes, ...(p.closed_holes ?? [])]) {
         const m = m2w(eh.x, eh.y)
         const c = w2s(m.x, m.y)
         const onBoundary = Math.abs(eh.x - p.x) < 0.5 || Math.abs(eh.x - (p.x + p.w)) < 0.5 ||
           Math.abs(eh.y - p.y) < 0.5 || Math.abs(eh.y - (p.y + p.h)) < 0.5
-        if (onBoundary || eh.knocked) {
+        if ((onBoundary || eh.knocked) && !(p.closed_holes ?? []).includes(eh)) {
           // 已打孔: 单一黄色孔圈 + 深色通孔。
           // 不再额外画第二层外光晕，避免视觉上被误认成两个圆孔重叠。
           ctx.setLineDash([])
@@ -448,7 +539,10 @@ export function SketchViewport2D({
           // 未打孔: 虚线位置提示 + 中心定位点（不代表实体薄盖）。
           ctx.setLineDash([Math.max(2, 2.4 * S), Math.max(1.5, 1.8 * S)])
           ctx.beginPath()
-          ctx.arc(c.x, c.y, jr, 0, Math.PI * 2)
+          if (eh.editOrigin?.group === 'slots' && (p.closed_holes ?? []).includes(eh)) {
+            const width = cfg.slotWidth / px * S, length = cfg.slotLength / px * S
+            ctx.roundRect(c.x - width / 2, c.y - length / 2, width, length, width / 2)
+          } else ctx.arc(c.x, c.y, jr, 0, Math.PI * 2)
           ctx.strokeStyle = 'rgba(255,255,255,0.35)'
           ctx.stroke()
           ctx.setLineDash([])
@@ -469,7 +563,7 @@ export function SketchViewport2D({
       ctx.fillText(p.id, cc.x, cc.y + 2)
       ctx.font = Math.max(7, fs - 2.5) + 'px sans-serif'
       ctx.fillStyle = 'rgba(255,255,255,0.65)'
-      ctx.fillText(p.w + 'x' + p.h, cc.x, cc.y + fs + 2)
+      ctx.fillText(Number(p.w.toFixed(2)) + '×' + Number(p.h.toFixed(2)), cc.x, cc.y + fs + 2)
       ctx.textAlign = 'left'
     }
     ctx.restore()
@@ -580,6 +674,10 @@ export function SketchViewport2D({
         ctx.fillStyle = C.dim
         ctx.fillText(`R ${rMM.toFixed(1)}`, sx({ x: p2.x + ux * (c.slotWidth / 2 + 14), y: p2.y + uy * (c.slotWidth / 2 + 14) }, cam), sy({ x: p2.x + ux * (c.slotWidth / 2 + 14), y: p2.y + uy * (c.slotWidth / 2 + 14) }, cam) + 4)
       }
+      if (activeTool === 'smartdim' && c.type === 'inner') {
+        const center = contourDimensionCenter(c)
+        if (center) drawCenterMark(ctx, center, cam, 'rgba(255,209,102,0.7)')
+      }
       return
     }
 
@@ -615,6 +713,13 @@ export function SketchViewport2D({
       ctx.beginPath()
       ctx.arc(sx(c.center, cam), sy(c.center, cam), 6, 0, Math.PI * 2)
       ctx.stroke()
+    }
+
+    // 旧工程中的普通闭合内孔没有参数化 center。智能尺寸模式下显示其面积重心，
+    // 让“孔中心 → 外板边”具有可见、可点击的明确目标。
+    if (activeTool === 'smartdim' && c.type === 'inner' && c.shape !== 'polygon') {
+      const center = contourDimensionCenter(c)
+      if (center) drawCenterMark(ctx, center, cam, 'rgba(255,209,102,0.7)')
     }
 
     // 弧实体圆心标记
@@ -710,7 +815,10 @@ export function SketchViewport2D({
       if (arc2) {
         const a1 = Math.atan2(c.points[edgeIdx].y - arc2.center.y, c.points[edgeIdx].x - arc2.center.x)
         const a2 = Math.atan2(c.points[j2].y - arc2.center.y, c.points[j2].x - arc2.center.x)
-        ctx.arc(sx(arc2.center, cam), sy(arc2.center, cam), arc2.radius * cam.scale, a1, a2, arc2.sweep === 'cw')
+        const span = arc2.sweep === 'cw' ? normAngle(a1 - a2) : normAngle(a2 - a1)
+        const from = arc2.sweep === 'cw' ? a1 - span * t1 : a1 + span * t1
+        const to = arc2.sweep === 'cw' ? a1 - span * t2 : a1 + span * t2
+        ctx.arc(sx(arc2.center, cam), sy(arc2.center, cam), arc2.radius * cam.scale, from, to, arc2.sweep === 'cw')
       } else {
         const a = c.points[edgeIdx]
         const b = c.points[j2]
@@ -720,7 +828,6 @@ export function SketchViewport2D({
         ctx.lineTo(sx(p2, cam), sy(p2, cam))
       }
       ctx.stroke()
-      // (下方旧实现已由上文完整覆盖, 历史遗留死代码已删除)
   }
 
   /** 推理参考线 (对齐引导): 贯穿视口的横/竖虚线 + 参考点菱形标记 */
@@ -848,12 +955,14 @@ export function SketchViewport2D({
     const n = c.points.length
 
     if (cons.type === 'length' && cons.edgeIndex !== undefined) {
-      drawLinearDim(ctx, c.points[cons.edgeIndex % n], c.points[(cons.edgeIndex + 1) % n], labelPos, cam, col)
+      const first = cons.vertexIdx1 !== undefined ? cons.vertexIdx1 : cons.edgeIndex % n
+      const second = cons.vertexIdx2 !== undefined ? cons.vertexIdx2 : (cons.edgeIndex + 1) % n
+      drawLinearDim(ctx, c.points[first], c.points[second], labelPos, cam, col)
     } else if (cons.type === 'distance' && cons.vertexIdx1 !== undefined && cons.vertexIdx2 !== undefined) {
       const c2 = cons.contourId2 ? (findContourById(cons.contourId2) ?? c) : c
       const resolveP = (contour: Contour, idx: number): Point2D => {
         if (idx === -3) return { x: 0, y: 0 }
-        if (idx === -2) return contourCenter(contour) ?? contour.points[0]
+        if (idx === -2) return contourDimensionCenter(contour) ?? contour.points[0]
         return contour.points[idx]
       }
       drawLinearDim(ctx, resolveP(c, cons.vertexIdx1), resolveP(c2, cons.vertexIdx2), labelPos, cam, col)
@@ -907,7 +1016,7 @@ export function SketchViewport2D({
       // 点-线距离: 顶点 → 边垂足, 双箭头
       const a = c.points[cons.edgeIndex % n], b = c.points[(cons.edgeIndex + 1) % n]
       const c2 = cons.contourId2 ? (findContourById(cons.contourId2) ?? c) : c
-      const v = cons.vertexIdx1 === -2 ? contourCenter(c2) : c2.points[cons.vertexIdx1]
+      const v = cons.vertexIdx1 === -2 ? contourDimensionCenter(c2) : c2.points[cons.vertexIdx1]
       if (!v) return
       const dx = b.x - a.x, dy = b.y - a.y
       const len = Math.hypot(dx, dy)
@@ -958,9 +1067,10 @@ export function SketchViewport2D({
         }
       } else if (cons.type === 'radius') {
       // 圆心 → 圆周 箭头 + R
-      const center = c.center ?? standaloneArc(c)?.center
+      const radiusArc = cons.edgeIndex !== undefined ? edgeArc(c, cons.edgeIndex) : standaloneArc(c)
+      const center = c.shape === 'circle' || c.shape === 'polygon' ? c.center : radiusArc?.center
       if (center) {
-        const r = c.radius ?? standaloneArc(c)?.radius
+        const r = c.shape === 'circle' || c.shape === 'polygon' ? c.radius : radiusArc?.radius
         if (r) {
           const ang = Math.atan2(labelPos.y - center.y, labelPos.x - center.x)
           const q = { x: center.x + r * Math.cos(ang), y: center.y + r * Math.sin(ang) }
@@ -1060,6 +1170,40 @@ export function SketchViewport2D({
 
   /** 绘制实时预览 */
   const drawPreview = (ctx: CanvasRenderingContext2D, pv: SketchPreview, cam: Camera) => {
+    if (pv.kind === 'marquee' && pv.selectionStart && pv.selectionEnd) {
+      const left = sx({ x: Math.min(pv.selectionStart.x, pv.selectionEnd.x), y: 0 }, cam)
+      const right = sx({ x: Math.max(pv.selectionStart.x, pv.selectionEnd.x), y: 0 }, cam)
+      const top = sy({ x: 0, y: Math.min(pv.selectionStart.y, pv.selectionEnd.y) }, cam)
+      const bottom = sy({ x: 0, y: Math.max(pv.selectionStart.y, pv.selectionEnd.y) }, cam)
+      ctx.save()
+      ctx.fillStyle = 'rgba(192, 132, 252, .08)'
+      ctx.strokeStyle = 'rgba(192, 132, 252, .95)'
+      ctx.lineWidth = 1.4
+      ctx.setLineDash([7, 4])
+      ctx.fillRect(left, top, right - left, bottom - top)
+      ctx.strokeRect(left, top, right - left, bottom - top)
+      ctx.restore()
+      return
+    }
+
+    if (pv.kind === 'groupTransform' && pv.transformContours) {
+      const transformed: Contour[] = []
+      for (const item of pv.transformContours) {
+        const original = findContourById(item.contourId)
+        if (!original) continue
+        const contour = {
+          ...original,
+          ...item.geometry.patch,
+          points: item.geometry.points,
+        }
+        transformed.push(contour)
+        drawContour(ctx, contour, cam, C.select, true)
+      }
+      const bounds = geometrySelectionBounds(transformed)
+      if (bounds) drawSelectionFrame(ctx, bounds, cam)
+      return
+    }
+
     // 悬停预览: 顶点/圆心吸附高亮 (选择/智能尺寸/绘图工具落点前) + 边微高亮
     if (pv.kind === 'hover') {
       const c = pv.hoverContourId ? findContourById(pv.hoverContourId) : undefined
@@ -1078,7 +1222,12 @@ export function SketchViewport2D({
             drawPath(ctx, c.points, c.closed, c.arcs, cam, 'rgba(62,198,176,0.6)', true)
           }
         } else {
-          drawEdgeHighlight(ctx, c, pv.hoverEdgeIdx, cam, 'rgba(62,198,176,0.5)')
+          const hoveredEdges = activeTool === 'smartdim'
+            ? resolveCollinearEdgeChain(c, pv.hoverEdgeIdx)?.edgeIndices ?? [pv.hoverEdgeIdx]
+            : [pv.hoverEdgeIdx]
+          for (const edgeIdx of hoveredEdges) {
+            drawEdgeHighlight(ctx, c, edgeIdx, cam, 'rgba(62,198,176,0.5)')
+          }
         }
       }
       if (pv.snapPos) drawSnap(ctx, pv.snapPos, pv.snapLabel ?? '', cam)
@@ -1153,7 +1302,21 @@ export function SketchViewport2D({
     if (pv.kind === 'eraserHover') {
       const c = pv.hoverContourId ? findContourById(pv.hoverContourId) : undefined
       if (c && pv.hoverEdgeIdx !== undefined) {
-        drawEdgeHighlight(ctx, c, pv.hoverEdgeIdx, cam, C.erase, pv.hoverT1 ?? 0, pv.hoverT2 ?? 1)
+        if (pv.hoverWhole) {
+          if (c.shape === 'circle' && c.center && c.radius) {
+            ctx.strokeStyle = C.erase
+            ctx.lineWidth = 3
+            ctx.beginPath()
+            ctx.arc(sx(c.center, cam), sy(c.center, cam), c.radius * cam.scale, 0, Math.PI * 2)
+            ctx.stroke()
+          } else if ((c.slotParams?.width ?? c.slotWidth) !== undefined && c.points.length >= 2) {
+            drawSlotShape(ctx, c.points[0], c.points[1], c.slotParams?.width ?? c.slotWidth!, cam, C.erase, true)
+          } else {
+            drawPath(ctx, c.points, c.closed, c.arcs, cam, C.erase, true)
+          }
+        } else {
+          drawEdgeHighlight(ctx, c, pv.hoverEdgeIdx, cam, C.erase, pv.hoverT1 ?? 0, pv.hoverT2 ?? 1)
+        }
       }
       return
     }
@@ -1163,7 +1326,22 @@ export function SketchViewport2D({
       const hits = pv.sweepHits ?? []
       for (const h of hits) {
         const c = findContourById(h.contourId)
-        if (c) drawEdgeHighlight(ctx, c, h.edgeIdx, cam)
+        if (!c) continue
+        if (h.whole) {
+          if (c.shape === 'circle' && c.center && c.radius) {
+            ctx.strokeStyle = C.erase
+            ctx.lineWidth = 3
+            ctx.beginPath()
+            ctx.arc(sx(c.center, cam), sy(c.center, cam), c.radius * cam.scale, 0, Math.PI * 2)
+            ctx.stroke()
+          } else if ((c.slotParams?.width ?? c.slotWidth) !== undefined && c.points.length >= 2) {
+            drawSlotShape(ctx, c.points[0], c.points[1], c.slotParams?.width ?? c.slotWidth!, cam, C.erase, true)
+          } else {
+            drawPath(ctx, c.points, c.closed, c.arcs, cam, C.erase, true)
+          }
+        } else {
+          drawEdgeHighlight(ctx, c, h.edgeIdx, cam, C.erase, h.t1 ?? 0, h.t2 ?? 1)
+        }
       }
       // 自由曲线轨迹 (按真实鼠标路径)
       if (pv.points.length > 1) {
@@ -1438,19 +1616,18 @@ export function SketchViewport2D({
     if (!splitResult || splitResult.panels.length === 0 || pixelToMM <= 0) return null
     const mm = { x: world.x * pixelToMM, y: -world.y * pixelToMM }
     const toleranceMM = splitCfg.jointDiameter / 2 + (7 * pixelToMM) / Math.max(camera.scale, 0.1)
-    let best: { panelId: string; panelX: number; panelY: number; holeX: number; holeY: number } | null = null
+    let best: { panelId: string; panelX: number; panelY: number; holeX: number; holeY: number; panel: SplitPanel } | null = null
     let bestD = toleranceMM
-    for (const panel of splitResult.panels) {
-      for (const hole of panel.edge_holes) {
+    for (const { panel, hole, mode } of selectableHoles) {
         const onBoundary = Math.abs(hole.x - panel.x) < 0.5 || Math.abs(hole.x - (panel.x + panel.w)) < 0.5 ||
           Math.abs(hole.y - panel.y) < 0.5 || Math.abs(hole.y - (panel.y + panel.h)) < 0.5
-        if (onBoundary) continue
-        const d = Math.hypot(mm.x - hole.x, mm.y - hole.y)
+        if (onBoundary && !holeEditMode) continue
+        const half = mode === 'slot' ? Math.max(0, (splitCfg.slotLength - splitCfg.slotWidth) / 2) : 0
+        const d = Math.hypot(mm.x - hole.x, Math.max(0, Math.abs(mm.y - hole.y) - half))
         if (d <= bestD) {
           bestD = d
-          best = { panelId: panel.id, panelX: panel.x, panelY: panel.y, holeX: hole.x, holeY: hole.y }
+          best = { panelId: panel.id, panelX: panel.x, panelY: panel.y, holeX: hole.x, holeY: hole.y, panel }
         }
-      }
     }
     return best
   }
@@ -1465,6 +1642,7 @@ export function SketchViewport2D({
         return
       }
       pendingEdgeHoleRef.current = null
+      if (holeEditMode) { useAppStore.getState().selectHole(null); return }
       onCanvasMouseDown?.(world)
       const onUp = () => {
         onCanvasMouseUp?.()
@@ -1509,6 +1687,7 @@ export function SketchViewport2D({
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+      {hint && <div className="canvas-operation-tip" role="status" aria-live="polite"><span>{hint}</span></div>}
       <canvas
         ref={canvasRef}
         style={{ width: '100%', height: '100%', cursor: hoverConstraintId || hoverEdgeHole ? 'pointer' : 'crosshair', background: C.bg }}
@@ -1516,6 +1695,7 @@ export function SketchViewport2D({
         onMouseMove={e => {
           const world = toWorld(e)
           setHoverEdgeHole(!!findEdgeHoleAt(world))
+          if (holeEditMode) return
           onCanvasMove?.(world)
         }}
         onMouseLeave={() => setHoverEdgeHole(false)}
@@ -1524,16 +1704,24 @@ export function SketchViewport2D({
           pendingEdgeHoleRef.current = null
           if (target) {
             if (e.detail === 1) {
-              toggleEdgeHole(target.panelId, target.panelX, target.panelY, target.holeX, target.holeY)
+              if (holeEditMode) useAppStore.getState().selectHole({ panel: target.panel, x: target.holeX, y: target.holeY })
+              else {
+                const closed = target.panel.closed_holes?.find(hole => Math.abs(hole.x - target.holeX) < .01 && Math.abs(hole.y - target.holeY) < .01)
+                if (closed) {
+                  const state = useAppStore.getState()
+                  state.setHoleEditMode(true)
+                  state.selectHole({ panel: target.panel, x: target.holeX, y: target.holeY })
+                } else toggleEdgeHole(target.panelId, target.panelX, target.panelY, target.holeX, target.holeY)
+              }
               playHoleTapSound()
             }
             return
           }
-          onCanvasClick?.(toWorld(e))
+          if (!holeEditMode) onCanvasClick?.(toWorld(e))
         }}
         onWheel={handleWheel}
         onDoubleClick={e => {
-          if (!findEdgeHoleAt(toWorld(e))) onCanvasDoubleClick?.(toWorld(e))
+          if (!holeEditMode && !findEdgeHoleAt(toWorld(e))) onCanvasDoubleClick?.(toWorld(e))
         }}
       />
     </div>

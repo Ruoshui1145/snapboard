@@ -1,0 +1,37 @@
+{
+  "id": "wall-micro-pin-drywall",
+  "schemaVersion": 1,
+  "label": "石膏板插针/爪式底座",
+  "kind": "surface-pad",
+  "summary": "以 3M CLAW 等明确产品为参考的压入式硬化钢爪工艺；宿主严格限定为产品声明允许的石膏板。",
+  "status": "planned",
+  "family": "wall",
+  "connectorKind": "surface-plane",
+  "compatibilityKey": "surface-pad:micro-pin:drywall:product-specific:v1",
+  "systemKey": "wall-micro-pin-drywall",
+  "standard": "Manufacturer-specific drywall hanger system",
+  "nominalGeometryMm": {"defaultFootprintClearance": 5},
+  "supportedMatingKeys": ["surface-pad:micro-pin:drywall-product-verified"],
+  "assemblyAxis": "host-normal",
+  "occupancy": {"kind": "surface-footprint", "clearanceMm": 5, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-drywall-region", "action": "select-target", "label": "选择已确认的石膏板区域", "automaticByDefault": false, "stopCondition": "墙材、板厚和背后禁区信息已记录", "manualFallback": "拒绝未知墙材自动适配"},
+    {"id": "align-pin-base", "action": "align", "label": "底座与墙面贴合并按产品方向定位", "automaticByDefault": true, "stopCondition": "接触面平行且插针方向进入墙体", "manualFallback": "翻面或旋转微调"},
+    {"id": "check-hidden-zone", "action": "verify", "label": "检查管线、龙骨及背后禁区", "automaticByDefault": false, "stopCondition": "用户确认插入路径无已知障碍或危险", "manualFallback": "标记为不可安装"},
+    {"id": "insert-product-claws", "action": "insert", "label": "按具体产品说明将钢爪压入石膏板", "automaticByDefault": false, "stopCondition": "用户确认底座贴平且产品锁定", "manualFallback": "保存为仅规划、未固定"},
+    {"id": "verify-micro-pin", "action": "verify", "label": "检查 footprint、插入方向和产品状态", "automaticByDefault": true, "stopCondition": "产品、墙材和几何元数据完整", "manualFallback": "要求现场复核"}
+  ],
+  "validation": {
+    "geometryChecks": ["只允许具体产品声明支持的石膏板", "插针/钢爪方向与墙面法线一致", "底座 footprint 不越界", "插入路径不穿过已标注管线或禁区"],
+    "requiredMetadata": ["manufacturer", "productPartNumber", "drywallType", "drywallThickness", "clawGeometry", "insertionDirections", "footprint", "hiddenZoneCheck", "loadCase"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["“无痕钉”不是统一几何标准，必须绑定具体产品和墙材。", "所引 3M CLAW 产品明确标注 For Use on Drywall Only，不能自动扩展到混凝土、砖、木材或未知墙面。", "厂商标称载荷不可迁移到用户自制插针、不同安装方向或不同墙板。"]
+  },
+  "sources": [
+    {"label": "3M CLAW Heavyweight Hanging Solution", "url": "https://www.3m.com/3M/en_US/home-improvement-us/3m-claw/", "supports": ["硬化钢爪压入式安装概念", "不同产品载荷档位", "产品专用安装方式"]},
+    {"label": "3M CLAW 65 lb Drywall Picture Hanger product page", "url": "https://www.3m.com/3M/en_US/p/d/b5005529023/", "supports": ["仅用于 drywall 的法律声明", "无需墙锚或龙骨的具体产品说明", "重复使用仍需检查损伤"]}
+  ]
+}

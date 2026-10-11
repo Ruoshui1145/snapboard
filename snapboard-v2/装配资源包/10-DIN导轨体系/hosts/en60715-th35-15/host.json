@@ -1,0 +1,45 @@
+{
+  "id": "en60715-th35-15",
+  "schemaVersion": 1,
+  "label": "IEC/EN 60715 家族 TH35-15 深型导轨",
+  "kind": "rail-clip",
+  "summary": "35 mm 宽、15 mm 高的深型帽式导轨；独立校验背部净空、卡扣行程和具体产品标准声明。",
+  "status": "experimental",
+  "family": "din-rail",
+  "connectorKind": "rail-profile",
+  "compatibilityKey": "en60715:th35-15:profile:v1",
+  "systemKey": "en60715-th35",
+  "standard": "IEC/EN 60715 35 mm family; some supplier SKUs state similar-to rather than according-to",
+  "nominalGeometryMm": {
+    "railWidth": 35,
+    "railDepth": 15,
+    "referenceThickness": 1
+  },
+  "supportedMatingKeys": ["en60715:clip:th35-15:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": {
+    "kind": "axis-interval",
+    "clearanceMm": 0.5,
+    "collisionPolicy": "reject-overlap"
+  },
+  "recipe": [
+    {"id": "select-rail-segment", "action": "select-target", "label": "选择深型导轨区段", "automaticByDefault": false, "stopCondition": "区段长度和背部净空满足要求", "manualFallback": "沿导轨轴移动"},
+    {"id": "align-upper-hook", "action": "align", "label": "上钩对齐导轨上沿", "automaticByDefault": true, "stopCondition": "轴向平行且卡扣方向有效", "manualFallback": "翻转或旋转微调"},
+    {"id": "seat-upper-hook", "action": "insert", "label": "挂入上沿", "automaticByDefault": true, "stopCondition": "上钩接触代理闭合", "manualFallback": "法向微调"},
+    {"id": "snap-lower-latch", "action": "rotate-until-snap", "label": "旋转至下卡扣锁止", "automaticByDefault": true, "stopCondition": "下卡扣越过下沿并锁止", "manualFallback": "手动控制旋转角"},
+    {"id": "verify-rail-interval", "action": "verify", "label": "检查截面与轴向占用", "automaticByDefault": true, "stopCondition": "TH35-15 精确键匹配且区间无冲突", "manualFallback": "拒绝放置或移动到空闲区段"}
+  ],
+  "validation": {
+    "geometryChecks": ["不得从 TH35-7.5 自动继承兼容性", "验证 15 mm 深度净空", "验证具体料号的截面公差和标准声明", "验证轴向区间占用"],
+    "requiredMetadata": ["vendorPartNumber", "profileDeclaration", "upperHook", "lowerLatch", "railAxis", "occupiedLength"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["Phoenix Contact 所引产品页将具体 NS 35/15 料号标为 similar to EN 60715；资源包必须保留料号级声明。", "只有连接器明确声明 TH35-15 兼容时才允许自动锁止。"]
+  },
+  "sources": [
+    {"label": "Phoenix Contact NS 35/15 PERF 250MM", "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-3515-perf-250mm-1207656", "supports": ["35 mm 宽度", "15 mm 深度", "具体料号 similar to EN 60715 的边界"]},
+    {"label": "Schneider Electric TeSys island DIN rail requirements", "url": "https://productinfo.se.com/tesys_island_guides/viewer?docidentity=DINRail-CA57BC61&extension=xml&lang=en&manualidentity=DocumentTypeProductCategoryRangeNam-7CC5D581", "supports": ["设备可使用 7.5 或 15 mm 高 IEC 60715 导轨", "截面公差示例", "材质与接地要求依应用而异"]}
+  ]
+}

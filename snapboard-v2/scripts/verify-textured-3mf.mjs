@@ -19,12 +19,12 @@ assert.equal(settings.layer_height, '0.28')
 assert.equal(settings.wall_loops, '2')
 assert.equal(settings.top_shell_layers, '3')
 assert.equal(settings.top_shell_thickness, '0.6')
-assert.notEqual(settings.sparse_infill_density, '100%', '结构基材不能继承 Lumina 的 100% 全局填充')
+assert.notEqual(settings.sparse_infill_density, '100%', '结构基材不能继承 SnapColor 的 100% 全局填充')
 assert.equal(settings.curr_bed_type, 'Textured PEI Plate')
 
 const modelSettings = text('Metadata/model_settings.config')
 assert.match(modelSettings, /key="extruder" value="2"/)
-assert.match(modelSettings, /key="sparse_infill_density" value="100%"/, '表层子零件必须保留 Lumina 实心覆盖')
+assert.match(modelSettings, /key="sparse_infill_density" value="100%"/, '表层子零件必须保留 SnapColor 实心覆盖')
 assert.match(modelSettings, /key="layer_height" value="0\.28"/, '结构基材必须使用独立 0.28mm 层高')
 assert.ok((modelSettings.match(/<plate>/g) ?? []).length >= 1)
 assert.match(modelSettings, /plater_name" value="SnapBoard 板件/)
@@ -36,7 +36,8 @@ assert.ok(allVertices.every(match => Number(match[1]) >= -1e-6 && Number(match[2
 const objects = [...objectModel.matchAll(/<object id="(\d+)" type="model" name="([^"]+)">([\s\S]*?)<\/object>/g)]
 const structural = objects.filter(match => match[2].includes('结构基材'))
 const backing = objects.filter(match => match[2].includes('顶部模具承托层'))
-const textures = objects.filter(match => match[2].includes('Lumina'))
+const textures = objects.filter(match => match[2].includes('SnapColor'))
+const edgeSeals = objects.filter(match => match[2].includes('基材单线封边墙'))
 const veneers = objects.filter(match => match[2].includes('质感贴面'))
 assert.ok(structural.length >= 1)
 assert.ok((backing.length >= 1 && textures.length >= 2) || veneers.length >= 1)
@@ -61,6 +62,11 @@ for (const object of textures) {
   assert.ok(range.min >= -1e-6)
   assert.ok(range.max <= 0.4 + 1e-6)
 }
+for (const object of edgeSeals) {
+  const range = zRange(object[3])
+  assert.ok(range.min >= -1e-6)
+  assert.ok(range.max <= 0.4 + 1e-6, '装饰面朝下时基材封边只能占据 SnapColor 光学层高度')
+}
 for (const object of veneers) {
   const range = zRange(object[3])
   assert.ok(Math.abs(range.min) < 1e-6)
@@ -69,8 +75,9 @@ for (const object of veneers) {
 const mainModel = text('3D/3dmodel.model')
 assert.match(mainModel, /<components>[\s\S]*<component/, '结构基材与表层必须绑定在同一个父对象中整体移动')
 if (textures.length) {
-  assert.equal(settings.initial_layer_print_height, '0.08', 'Lumina 装饰面朝下时首层必须保持 0.08mm')
-  assert.match(modelSettings, /key="layer_height" value="0\.08"/, 'Lumina 光学层必须保持 0.08mm 层高')
+  assert.ok(edgeSeals.length >= 1, 'SnapColor 彩色层默认必须包含基材单线封边墙')
+  assert.equal(settings.initial_layer_print_height, '0.08', 'SnapColor 装饰面朝下时首层必须保持 0.08mm')
+  assert.match(modelSettings, /key="layer_height" value="0\.08"/, 'SnapColor 光学层必须保持 0.08mm 层高')
   assert.ok(Math.abs(Math.min(...textures.map(object => zRange(object[3]).min))) < 1e-6)
   assert.equal(settings.filament_colour.length, 5, '结构基材 + RYBW 应为 5 卷基础耗材，而不是每个观看色一卷')
 }
@@ -78,4 +85,4 @@ if (veneers.length) {
   assert.equal(settings.initial_layer_print_height, '0.25', '单材质贴面/基材首层应使用约 0.25mm')
   assert.match(modelSettings, /质感贴面[\s\S]*?key="layer_height" value="0\.28"/, '单材质贴面应使用高速 0.28mm 层高')
 }
-console.log(`Composite 3MF verification passed: ${structural.length} bases + ${backing.length} backings + ${textures.length} optical parts + ${veneers.length} veneer parts`)
+console.log(`Composite 3MF verification passed: ${structural.length} bases + ${backing.length} backings + ${edgeSeals.length} edge seals + ${textures.length} optical parts + ${veneers.length} veneer parts`)

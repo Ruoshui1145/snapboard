@@ -1,0 +1,39 @@
+{
+  "id": "en60715-g32",
+  "schemaVersion": 1,
+  "label": "G32 非对称 G 型导轨",
+  "kind": "rail-clip",
+  "summary": "32×15 mm 名义 G 型导轨；截面和装配捕获方式与对称 TH35 不同。",
+  "status": "planned",
+  "family": "din-rail",
+  "connectorKind": "rail-profile",
+  "compatibilityKey": "en60715:g32:profile:v1",
+  "systemKey": "en60715-g-profile",
+  "standard": "G-profile rail family; verify the exact supplier declaration and drawing",
+  "nominalGeometryMm": {
+    "railWidth": 32,
+    "railDepth": 15,
+    "referenceThickness": 1.5
+  },
+  "supportedMatingKeys": ["en60715:clip:g32:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": {"kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-g-rail-segment", "action": "select-target", "label": "选择 G 型导轨区段", "automaticByDefault": false, "stopCondition": "区段覆盖零件占用长度", "manualFallback": "沿轴向拖动"},
+    {"id": "align-g-profile", "action": "align", "label": "按非对称截面定向连接器", "automaticByDefault": true, "stopCondition": "G 型截面方向与连接器声明一致", "manualFallback": "翻转连接器方向"},
+    {"id": "insert-g-profile", "action": "insert", "label": "按产品工艺挂入或推入 G 型导轨", "automaticByDefault": false, "stopCondition": "连接器捕获面与导轨截面闭合", "manualFallback": "使用产品专用装配动作"},
+    {"id": "verify-g-profile", "action": "verify", "label": "检查截面签名和区间占用", "automaticByDefault": true, "stopCondition": "G32 精确键匹配且区间无冲突", "manualFallback": "拒绝以 TH35 连接器代替"}
+  ],
+  "validation": {
+    "geometryChecks": ["检查 32×15 mm 名义尺寸", "检查非对称 G 截面方向", "检查具体连接器捕获面", "检查轴向占用"],
+    "requiredMetadata": ["vendorPartNumber", "profileDrawing", "profileOrientation", "occupiedLength"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["G32 与 TH35 的宽度、对称性和卡扣结构不同，严禁自动互认。", "第一阶段仅作为研究/导入宿主，不生成通用卡扣。"]
+  },
+  "sources": [
+    {"label": "Weidmüller DIN rails and profile rails catalogue", "url": "https://assets.dam.weidmueller.com/assets/api/eb7c830c-bf83-4f0d-ac3c-53c328a85fa9/Original/MB_KC_DIN-RAILS_AND_ELECTRICAL_BUSBARS_EN_Web.pdf", "supports": ["TS 32 G 型导轨分类", "32×15 mm 截面", "1.5 mm 产品厚度示例", "具体料号与材质"]}
+  ]
+}

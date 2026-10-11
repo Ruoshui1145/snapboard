@@ -1,0 +1,2430 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-11T16:20:39.504Z",
+  "packages": [
+    {
+      "schemaVersion": 1,
+      "kind": "assembly-host-pack",
+      "id": "snapboard.hosts.aluminium-profile-systems",
+      "name": "铝型材安装体系（厂商隔离）",
+      "version": "1.0.0",
+      "author": "SnapBoard Team",
+      "license": "Project-Internal",
+      "description": "item、Bosch Rexroth 与 MISUMI 铝型材宿主规格。相同名义槽宽不代表跨厂商可互换。",
+      "hostIds": [
+        "item-line5",
+        "item-line6",
+        "item-line8",
+        "item-line10",
+        "bosch-rexroth-slot6",
+        "bosch-rexroth-slot8",
+        "bosch-rexroth-slot10",
+        "misumi-hfs5",
+        "misumi-hfs6",
+        "misumi-hfs8"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "assembly-host-pack",
+      "id": "snapboard.hosts.wall-mount",
+      "name": "墙面安装工艺宿主",
+      "version": "1.0.0",
+      "author": "SnapBoard Team",
+      "license": "Project-Internal",
+      "description": "把胶粘、Dual Lock 可重复扣合、石膏板微型插针和螺钉锚固分为独立工艺宿主；几何适配不构成承重承诺。",
+      "hostIds": [
+        "wall-adhesive",
+        "wall-dual-lock",
+        "wall-micro-pin-drywall",
+        "wall-screw-anchor"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "assembly-host-pack",
+      "id": "snapboard.hosts.din-rail",
+      "name": "DIN 与 IEC 安装导轨宿主",
+      "version": "1.0.0",
+      "author": "SnapBoard Team",
+      "license": "Project-Internal",
+      "description": "按截面隔离的 TH35-7.5、TH35-15、G32 与 15 mm 微型导轨宿主；同属 EN/IEC 60715 家族不代表连接器可互换。",
+      "hostIds": [
+        "en60715-th35-7.5",
+        "en60715-th35-15",
+        "en60715-g32",
+        "en60715-th15"
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "kind": "assembly-host-pack",
+      "id": "snapboard.hosts.pegboard",
+      "name": "SnapBoard 洞洞板宿主",
+      "version": "1.0.0",
+      "author": "SnapBoard Team",
+      "license": "Project-Internal",
+      "description": "SnapBoard 5×15 长圆孔与可选圆孔的内置宿主规格。",
+      "hostIds": [
+        "snapboard-pegboard-v1"
+      ]
+    }
+  ],
+  "hosts": [
+    {
+      "id": "wall-dual-lock",
+      "schemaVersion": 1,
+      "label": "墙面 Dual Lock 可重复扣合底座",
+      "kind": "surface-pad",
+      "summary": "两片蘑菇头扣件分别与墙面和底座粘接，再沿法向压合；同时记录粘接 footprint 与扣合 footprint。",
+      "status": "experimental",
+      "family": "wall",
+      "connectorKind": "surface-plane",
+      "compatibilityKey": "surface-pad:dual-lock:qualified-pair:v1",
+      "systemKey": "3m-dual-lock-or-qualified-equivalent",
+      "standard": "Manufacturer system; exact stem type and adhesive backing required",
+      "nominalGeometryMm": {
+        "defaultFootprintClearance": 2
+      },
+      "supportedMatingKeys": [
+        "surface-pad:dual-lock:pair-and-substrate-verified"
+      ],
+      "assemblyAxis": "host-normal",
+      "occupancy": {
+        "kind": "surface-footprint",
+        "clearanceMm": 2,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-wall-region",
+          "action": "select-target",
+          "label": "选择两片扣件 footprint 对应的墙面区域",
+          "automaticByDefault": false,
+          "stopCondition": "全部 footprint 位于有效区域",
+          "manualFallback": "移动、旋转或缩减方案"
+        },
+        {
+          "id": "verify-dual-lock-pair",
+          "action": "verify",
+          "label": "确认扣件配对、背胶和墙材",
+          "automaticByDefault": false,
+          "stopCondition": "具体扣件料号、配对方式和背胶适用基材均已记录",
+          "manualFallback": "保持待工程确认"
+        },
+        {
+          "id": "align-mating-pads",
+          "action": "align",
+          "label": "两侧扣合面平行且 footprint 重叠",
+          "automaticByDefault": true,
+          "stopCondition": "法向相对且有效扣合区域满足方案",
+          "manualFallback": "平面内移动和旋转微调"
+        },
+        {
+          "id": "engage-dual-lock",
+          "action": "press",
+          "label": "沿法向压合扣件",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认按具体产品要求完成扣合",
+          "manualFallback": "保存为已对齐、未扣合"
+        },
+        {
+          "id": "verify-dual-lock-footprint",
+          "action": "verify",
+          "label": "检查占用、边界、拆装路径与工艺状态",
+          "automaticByDefault": true,
+          "stopCondition": "footprint 无冲突且维护拆卸方向可达",
+          "manualFallback": "要求人工复核"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "墙侧与零件侧扣件区域一一对应",
+          "两侧扣合面平行",
+          "记录扣合后的法向间距",
+          "拆卸方向与维护空间可达",
+          "墙侧背胶 footprint 不进入禁放区"
+        ],
+        "requiredMetadata": [
+          "wallSidePartNumber",
+          "partSidePartNumber",
+          "stemTypes",
+          "adhesiveBackings",
+          "wallMaterial",
+          "footprints",
+          "engagedThickness",
+          "serviceEnvironment",
+          "loadCase"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "Dual Lock 不是单片胶带：必须分别保存墙侧、零件侧和配对关系。",
+          "扣件面积建议、闭合强度与背胶性能依具体产品、基材、环境和安装过程变化。",
+          "几何扣合成功不构成承重、寿命或可重复开合次数承诺。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "3M Dual Lock Reclosable Fasteners resources",
+          "url": "https://www.3m.com/3M/en_US/dual-lock-reclosable-fasteners-us/resources/",
+          "supports": [
+            "官方设计资料入口",
+            "需要按应用选择具体扣件"
+          ]
+        },
+        {
+          "label": "3M Dual Lock Roll Goods Design Criteria",
+          "url": "https://multimedia.3m.com/mws/media/433941O/dual-lock-reclosable-fasteners-roll-goods-design-criteria.pdf?fn=70070940096.pdf",
+          "supports": [
+            "性能取决于扣件、被粘材料、环境和安装方法",
+            "终端用户必须验证具体用途",
+            "面积仅能按具体设计准则评估"
+          ]
+        },
+        {
+          "label": "3M Dual Lock product overview",
+          "url": "https://www.3m.com/3M/en_US/dual-lock-reclosable-fasteners-us/",
+          "supports": [
+            "可重复拆装用途",
+            "不同强度/类型和应用边界"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.wall-mount",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "wall-adhesive",
+      "schemaVersion": 1,
+      "label": "墙面胶粘底座",
+      "kind": "surface-pad",
+      "summary": "以闭合粘贴 footprint、墙面材质和表面处理记录胶带底座；只校验几何与工艺元数据。",
+      "status": "experimental",
+      "family": "wall",
+      "connectorKind": "surface-plane",
+      "compatibilityKey": "surface-pad:adhesive:qualified-product:v1",
+      "systemKey": "wall-adhesive",
+      "standard": null,
+      "nominalGeometryMm": {
+        "defaultFootprintClearance": 2
+      },
+      "supportedMatingKeys": [
+        "surface-pad:adhesive:product-and-substrate-verified"
+      ],
+      "assemblyAxis": "host-normal",
+      "occupancy": {
+        "kind": "surface-footprint",
+        "clearanceMm": 2,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-wall-region",
+          "action": "select-target",
+          "label": "选择墙面有效区域与朝向",
+          "automaticByDefault": false,
+          "stopCondition": "粘贴 footprint 完整落在允许区域",
+          "manualFallback": "移动或旋转底座"
+        },
+        {
+          "id": "qualify-substrate",
+          "action": "verify",
+          "label": "确认具体胶带、墙材、涂层与表面处理",
+          "automaticByDefault": false,
+          "stopCondition": "记录产品料号和厂商允许的基材/工艺",
+          "manualFallback": "保持“待工程确认”状态"
+        },
+        {
+          "id": "align-backing-plane",
+          "action": "align",
+          "label": "底座背面与墙面平行",
+          "automaticByDefault": true,
+          "stopCondition": "平面法向反向共线",
+          "manualFallback": "翻面和法向偏置微调"
+        },
+        {
+          "id": "seat-backing-plane",
+          "action": "translate-until-contact",
+          "label": "沿墙面法向移动至贴面",
+          "automaticByDefault": true,
+          "stopCondition": "背面碰撞代理首次接触",
+          "manualFallback": "手动覆盖贴面距离"
+        },
+        {
+          "id": "apply-product-process",
+          "action": "press",
+          "label": "按具体产品说明清洁、贴合并施压",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认已按料号对应说明完成工艺",
+          "manualFallback": "保存为仅规划、未固定"
+        },
+        {
+          "id": "verify-adhesive-footprint",
+          "action": "verify",
+          "label": "检查 footprint、禁放区和未决风险",
+          "automaticByDefault": true,
+          "stopCondition": "二维区域无冲突且必填工艺元数据完整",
+          "manualFallback": "要求人工复核"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "接触面闭合且朝向墙面",
+          "footprint 完整落在允许区域",
+          "不进入墙边、接缝、管线等禁放区",
+          "底座和墙面无不可接受穿插"
+        ],
+        "requiredMetadata": [
+          "productFamily",
+          "productPartNumber",
+          "footprint",
+          "wallMaterial",
+          "coating",
+          "surfacePreparation",
+          "applicationTemperature",
+          "pressureProcess",
+          "loadCase"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得把某一 3M VHB、Command 或其他胶带产品的适用墙材与承载数据推广到整个 adhesive 类别。",
+          "软件输出“几何可贴合/元数据齐全”，不输出通用承重公斤数。",
+          "静载、动载、剪切、剥离、温度和老化需要按具体产品与应用验证。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "3M VHB Tape Design Guide",
+          "url": "https://multimedia.3m.com/mws/media/1400379O/3m-vhb-tape-design-guide.pdf?fn=3M-VHB-Tape-Design-Guide_R4.pdf",
+          "supports": [
+            "基材、厚度、应力、温度和表面处理均影响选型",
+            "需要测试真实材料",
+            "施压是工艺的一部分"
+          ]
+        },
+        {
+          "label": "3M Applying VHB Tapes",
+          "url": "https://www.3m.com/3M/en_US/vhb-tapes-us/resources/applying-3m-vhb-tapes/",
+          "supports": [
+            "清洁、底涂/打磨与最终施压流程",
+            "应用过程必须按具体系统执行"
+          ]
+        },
+        {
+          "label": "3M VHB Surface Preparation Technical Bulletin",
+          "url": "https://multimedia.3m.com/mws/media/66019O/vhb-tm-tape-surface-preparation-technical-bulletin.pdf",
+          "supports": [
+            "材料或涂层变化后应重新评价兼容性",
+            "表面处理要求"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.wall-mount",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "wall-screw-anchor",
+      "schemaVersion": 1,
+      "label": "墙面螺钉/锚栓底座",
+      "kind": "surface-pad",
+      "summary": "以离散孔位、底座贴面和具体墙材锚固系统描述螺钉安装；不提供脱离产品数据的通用承载结论。",
+      "status": "experimental",
+      "family": "wall",
+      "connectorKind": "surface-plane",
+      "compatibilityKey": "surface-pad:screw-anchor:qualified-system:v1",
+      "systemKey": "wall-screw-anchor",
+      "standard": "Product- and substrate-specific anchor system",
+      "nominalGeometryMm": {
+        "defaultEdgeClearance": 10
+      },
+      "supportedMatingKeys": [
+        "surface-pad:screw-anchor:product-and-substrate-verified"
+      ],
+      "assemblyAxis": "host-normal",
+      "occupancy": {
+        "kind": "surface-footprint",
+        "clearanceMm": 5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-anchor-points",
+          "action": "select-target",
+          "label": "选择底座 footprint 与全部锚固点",
+          "automaticByDefault": false,
+          "stopCondition": "孔位、边距、间距与背后禁区已定义",
+          "manualFallback": "移动或旋转底座"
+        },
+        {
+          "id": "qualify-base-material",
+          "action": "verify",
+          "label": "确认基层材料和具体锚固产品",
+          "automaticByDefault": false,
+          "stopCondition": "墙材、锚栓/膨胀管、螺钉和审批数据对应",
+          "manualFallback": "保持待工程确认"
+        },
+        {
+          "id": "align-base-plate",
+          "action": "align",
+          "label": "底座贴面并对准孔位",
+          "automaticByDefault": true,
+          "stopCondition": "底座面平行且孔轴与墙面法线一致",
+          "manualFallback": "平移、旋转和法向微调"
+        },
+        {
+          "id": "drill-or-prepare-holes",
+          "action": "insert",
+          "label": "按具体锚固系统准备孔并安装锚件",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认孔径、孔深、清孔和锚件安装符合说明",
+          "manualFallback": "保存为仅规划"
+        },
+        {
+          "id": "clamp-base",
+          "action": "clamp",
+          "label": "使用匹配螺钉紧固底座",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认达到产品规定安装状态",
+          "manualFallback": "保留未锁紧状态"
+        },
+        {
+          "id": "verify-screw-anchor",
+          "action": "verify",
+          "label": "检查孔位、边距、间距、深度和元数据",
+          "automaticByDefault": true,
+          "stopCondition": "几何无冲突且产品/基层数据完整",
+          "manualFallback": "要求结构或现场复核"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "孔位轴线和底座面有效",
+          "锚固点不进入墙边、接缝、管线和禁区",
+          "边距与锚栓间距按具体审批数据校验",
+          "钻孔深度和锚固深度不超过可用墙体",
+          "螺钉与锚件规格匹配"
+        ],
+        "requiredMetadata": [
+          "baseMaterial",
+          "baseMaterialThickness",
+          "anchorManufacturer",
+          "anchorPartNumber",
+          "screwPartNumber",
+          "holeDiameter",
+          "holeDepth",
+          "embedmentDepth",
+          "anchorPoints",
+          "edgeDistances",
+          "spacing",
+          "approvalDocument",
+          "loadCase"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "同一膨胀管在混凝土、实心砖、空心砖、加气混凝土和石膏板中的工作机制及数据不同。",
+          "软件必须按具体料号和审批文件校验，不能依据直径相同自动替换锚件。",
+          "当前资源包提供工艺与数据槽位，不提供结构安全签字或通用承重保证。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "fischer DuoPower official product catalogue",
+          "url": "https://www.fischer-international.com/en/products/standard-fixings/plastic-fixings/duopower",
+          "supports": [
+            "不同基层材料使用展开、折叠或打结等不同机制",
+            "孔径、孔深、板厚、锚长和螺钉范围需按具体变体记录",
+            "承载数据随基层和料号变化"
+          ]
+        },
+        {
+          "label": "Hilti Anchor Fastening Technology Manual 2023",
+          "url": "https://www.hilti.group/content/dam/documents/pdf/e4/engineering/manuals/ANCHOR-FASTENING-TECHNOLOGY-MANUAL_2023.pdf",
+          "supports": [
+            "锚固设计需要基层、边距、间距、锚深和载荷数据",
+            "机械和化学锚固必须按具体系统设计"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.wall-mount",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "wall-micro-pin-drywall",
+      "schemaVersion": 1,
+      "label": "石膏板插针/爪式底座",
+      "kind": "surface-pad",
+      "summary": "以 3M CLAW 等明确产品为参考的压入式硬化钢爪工艺；宿主严格限定为产品声明允许的石膏板。",
+      "status": "planned",
+      "family": "wall",
+      "connectorKind": "surface-plane",
+      "compatibilityKey": "surface-pad:micro-pin:drywall:product-specific:v1",
+      "systemKey": "wall-micro-pin-drywall",
+      "standard": "Manufacturer-specific drywall hanger system",
+      "nominalGeometryMm": {
+        "defaultFootprintClearance": 5
+      },
+      "supportedMatingKeys": [
+        "surface-pad:micro-pin:drywall-product-verified"
+      ],
+      "assemblyAxis": "host-normal",
+      "occupancy": {
+        "kind": "surface-footprint",
+        "clearanceMm": 5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-drywall-region",
+          "action": "select-target",
+          "label": "选择已确认的石膏板区域",
+          "automaticByDefault": false,
+          "stopCondition": "墙材、板厚和背后禁区信息已记录",
+          "manualFallback": "拒绝未知墙材自动适配"
+        },
+        {
+          "id": "align-pin-base",
+          "action": "align",
+          "label": "底座与墙面贴合并按产品方向定位",
+          "automaticByDefault": true,
+          "stopCondition": "接触面平行且插针方向进入墙体",
+          "manualFallback": "翻面或旋转微调"
+        },
+        {
+          "id": "check-hidden-zone",
+          "action": "verify",
+          "label": "检查管线、龙骨及背后禁区",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认插入路径无已知障碍或危险",
+          "manualFallback": "标记为不可安装"
+        },
+        {
+          "id": "insert-product-claws",
+          "action": "insert",
+          "label": "按具体产品说明将钢爪压入石膏板",
+          "automaticByDefault": false,
+          "stopCondition": "用户确认底座贴平且产品锁定",
+          "manualFallback": "保存为仅规划、未固定"
+        },
+        {
+          "id": "verify-micro-pin",
+          "action": "verify",
+          "label": "检查 footprint、插入方向和产品状态",
+          "automaticByDefault": true,
+          "stopCondition": "产品、墙材和几何元数据完整",
+          "manualFallback": "要求现场复核"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "只允许具体产品声明支持的石膏板",
+          "插针/钢爪方向与墙面法线一致",
+          "底座 footprint 不越界",
+          "插入路径不穿过已标注管线或禁区"
+        ],
+        "requiredMetadata": [
+          "manufacturer",
+          "productPartNumber",
+          "drywallType",
+          "drywallThickness",
+          "clawGeometry",
+          "insertionDirections",
+          "footprint",
+          "hiddenZoneCheck",
+          "loadCase"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "“无痕钉”不是统一几何标准，必须绑定具体产品和墙材。",
+          "所引 3M CLAW 产品明确标注 For Use on Drywall Only，不能自动扩展到混凝土、砖、木材或未知墙面。",
+          "厂商标称载荷不可迁移到用户自制插针、不同安装方向或不同墙板。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "3M CLAW Heavyweight Hanging Solution",
+          "url": "https://www.3m.com/3M/en_US/home-improvement-us/3m-claw/",
+          "supports": [
+            "硬化钢爪压入式安装概念",
+            "不同产品载荷档位",
+            "产品专用安装方式"
+          ]
+        },
+        {
+          "label": "3M CLAW 65 lb Drywall Picture Hanger product page",
+          "url": "https://www.3m.com/3M/en_US/p/d/b5005529023/",
+          "supports": [
+            "仅用于 drywall 的法律声明",
+            "无需墙锚或龙骨的具体产品说明",
+            "重复使用仍需检查损伤"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.wall-mount",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "bosch-rexroth-slot10",
+      "schemaVersion": 1,
+      "label": "Bosch Rexroth Slot 10 铝型材槽",
+      "kind": "t-slot",
+      "summary": "Bosch Rexroth Slot 10 体系的槽螺母装配；横截面证据未补全前只允许料号级人工确认。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "bosch-rexroth:slot10:profile:v1",
+      "systemKey": "bosch-rexroth-slot10",
+      "standard": "Bosch Rexroth Aluminum Framing manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 10
+      },
+      "grooveSignature": {
+        "system": "bosch-rexroth",
+        "series": "Slot 10",
+        "openingWidthMm": 10,
+        "cavityWidthMm": null,
+        "cavityDepthMm": null,
+        "compatibleThreads": [
+          "M4",
+          "M5",
+          "M6",
+          "M8"
+        ],
+        "signatureStatus": "partial-opening-only",
+        "automaticGeometryMatch": false,
+        "missingEvidence": [
+          "cavityWidthMm",
+          "cavityDepthMm",
+          "undercut geometry"
+        ]
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4",
+        "M5",
+        "M6",
+        "M8"
+      ],
+      "supportedMatingKeys": [
+        "bosch-rexroth:slot10:t-nut:verified",
+        "bosch-rexroth:slot10:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 Bosch Slot 10 与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "厂商型材和螺母料号已确认",
+          "manualFallback": "录入料号并附截面/CAD"
+        },
+        {
+          "id": "verify-profile",
+          "action": "verify",
+          "label": "确认完整横截面与螺母包络",
+          "automaticByDefault": false,
+          "stopCondition": "料号或 CAD 验证通过",
+          "manualFallback": "禁止自动匹配，仅允许工程师确认"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "端部送入或旋入滑块",
+          "automaticByDefault": true,
+          "stopCondition": "滑块进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-and-clamp",
+          "action": "clamp",
+          "label": "沿槽定位并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "区间无冲突且贴合完成",
+          "manualFallback": "沿轴拖动后人工夹紧"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "Bosch Slot 10 体系键完全匹配",
+          "完整截面或厂商料号已复核",
+          "旋入包络不碰撞",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode",
+          "crossSectionEvidence"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 item Line 10 或 MISUMI HFS8。",
+          "横截面未知字段为 null 时禁止自动几何匹配。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Bosch Rexroth Aluminum Structural Framing System 9.0",
+          "url": "https://apps.boschrexroth.com/DCUS/2023/08.25.AT_Uploads/R999001283_2020-09_media-1.pdf",
+          "supports": [
+            "Slot 10 厂商系列",
+            "M4/M5/M6/M8 旋入滑块",
+            "弹簧定位与旋入装配"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "bosch-rexroth-slot6",
+      "schemaVersion": 1,
+      "label": "Bosch Rexroth Slot 6 铝型材槽",
+      "kind": "t-slot",
+      "summary": "Bosch Rexroth Slot 6 体系的槽螺母装配；横截面证据未补全前只允许料号级人工确认。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "bosch-rexroth:slot6:profile:v1",
+      "systemKey": "bosch-rexroth-slot6",
+      "standard": "Bosch Rexroth Aluminum Framing manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 6
+      },
+      "grooveSignature": {
+        "system": "bosch-rexroth",
+        "series": "Slot 6",
+        "openingWidthMm": 6,
+        "cavityWidthMm": null,
+        "cavityDepthMm": null,
+        "compatibleThreads": [
+          "M4"
+        ],
+        "signatureStatus": "partial-opening-only",
+        "automaticGeometryMatch": false,
+        "missingEvidence": [
+          "cavityWidthMm",
+          "cavityDepthMm",
+          "undercut geometry"
+        ]
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4"
+      ],
+      "supportedMatingKeys": [
+        "bosch-rexroth:slot6:t-nut:verified",
+        "bosch-rexroth:slot6:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 Bosch Slot 6 与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "厂商型材和螺母料号已确认",
+          "manualFallback": "录入料号并附截面/CAD"
+        },
+        {
+          "id": "verify-profile",
+          "action": "verify",
+          "label": "确认完整横截面与螺母包络",
+          "automaticByDefault": false,
+          "stopCondition": "料号或 CAD 验证通过",
+          "manualFallback": "禁止自动匹配，仅允许工程师确认"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "端部送入或旋入滑块",
+          "automaticByDefault": true,
+          "stopCondition": "滑块进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-and-clamp",
+          "action": "clamp",
+          "label": "沿槽定位并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "区间无冲突且贴合完成",
+          "manualFallback": "沿轴拖动后人工夹紧"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "Bosch Slot 6 体系键完全匹配",
+          "完整截面或厂商料号已复核",
+          "旋入包络不碰撞",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode",
+          "crossSectionEvidence"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 item Line 6 或任何其他 6 mm 名义槽。",
+          "横截面未知字段为 null 时禁止自动几何匹配。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Bosch Rexroth Aluminum Structural Framing System 9.0",
+          "url": "https://apps.boschrexroth.com/DCUS/2023/08.25.AT_Uploads/R999001283_2020-09_media-1.pdf",
+          "supports": [
+            "Slot 6 厂商系列",
+            "M4 旋入滑块",
+            "弹簧定位与旋入装配"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "bosch-rexroth-slot8",
+      "schemaVersion": 1,
+      "label": "Bosch Rexroth Slot 8 铝型材槽",
+      "kind": "t-slot",
+      "summary": "Bosch Rexroth Slot 8 体系的槽螺母装配；横截面证据未补全前只允许料号级人工确认。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "bosch-rexroth:slot8:profile:v1",
+      "systemKey": "bosch-rexroth-slot8",
+      "standard": "Bosch Rexroth Aluminum Framing manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 8
+      },
+      "grooveSignature": {
+        "system": "bosch-rexroth",
+        "series": "Slot 8",
+        "openingWidthMm": 8,
+        "cavityWidthMm": null,
+        "cavityDepthMm": null,
+        "compatibleThreads": [
+          "M4",
+          "M5",
+          "M6",
+          "M8"
+        ],
+        "signatureStatus": "partial-opening-only",
+        "automaticGeometryMatch": false,
+        "missingEvidence": [
+          "cavityWidthMm",
+          "cavityDepthMm",
+          "undercut geometry"
+        ]
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4",
+        "M5",
+        "M6",
+        "M8"
+      ],
+      "supportedMatingKeys": [
+        "bosch-rexroth:slot8:t-nut:verified",
+        "bosch-rexroth:slot8:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 Bosch Slot 8 与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "厂商型材和螺母料号已确认",
+          "manualFallback": "录入料号并附截面/CAD"
+        },
+        {
+          "id": "verify-profile",
+          "action": "verify",
+          "label": "确认完整横截面与螺母包络",
+          "automaticByDefault": false,
+          "stopCondition": "料号或 CAD 验证通过",
+          "manualFallback": "禁止自动匹配，仅允许工程师确认"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "端部送入或旋入滑块",
+          "automaticByDefault": true,
+          "stopCondition": "滑块进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-and-clamp",
+          "action": "clamp",
+          "label": "沿槽定位并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "区间无冲突且贴合完成",
+          "manualFallback": "沿轴拖动后人工夹紧"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "Bosch Slot 8 体系键完全匹配",
+          "完整截面或厂商料号已复核",
+          "旋入包络不碰撞",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode",
+          "crossSectionEvidence"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 item Line 8 或 MISUMI HFS6。",
+          "横截面未知字段为 null 时禁止自动几何匹配。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Bosch Rexroth Aluminum Structural Framing System 9.0",
+          "url": "https://apps.boschrexroth.com/DCUS/2023/08.25.AT_Uploads/R999001283_2020-09_media-1.pdf",
+          "supports": [
+            "Slot 8 厂商系列",
+            "M4/M5/M6/M8 旋入滑块",
+            "弹簧定位与旋入装配"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "en60715-th15",
+      "schemaVersion": 1,
+      "label": "EN 60715 15 mm 微型帽型导轨",
+      "kind": "rail-clip",
+      "summary": "15 mm 宽、5.5 mm 高的微型帽型导轨，面向小型端子等专用部件。",
+      "status": "planned",
+      "family": "din-rail",
+      "connectorKind": "rail-profile",
+      "compatibilityKey": "en60715:th15-5.5:profile:v1",
+      "systemKey": "en60715-th15",
+      "standard": "EN 60715 miniature top-hat family",
+      "nominalGeometryMm": {
+        "railWidth": 15,
+        "railDepth": 5.5
+      },
+      "supportedMatingKeys": [
+        "en60715:clip:th15-5.5:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.3,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-mini-rail-segment",
+          "action": "select-target",
+          "label": "选择微型导轨区段",
+          "automaticByDefault": false,
+          "stopCondition": "区段覆盖连接器宽度",
+          "manualFallback": "沿轴向移动"
+        },
+        {
+          "id": "align-mini-clip",
+          "action": "align",
+          "label": "微型卡扣与导轨截面对齐",
+          "automaticByDefault": true,
+          "stopCondition": "轴向平行且正反方向有效",
+          "manualFallback": "翻转或旋转微调"
+        },
+        {
+          "id": "seat-mini-clip",
+          "action": "insert",
+          "label": "按具体连接器工艺卡入",
+          "automaticByDefault": false,
+          "stopCondition": "锁止特征闭合",
+          "manualFallback": "产品专用手动卡入"
+        },
+        {
+          "id": "verify-mini-profile",
+          "action": "verify",
+          "label": "检查微型截面和轴向占用",
+          "automaticByDefault": true,
+          "stopCondition": "TH15 精确键匹配且区间无冲突",
+          "manualFallback": "拒绝使用 TH35 卡扣"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "检查 15×5.5 mm 截面",
+          "验证连接器专用于微型导轨",
+          "验证轴向占用和端部余量"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "profileDeclaration",
+          "clipFeatures",
+          "occupiedLength"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "15 mm 微型导轨与 35 mm 帽型导轨没有直接连接器互换关系。",
+          "UI 应明确显示“微型 15 mm”，避免把名称 TH15 误读为 15 mm 深 TH35。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Phoenix Contact NS 15 UNPERF 500MM",
+          "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-15-unperf-500mm-1207642",
+          "supports": [
+            "EN 60715 产品声明",
+            "15 mm 宽度",
+            "5.5 mm 深度",
+            "具体料号和材质"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.din-rail",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "en60715-g32",
+      "schemaVersion": 1,
+      "label": "G32 非对称 G 型导轨",
+      "kind": "rail-clip",
+      "summary": "32×15 mm 名义 G 型导轨；截面和装配捕获方式与对称 TH35 不同。",
+      "status": "planned",
+      "family": "din-rail",
+      "connectorKind": "rail-profile",
+      "compatibilityKey": "en60715:g32:profile:v1",
+      "systemKey": "en60715-g-profile",
+      "standard": "G-profile rail family; verify the exact supplier declaration and drawing",
+      "nominalGeometryMm": {
+        "railWidth": 32,
+        "railDepth": 15,
+        "referenceThickness": 1.5
+      },
+      "supportedMatingKeys": [
+        "en60715:clip:g32:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-g-rail-segment",
+          "action": "select-target",
+          "label": "选择 G 型导轨区段",
+          "automaticByDefault": false,
+          "stopCondition": "区段覆盖零件占用长度",
+          "manualFallback": "沿轴向拖动"
+        },
+        {
+          "id": "align-g-profile",
+          "action": "align",
+          "label": "按非对称截面定向连接器",
+          "automaticByDefault": true,
+          "stopCondition": "G 型截面方向与连接器声明一致",
+          "manualFallback": "翻转连接器方向"
+        },
+        {
+          "id": "insert-g-profile",
+          "action": "insert",
+          "label": "按产品工艺挂入或推入 G 型导轨",
+          "automaticByDefault": false,
+          "stopCondition": "连接器捕获面与导轨截面闭合",
+          "manualFallback": "使用产品专用装配动作"
+        },
+        {
+          "id": "verify-g-profile",
+          "action": "verify",
+          "label": "检查截面签名和区间占用",
+          "automaticByDefault": true,
+          "stopCondition": "G32 精确键匹配且区间无冲突",
+          "manualFallback": "拒绝以 TH35 连接器代替"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "检查 32×15 mm 名义尺寸",
+          "检查非对称 G 截面方向",
+          "检查具体连接器捕获面",
+          "检查轴向占用"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "profileDrawing",
+          "profileOrientation",
+          "occupiedLength"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "G32 与 TH35 的宽度、对称性和卡扣结构不同，严禁自动互认。",
+          "第一阶段仅作为研究/导入宿主，不生成通用卡扣。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Weidmüller DIN rails and profile rails catalogue",
+          "url": "https://assets.dam.weidmueller.com/assets/api/eb7c830c-bf83-4f0d-ac3c-53c328a85fa9/Original/MB_KC_DIN-RAILS_AND_ELECTRICAL_BUSBARS_EN_Web.pdf",
+          "supports": [
+            "TS 32 G 型导轨分类",
+            "32×15 mm 截面",
+            "1.5 mm 产品厚度示例",
+            "具体料号与材质"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.din-rail",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "en60715-th35-15",
+      "schemaVersion": 1,
+      "label": "IEC/EN 60715 家族 TH35-15 深型导轨",
+      "kind": "rail-clip",
+      "summary": "35 mm 宽、15 mm 高的深型帽式导轨；独立校验背部净空、卡扣行程和具体产品标准声明。",
+      "status": "experimental",
+      "family": "din-rail",
+      "connectorKind": "rail-profile",
+      "compatibilityKey": "en60715:th35-15:profile:v1",
+      "systemKey": "en60715-th35",
+      "standard": "IEC/EN 60715 35 mm family; some supplier SKUs state similar-to rather than according-to",
+      "nominalGeometryMm": {
+        "railWidth": 35,
+        "railDepth": 15,
+        "referenceThickness": 1
+      },
+      "supportedMatingKeys": [
+        "en60715:clip:th35-15:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-rail-segment",
+          "action": "select-target",
+          "label": "选择深型导轨区段",
+          "automaticByDefault": false,
+          "stopCondition": "区段长度和背部净空满足要求",
+          "manualFallback": "沿导轨轴移动"
+        },
+        {
+          "id": "align-upper-hook",
+          "action": "align",
+          "label": "上钩对齐导轨上沿",
+          "automaticByDefault": true,
+          "stopCondition": "轴向平行且卡扣方向有效",
+          "manualFallback": "翻转或旋转微调"
+        },
+        {
+          "id": "seat-upper-hook",
+          "action": "insert",
+          "label": "挂入上沿",
+          "automaticByDefault": true,
+          "stopCondition": "上钩接触代理闭合",
+          "manualFallback": "法向微调"
+        },
+        {
+          "id": "snap-lower-latch",
+          "action": "rotate-until-snap",
+          "label": "旋转至下卡扣锁止",
+          "automaticByDefault": true,
+          "stopCondition": "下卡扣越过下沿并锁止",
+          "manualFallback": "手动控制旋转角"
+        },
+        {
+          "id": "verify-rail-interval",
+          "action": "verify",
+          "label": "检查截面与轴向占用",
+          "automaticByDefault": true,
+          "stopCondition": "TH35-15 精确键匹配且区间无冲突",
+          "manualFallback": "拒绝放置或移动到空闲区段"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "不得从 TH35-7.5 自动继承兼容性",
+          "验证 15 mm 深度净空",
+          "验证具体料号的截面公差和标准声明",
+          "验证轴向区间占用"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "profileDeclaration",
+          "upperHook",
+          "lowerLatch",
+          "railAxis",
+          "occupiedLength"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "Phoenix Contact 所引产品页将具体 NS 35/15 料号标为 similar to EN 60715；资源包必须保留料号级声明。",
+          "只有连接器明确声明 TH35-15 兼容时才允许自动锁止。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Phoenix Contact NS 35/15 PERF 250MM",
+          "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-3515-perf-250mm-1207656",
+          "supports": [
+            "35 mm 宽度",
+            "15 mm 深度",
+            "具体料号 similar to EN 60715 的边界"
+          ]
+        },
+        {
+          "label": "Schneider Electric TeSys island DIN rail requirements",
+          "url": "https://productinfo.se.com/tesys_island_guides/viewer?docidentity=DINRail-CA57BC61&extension=xml&lang=en&manualidentity=DocumentTypeProductCategoryRangeNam-7CC5D581",
+          "supports": [
+            "设备可使用 7.5 或 15 mm 高 IEC 60715 导轨",
+            "截面公差示例",
+            "材质与接地要求依应用而异"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.din-rail",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "en60715-th35-7.5",
+      "schemaVersion": 1,
+      "label": "IEC/EN 60715 TH35-7.5 帽型导轨",
+      "kind": "rail-clip",
+      "summary": "35 mm 宽、7.5 mm 高的帽型导轨；上沿挂入、下卡扣旋转锁止，沿轴向占用连续区段。",
+      "status": "experimental",
+      "family": "din-rail",
+      "connectorKind": "rail-profile",
+      "compatibilityKey": "en60715:th35-7.5:profile:v1",
+      "systemKey": "en60715-th35",
+      "standard": "IEC/EN 60715 TH35 family; exact product declaration must be retained",
+      "nominalGeometryMm": {
+        "railWidth": 35,
+        "railDepth": 7.5,
+        "referenceThickness": 1
+      },
+      "supportedMatingKeys": [
+        "en60715:clip:th35-7.5:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-rail-segment",
+          "action": "select-target",
+          "label": "选择导轨轴向区段",
+          "automaticByDefault": false,
+          "stopCondition": "可用区段覆盖零件占用长度及两侧余量",
+          "manualFallback": "沿导轨轴拖动到空闲区段"
+        },
+        {
+          "id": "align-upper-hook",
+          "action": "align",
+          "label": "卡扣上钩与导轨上沿对齐",
+          "automaticByDefault": true,
+          "stopCondition": "卡扣轴与导轨轴平行，上钩进入捕获范围",
+          "manualFallback": "翻转朝向或旋转微调"
+        },
+        {
+          "id": "seat-upper-hook",
+          "action": "insert",
+          "label": "先挂入导轨上沿",
+          "automaticByDefault": true,
+          "stopCondition": "上钩接触代理闭合",
+          "manualFallback": "沿宿主法向微调插入深度"
+        },
+        {
+          "id": "snap-lower-latch",
+          "action": "rotate-until-snap",
+          "label": "绕导轨轴旋转至下卡扣锁止",
+          "automaticByDefault": true,
+          "stopCondition": "下卡扣越过下沿并进入锁止状态",
+          "manualFallback": "显示旋转手柄并由用户确认锁止"
+        },
+        {
+          "id": "verify-rail-interval",
+          "action": "verify",
+          "label": "校验截面、区段占用及端部余量",
+          "automaticByDefault": true,
+          "stopCondition": "精确兼容键匹配且轴向区间无冲突",
+          "manualFallback": "拒绝自动锁止并要求选用适配器或其他区段"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "读取具体料号截面而非仅判断 35 mm 名义宽度",
+          "验证卡扣上钩、下锁扣和背部净空",
+          "验证轴向占用区间和端部余量",
+          "带电气接地语义时额外验证材质、涂层和安装方式"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "profileDeclaration",
+          "upperHook",
+          "lowerLatch",
+          "railAxis",
+          "occupiedLength"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "TH35-7.5 与 TH35-15 不能只因宽度同为 35 mm 自动互认。",
+          "软件可校验几何装配，不继承设备厂商的电气、接地或承载认证。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "Phoenix Contact NS 35/7.5 UNPERF 250MM",
+          "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-35-75-unperf-250mm-1207647",
+          "supports": [
+            "EN 60715 产品声明",
+            "35 mm 宽度",
+            "7.5 mm 深度"
+          ]
+        },
+        {
+          "label": "Schneider Electric TeSys island DIN rail requirements",
+          "url": "https://productinfo.se.com/tesys_island_guides/viewer?docidentity=DINRail-CA57BC61&extension=xml&lang=en&manualidentity=DocumentTypeProductCategoryRangeNam-7CC5D581",
+          "supports": [
+            "IEC 60715 帽型导轨",
+            "35 mm 及 7.5/15 mm 设备适配边界",
+            "宽度、厚度与高度公差示例"
+          ]
+        },
+        {
+          "label": "Schneider Electric RM35 installation sheet",
+          "url": "https://download.se.com/files?p_Doc_Ref=S1A19592&p_File_Name=S1A1959200+05.pdf&p_enDocType=Instruction+sheet",
+          "supports": [
+            "先挂入再旋转至 Click 的装配顺序",
+            "工具辅助拆卸"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.din-rail",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "item-line10",
+      "schemaVersion": 1,
+      "label": "item Line 10 铝型材槽",
+      "kind": "t-slot",
+      "summary": "item Line 10 厂商体系内的槽螺母定位与夹紧装配。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "item:line10:slot-profile:v1",
+      "systemKey": "item-line10",
+      "standard": "item Line 10 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 10,
+        "typicalModule": 50
+      },
+      "grooveSignature": {
+        "system": "item",
+        "series": "Line 10",
+        "openingWidthMm": 10,
+        "cavityWidthMm": 25,
+        "cavityDepthMm": 15.5,
+        "compatibleThreads": [
+          "M6",
+          "M8",
+          "M10"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "a": 10,
+          "b": 25,
+          "c": 15.5,
+          "d": 5.3,
+          "e": 0.25
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M6",
+        "M8",
+        "M10"
+      ],
+      "supportedMatingKeys": [
+        "item:line10:t-nut:verified",
+        "item:line10:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 item Line 10 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "体系键和料号已确认",
+          "manualFallback": "手动录入型材与紧固件料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按料号从端部送入或原位旋入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "手动选择螺母、螺钉和扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "item Line 10 体系键完全匹配",
+          "完整槽签名匹配",
+          "螺母料号支持所选插入方式",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 Bosch Slot 10 或 MISUMI HFS8。",
+          "同为 10 mm 开口不构成兼容证明。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "item Technical Data for Profiles",
+          "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf",
+          "supports": [
+            "Line 10 的 a/b/c/d/e 槽尺寸",
+            "槽翼名义载荷"
+          ]
+        },
+        {
+          "label": "item T-Slot Nut 10 St M10",
+          "url": "https://cdn.item24.com/product-assets/DOK_PROD_62502_%23SEN_%23AIN_%23V1.pdf",
+          "supports": [
+            "Line 10 M10 紧固件",
+            "原位旋入与防扭结构"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "item-line5",
+      "schemaVersion": 1,
+      "label": "item Line 5 铝型材槽",
+      "kind": "t-slot",
+      "summary": "item Line 5 厂商体系内的槽螺母定位与夹紧装配。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "item:line5:slot-profile:v1",
+      "systemKey": "item-line5",
+      "standard": "item Line 5 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 5,
+        "typicalModule": 20
+      },
+      "grooveSignature": {
+        "system": "item",
+        "series": "Line 5",
+        "openingWidthMm": 5,
+        "cavityWidthMm": 11.5,
+        "cavityDepthMm": 6.35,
+        "compatibleThreads": [
+          "M3",
+          "M4",
+          "M5"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "a": 5,
+          "b": 11.5,
+          "c": 6.35,
+          "d": 1.8,
+          "e": 0.15
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M3",
+        "M4",
+        "M5"
+      ],
+      "supportedMatingKeys": [
+        "item:line5:t-nut:verified",
+        "item:line5:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 item Line 5 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "体系键和料号已确认",
+          "manualFallback": "手动录入型材与紧固件料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按料号从端部送入或原位旋入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "手动选择螺母、螺钉和扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "item Line 5 体系键完全匹配",
+          "完整槽签名匹配",
+          "螺母料号支持所选插入方式",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得因开口接近 5 mm 而匹配其他厂商体系。",
+          "跨系列连接必须使用已验证转接件。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "item Technical Data for Profiles",
+          "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf",
+          "supports": [
+            "Line 5 的 a/b/c/d/e 槽尺寸",
+            "槽翼名义载荷"
+          ]
+        },
+        {
+          "label": "item T-Slot Nut 5 St M4",
+          "url": "https://www.item24.com/en-us/t-slot-nut-5-st-m4-stainless-42510",
+          "supports": [
+            "M3/M4/M5 变体",
+            "任意位置旋入与弹簧定位"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "item-line6",
+      "schemaVersion": 1,
+      "label": "item Line 6 铝型材槽",
+      "kind": "t-slot",
+      "summary": "item Line 6 厂商体系内的槽螺母定位与夹紧装配。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "item:line6:slot-profile:v1",
+      "systemKey": "item-line6",
+      "standard": "item Line 6 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 6.2,
+        "typicalModule": 30
+      },
+      "grooveSignature": {
+        "system": "item",
+        "series": "Line 6",
+        "openingWidthMm": 6.2,
+        "cavityWidthMm": 16.3,
+        "cavityDepthMm": 9.75,
+        "compatibleThreads": [
+          "M4",
+          "M5",
+          "M6"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "a": 6.2,
+          "b": 16.3,
+          "c": 9.75,
+          "d": 3,
+          "e": 0.15
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4",
+        "M5",
+        "M6"
+      ],
+      "supportedMatingKeys": [
+        "item:line6:t-nut:verified",
+        "item:line6:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 item Line 6 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "体系键和料号已确认",
+          "manualFallback": "手动录入型材与紧固件料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按料号从端部送入或原位旋入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "手动选择螺母、螺钉和扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "item Line 6 体系键完全匹配",
+          "完整槽签名匹配",
+          "螺母料号支持所选插入方式",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 Bosch Slot 6 或 MISUMI HFS5。",
+          "跨系列连接必须使用已验证转接件。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "item Technical Data for Profiles",
+          "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf",
+          "supports": [
+            "Line 6 的 a/b/c/d/e 槽尺寸",
+            "槽翼名义载荷"
+          ]
+        },
+        {
+          "label": "item T-Slot Nut Zn",
+          "url": "https://www.item24.com/en-us/t-slot-nut-6-zn-m4-bright-zinc-plated-44145",
+          "supports": [
+            "Line 6 螺母与 M4 变体",
+            "系列专用紧固件"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "item-line8",
+      "schemaVersion": 1,
+      "label": "item Line 8 铝型材槽",
+      "kind": "t-slot",
+      "summary": "item Line 8 厂商体系内的槽螺母定位与夹紧装配。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "item:line8:slot-profile:v1",
+      "systemKey": "item-line8",
+      "standard": "item Line 8 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 8,
+        "typicalModule": 40
+      },
+      "grooveSignature": {
+        "system": "item",
+        "series": "Line 8",
+        "openingWidthMm": 8,
+        "cavityWidthMm": 20,
+        "cavityDepthMm": 12.25,
+        "compatibleThreads": [
+          "M3",
+          "M4",
+          "M5",
+          "M6",
+          "M8"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "a": 8,
+          "b": 20,
+          "c": 12.25,
+          "d": 4.5,
+          "e": 0.2
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M8"
+      ],
+      "supportedMatingKeys": [
+        "item:line8:t-nut:verified",
+        "item:line8:fastener:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 item Line 8 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "体系键和料号已确认",
+          "manualFallback": "手动录入型材与紧固件料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按料号从端部送入或原位旋入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换插入方式并旋转微调"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "手动选择螺母、螺钉和扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "item Line 8 体系键完全匹配",
+          "完整槽签名匹配",
+          "螺母料号支持所选插入方式",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "不得自动匹配 Bosch Slot 8 或 MISUMI HFS6。",
+          "同为 8 mm 开口不构成兼容证明。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "item Technical Data for Profiles",
+          "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf",
+          "supports": [
+            "Line 8 的 a/b/c/d/e 槽尺寸",
+            "槽翼名义载荷"
+          ]
+        },
+        {
+          "label": "item T-Slot Nut St",
+          "url": "https://www.item24.com/en-us/t-slot-nut-5-st-m4-stainless-42510",
+          "supports": [
+            "item 各 Line 使用对应紧固件",
+            "原位旋入动作原理"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "misumi-hfs5",
+      "schemaVersion": 1,
+      "label": "MISUMI HFS5（6 mm 槽）",
+      "kind": "t-slot",
+      "summary": "MISUMI HFS5 小型框架体系；系列数字 5 对应 6 mm 名义槽口。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "misumi:hfs5:slot-profile:v1",
+      "systemKey": "misumi-hfs5",
+      "standard": "MISUMI HFS5 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 6,
+        "typicalModules": [
+          20,
+          25,
+          40
+        ]
+      },
+      "grooveSignature": {
+        "system": "misumi",
+        "series": "HFS5",
+        "openingWidthMm": 6,
+        "cavityWidthMm": 12,
+        "cavityDepthMm": 4,
+        "compatibleThreads": [
+          "M3",
+          "M4",
+          "M5"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "slotOpening": 6,
+          "cavityWidth": 12,
+          "cavityDepth": 4,
+          "lipReference": 2
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M3",
+        "M4",
+        "M5"
+      ],
+      "supportedMatingKeys": [
+        "misumi:hfs5:pre-assembly-nut:verified",
+        "misumi:hfs5:post-assembly-nut:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 MISUMI HFS5 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "HFS5 体系键和料号已确认",
+          "manualFallback": "手动录入型材与螺母料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按前装/后装类型装入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换端部送入或后装旋入"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "人工选择螺钉长度与扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "MISUMI HFS5 体系键完全匹配",
+          "6/12/4 mm 截面签名匹配",
+          "前装或后装螺母料号正确",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "MISUMI HFS5 的系列数字不是槽宽；其名义槽宽为 6 mm。",
+          "不得自动匹配 item Line 6 或 Bosch Slot 6。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "MISUMI HFS5 official section drawing",
+          "url": "https://us.misumi-ec.com/pdf/fa/2019/2019_US_2688.pdf",
+          "supports": [
+            "HFS5 6/12/4 mm 槽截面",
+            "20/25/40 mm 模数组"
+          ]
+        },
+        {
+          "label": "MISUMI HFS5 pre/post assembly nuts",
+          "url": "https://us.misumi-ec.com/vona2/detail/110311087829/?Tab=codeList",
+          "supports": [
+            "M3/M4/M5",
+            "前装与后装螺母的差异"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "misumi-hfs6",
+      "schemaVersion": 1,
+      "label": "MISUMI HFS6（8 mm 槽）",
+      "kind": "t-slot",
+      "summary": "MISUMI HFS6 中型框架体系；系列数字 6 对应 8 mm 名义槽口。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "misumi:hfs6:slot-profile:v1",
+      "systemKey": "misumi-hfs6",
+      "standard": "MISUMI HFS6 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 8,
+        "typicalModules": [
+          30,
+          50,
+          60
+        ]
+      },
+      "grooveSignature": {
+        "system": "misumi",
+        "series": "HFS6",
+        "openingWidthMm": 8,
+        "cavityWidthMm": 16.5,
+        "cavityDepthMm": 7,
+        "compatibleThreads": [
+          "M4",
+          "M5",
+          "M6"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "slotOpening": 8,
+          "cavityWidth": 16.5,
+          "cavityDepth": 7,
+          "lipReference": 2
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4",
+        "M5",
+        "M6"
+      ],
+      "supportedMatingKeys": [
+        "misumi:hfs6:pre-assembly-nut:verified",
+        "misumi:hfs6:post-assembly-nut:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 MISUMI HFS6 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "HFS6 体系键和料号已确认",
+          "manualFallback": "手动录入型材与螺母料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按前装/后装类型装入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换端部送入或后装旋入"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "人工选择螺钉长度与扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "MISUMI HFS6 体系键完全匹配",
+          "8/16.5/7 mm 截面签名匹配",
+          "前装或后装螺母料号正确",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "MISUMI HFS6 的系列数字不是槽宽；其名义槽宽为 8 mm。",
+          "不得自动匹配 item Line 8 或 Bosch Slot 8。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "MISUMI HFS6 official section drawing",
+          "url": "https://us.misumi-ec.com/pdf/fa/2010/p2275.pdf",
+          "supports": [
+            "HFS6 8/16.5/7 mm 槽截面",
+            "HFS6 系列与典型模数"
+          ]
+        },
+        {
+          "label": "MISUMI aluminum extrusion Q&A",
+          "url": "https://us.misumi-ec.com/pdf/fa/2010/p2437.pdf",
+          "supports": [
+            "HFS6 为槽宽 8 的中型框架体系",
+            "应用范围"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "misumi-hfs8",
+      "schemaVersion": 1,
+      "label": "MISUMI HFS8（10 mm 槽）",
+      "kind": "t-slot",
+      "summary": "MISUMI HFS8 大型框架体系；系列数字 8 对应 10 mm 名义槽口。",
+      "status": "planned",
+      "family": "aluminium-profile",
+      "connectorKind": "t-slot",
+      "compatibilityKey": "misumi:hfs8:slot-profile:v1",
+      "systemKey": "misumi-hfs8",
+      "standard": "MISUMI HFS8 manufacturer system",
+      "nominalGeometryMm": {
+        "nominalSlotOpening": 10,
+        "typicalModules": [
+          40,
+          80
+        ]
+      },
+      "grooveSignature": {
+        "system": "misumi",
+        "series": "HFS8",
+        "openingWidthMm": 10,
+        "cavityWidthMm": 20,
+        "cavityDepthMm": 7,
+        "compatibleThreads": [
+          "M4",
+          "M5",
+          "M6",
+          "M8"
+        ],
+        "signatureStatus": "verified-2d",
+        "automaticGeometryMatch": true,
+        "manufacturerDimensionsMm": {
+          "slotOpening": 10,
+          "cavityWidth": 20,
+          "cavityDepth": 7,
+          "slotBottomReference": 5.5
+        }
+      },
+      "supportedInsertModes": [
+        "end-feed",
+        "swivel-in"
+      ],
+      "fastenerThreads": [
+        "M4",
+        "M5",
+        "M6",
+        "M8"
+      ],
+      "supportedMatingKeys": [
+        "misumi:hfs8:pre-assembly-nut:verified",
+        "misumi:hfs8:post-assembly-nut:verified"
+      ],
+      "assemblyAxis": "host-x",
+      "occupancy": {
+        "kind": "axis-interval",
+        "clearanceMm": 0.5,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-groove",
+          "action": "select-target",
+          "label": "选择 MISUMI HFS8 槽与具体型材料号",
+          "automaticByDefault": false,
+          "stopCondition": "HFS8 体系键和料号已确认",
+          "manualFallback": "手动录入型材与螺母料号"
+        },
+        {
+          "id": "insert-nut",
+          "action": "insert",
+          "label": "按前装/后装类型装入螺母",
+          "automaticByDefault": true,
+          "stopCondition": "螺母进入槽腔且姿态有效",
+          "manualFallback": "切换端部送入或后装旋入"
+        },
+        {
+          "id": "slide-position",
+          "action": "slide-until-stop",
+          "label": "沿槽轴移动到目标位置",
+          "automaticByDefault": true,
+          "stopCondition": "目标轴向坐标满足且区间无冲突",
+          "manualFallback": "沿轴拖动"
+        },
+        {
+          "id": "clamp",
+          "action": "clamp",
+          "label": "支架贴面并夹紧",
+          "automaticByDefault": true,
+          "stopCondition": "贴合与螺纹组合通过检查",
+          "manualFallback": "人工选择螺钉长度与扭矩"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "MISUMI HFS8 体系键完全匹配",
+          "10/20/7 mm 截面签名匹配",
+          "前装或后装螺母料号正确",
+          "轴向占用区间无冲突"
+        ],
+        "requiredMetadata": [
+          "vendorPartNumber",
+          "fastenerPartNumber",
+          "slotAxis",
+          "insertMode"
+        ],
+        "loadRatingPolicy": "manufacturer-data-required"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "MISUMI HFS8 的系列数字不是槽宽；其名义槽宽为 10 mm。",
+          "不得自动匹配 item Line 10 或 Bosch Slot 10。"
+        ]
+      },
+      "sources": [
+        {
+          "label": "MISUMI HFS8 official section drawing",
+          "url": "https://us.misumi-ec.com/pdf/fa/2019/2019_US_2766.pdf",
+          "supports": [
+            "HFS8 10/20/7 mm 槽截面",
+            "40/80 mm 模数组"
+          ]
+        },
+        {
+          "label": "MISUMI HFS8 fastener table",
+          "url": "https://us.misumi-ec.com/vona2/detail/110310824759/?HissuCode=SL-SHNTC8-8",
+          "supports": [
+            "M4/M5/M6/M8",
+            "10 mm 槽与螺钉长度表"
+          ]
+        },
+        {
+          "label": "MISUMI aluminum extrusion Q&A",
+          "url": "https://us.misumi-ec.com/pdf/fa/2010/p2437.pdf",
+          "supports": [
+            "HFS8 为槽宽 10 的大型框架体系",
+            "应用范围"
+          ]
+        }
+      ],
+      "packageId": "snapboard.hosts.aluminium-profile-systems",
+      "packageVersion": "1.0.0"
+    },
+    {
+      "id": "snapboard-pegboard-v1",
+      "schemaVersion": 1,
+      "label": "SnapBoard 洞洞板（现有 5×15 长圆孔体系）",
+      "kind": "hole-pattern",
+      "summary": "现有圆孔/长圆孔锚点、贴面插入与下滑锁止装配。",
+      "status": "available",
+      "family": "pegboard",
+      "connectorKind": "hole-pattern",
+      "compatibilityKey": "snapboard:hole-pattern:slot-5x15-grid40:v1",
+      "systemKey": "snapboard-pegboard",
+      "standard": null,
+      "nominalGeometryMm": {
+        "slotWidth": 5,
+        "slotLength": 15,
+        "primaryGridPitch": 40,
+        "phaseOffset": 20,
+        "optionalRoundHoleDiameter": 5
+      },
+      "supportedMatingKeys": [
+        "snapboard:anchor:slot-5x15:v1",
+        "snapboard:anchor:round-d5:v1"
+      ],
+      "assemblyAxis": "host-y",
+      "occupancy": {
+        "kind": "discrete-targets",
+        "clearanceMm": 0.2,
+        "collisionPolicy": "reject-overlap"
+      },
+      "recipe": [
+        {
+          "id": "select-holes",
+          "action": "select-target",
+          "label": "选择圆孔或长圆孔目标",
+          "automaticByDefault": false,
+          "stopCondition": "用户完成全部孔位选择",
+          "manualFallback": "逐个撤销或清空孔位"
+        },
+        {
+          "id": "align-hole-pattern",
+          "action": "align",
+          "label": "按锚点刚体配准",
+          "automaticByDefault": true,
+          "stopCondition": "锚点残差进入允许误差",
+          "manualFallback": "上下翻转、旋转与平移微调"
+        },
+        {
+          "id": "insert-to-board",
+          "action": "translate-until-contact",
+          "label": "沿板面法向插入至贴面",
+          "automaticByDefault": true,
+          "stopCondition": "接触面与板面代理碰撞",
+          "manualFallback": "手动覆盖接触面"
+        },
+        {
+          "id": "slide-to-slot-bottom",
+          "action": "slide-until-stop",
+          "label": "沿长孔方向下滑锁止",
+          "automaticByDefault": true,
+          "stopCondition": "安装柱与长孔底部代理接触",
+          "manualFallback": "手动覆盖锁止距离"
+        },
+        {
+          "id": "verify-pegboard-fit",
+          "action": "verify",
+          "label": "检查占孔与碰撞",
+          "automaticByDefault": true,
+          "stopCondition": "目标未占用且无不可接受穿插",
+          "manualFallback": "显示冲突并取消放置"
+        }
+      ],
+      "validation": {
+        "geometryChecks": [
+          "锚点数量与类型匹配",
+          "长孔轴向有效",
+          "接触面贴合",
+          "下滑路径无碰撞"
+        ],
+        "requiredMetadata": [
+          "anchors",
+          "contactPlane",
+          "handedness",
+          "lockDistance"
+        ],
+        "loadRatingPolicy": "geometry-only"
+      },
+      "interchangeability": {
+        "crossSystemAutomaticMatch": false,
+        "notes": [
+          "项目内部参数体系，不对外宣称兼容任意洞洞板品牌。"
+        ]
+      },
+      "sources": [],
+      "packageId": "snapboard.hosts.pegboard",
+      "packageVersion": "1.0.0"
+    }
+  ],
+  "warnings": []
+}

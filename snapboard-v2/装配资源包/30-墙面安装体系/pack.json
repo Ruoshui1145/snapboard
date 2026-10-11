@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "kind": "assembly-host-pack",
+  "id": "snapboard.hosts.wall-mount",
+  "name": "墙面安装工艺宿主",
+  "version": "1.0.0",
+  "author": "SnapBoard Team",
+  "license": "Project-Internal",
+  "description": "把胶粘、Dual Lock 可重复扣合、石膏板微型插针和螺钉锚固分为独立工艺宿主；几何适配不构成承重承诺。",
+  "hosts": [
+    "hosts/wall-adhesive/host.json",
+    "hosts/wall-dual-lock/host.json",
+    "hosts/wall-micro-pin-drywall/host.json",
+    "hosts/wall-screw-anchor/host.json"
+  ]
+}

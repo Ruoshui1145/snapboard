@@ -7,11 +7,12 @@ const expected = ['hook', 'bracket', 'shelf', 'bin', 'organizer', 'fastener', 'b
 assert.deepEqual(CATEGORY_DIRECTORY_NAMES.map(categoryFromDirName), expected)
 await Promise.all(CATEGORY_DIRECTORY_NAMES.map(name => access(`配件资源包/${name}/.gitkeep`)))
 
-const [vite, sync, dialog, previewDialog, css, viewport, types, indexText] = await Promise.all([
+const [vite, sync, dialog, previewDialog, panel, css, viewport, types, indexText] = await Promise.all([
   read('vite.config.ts'),
   read('scripts/sync-part-library.mjs'),
   read('src/components/partLibrary/PartImportDialog.tsx'),
   read('src/components/partLibrary/PartPreviewDialog.tsx'),
+  read('src/components/sidebar/PartLibraryPanel.tsx'),
   read('src/App.css'),
   read('src/components/viewport/Viewport3D.tsx'),
   read('src/partLibrary/types.ts'),
@@ -29,6 +30,7 @@ assert.match(vite, /targetPackageId/)
 assert.match(vite, /api\/part-library\/batch/)
 assert.match(vite, /action === 'reorder'/)
 assert.match(vite, /manifest\.sortOrder/)
+assert.match(sync, /occlusion:\s*inferOcclusion/)
 
 assert.equal((dialog.match(/createPortal\(/g) ?? []).length, 2)
 assert.equal((dialog.match(/document\.body/g) ?? []).length, 2)
@@ -38,6 +40,10 @@ assert.match(dialog, /删除零件/)
 assert.match(dialog, /实际安装照片/)
 assert.match(previewDialog, /保存当前角度为封面/)
 assert.match(previewDialog, /api\/part-library\/preview/)
+assert.match(panel, /LOW_OCCLUSION_THRESHOLD/)
+assert.match(panel, /<option value="occlusion">低遮挡优先<\/option>/)
+assert.match(panel, />低遮挡</)
+assert.match(panel, /遮挡未知/)
 assert.match(css, /max-height:\s*min\(88vh,\s*calc\(100vh - 48px\)\)/)
 assert.match(css, /\.part-import-scroll[\s\S]*overflow-y:\s*auto/)
 
@@ -56,6 +62,13 @@ assert.match(dialog, /删除照片/)
 const index = JSON.parse(indexText)
 assert.ok(index.parts.length >= 1)
 assert.ok(index.packages.length >= 1)
+for (const part of index.parts) {
+  assert.ok(part.occlusion, `${part.id} 缺少遮挡元数据`)
+  assert.ok(['slim-hook', 'vented-tray', 'floating-shelf', 'narrow-bracket', 'standard'].includes(part.occlusion.class))
+  assert.ok(part.occlusion.voidRatio >= 0 && part.occlusion.voidRatio <= 1)
+  const expectedMountPoints = typeof part.mount === 'object' && Array.isArray(part.mount.anchors) ? part.mount.anchors.length : 0
+  assert.equal(part.occlusion.mountPoints, expectedMountPoints, `${part.id} 的连接点数量未从 mount 派生`)
+}
 const legacyMissingAxes = index.parts.filter(part => typeof part.mount === 'object' &&
   part.mount.anchors?.some(anchor => anchor.accepts?.includes('slot') && !anchor.axis)).length
 

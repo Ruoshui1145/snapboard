@@ -1,21 +1,6 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-
-const root = process.cwd()
-const outDir = path.join(root, '.tmp-3d-test', 'compiled-split-shapes')
-const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
-execFileSync(process.execPath, [
-  tscPath,
-  '--ignoreConfig',
-  'src/utils/pegboardSplit.ts', 'src/types/geometry.ts',
-  '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
-  '--target', 'es2023', '--skipLibCheck', 'true',
-], { cwd: root, stdio: 'inherit' })
-
-const split = await import(`${pathToFileURL(path.join(outDir, 'utils', 'pegboardSplit.js')).href}?t=${Date.now()}`)
+import { checkModule } from './check-module.mjs'
+const split = await checkModule('src/utils/pegboardSplit.ts')
 const rect = (x0, y0, x1, y1) => [
   { x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 },
 ]
@@ -66,6 +51,40 @@ assert.deepEqual(
   '同一矩形重复分割必须完全确定，不能随机错位',
 )
 
+// 圆角外轮廓在进入分割器前由 App 离散为多边形；分割器仍需保持完整覆盖、
+// 不生成零面积板件，并把最终边界交给原始矢量布尔裁剪，而不是按包围盒裁掉圆角。
+const roundedRect = (x0, y0, x1, y1, radius, steps = 8) => {
+  const corners = [
+    [x1 - radius, y0 + radius, -Math.PI / 2, 0],
+    [x1 - radius, y1 - radius, 0, Math.PI / 2],
+    [x0 + radius, y1 - radius, Math.PI / 2, Math.PI],
+    [x0 + radius, y0 + radius, Math.PI, Math.PI * 1.5],
+  ]
+  return corners.flatMap(([cx, cy, start, end]) => Array.from({ length: steps }, (_, index) => {
+    const angle = start + (end - start) * index / steps
+    return { x: cx + Math.cos(angle) * radius, y: cy + Math.sin(angle) * radius }
+  }))
+}
+const rounded = split.splitOrthogonalPolygon({ points: roundedRect(0, 0, 500, 280, 8) })
+verifyCoverage('圆角矩形外轮廓', rounded)
+assert.ok(rounded.panels.every(panel => panel.w > 0 && panel.h > 0), '圆角矩形生成了退化板件')
+assert.ok(rounded.coverageRatio > 0.999, `圆角矩形覆盖率错误: ${rounded.coverageRatio}`)
+
+// 用户回归：矩形边框裁掉多余边后，由两条直线 + 四分之一圆弧闭合的曲线扇形。
+// 这类轮廓不能退回包围盒，也不能因非正交边只生成一块不可打印大板。
+const curvedSector = [
+  { x: 0, y: 0 },
+  ...Array.from({ length: 25 }, (_, index) => {
+    const angle = (Math.PI / 2) * index / 24
+    return { x: Math.cos(angle) * 500, y: Math.sin(angle) * 500 }
+  }),
+]
+const curved = split.splitOrthogonalPolygon({ points: curvedSector })
+verifyCoverage('直线+圆弧闭合扇形', curved)
+assert.ok(curved.panels.length > 1, '500mm 曲线扇形没有按热床尺寸分板')
+assert.ok(curved.panels.some(panel => panel.contour.length > 4), '曲线扇形分板丢失了圆弧离散边界')
+assert.ok(curved.coverageRatio > 0.999, `曲线扇形覆盖率错误: ${curved.coverageRatio}`)
+
 const lShape = split.splitOrthogonalPolygon({ points: [
   { x: 0, y: 0 }, { x: 500, y: 0 }, { x: 500, y: 220 },
   { x: 400, y: 220 }, { x: 400, y: 360 }, { x: 0, y: 360 },
@@ -108,6 +127,8 @@ assert.ok(cutout.panels.some(panel => (panel.cutouts?.length ?? 0) > 0), '内孔
 
 console.log(JSON.stringify({
   rectangle: { panels: rectangle.panels.length, grid: '3x2', deterministic: true },
+  rounded: { panels: rounded.panels.length, coverage: rounded.coverageRatio },
+  curvedSector: { panels: curved.panels.length, coverage: curved.coverageRatio },
   lShape: { panels: lShape.panels.length, minBBoxSide: Math.min(...lShape.panels.map(p => Math.min(p.w, p.h))) },
   uShape: { panels: uShape.panels.length },
   notched: { panels: notched.panels.length, slotClearance: notched.config.holeBoundaryClearance },

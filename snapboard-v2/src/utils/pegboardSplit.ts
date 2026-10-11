@@ -26,17 +26,17 @@ import type {
   HolePos,
 } from '../types/geometry'
 import { intersectPanelWithPolygon, subtractHolesFromPanel } from './panelBoolean.js'
-import { findFootprintPlacement, getPrintBedBounds, rotatePlanarPoints } from './printBed.js'
+import { findFootprintPlacement, getPrintBedBounds, rotatePlanarPoints, MIN_PRINT_BED_MARGIN_MM } from './printBed.js'
 
 /** 宜家洞洞板标准默认参数 */
 export const PEGBOARD_DEFAULT_CONFIG: SplitConfig = {
   printerPreset: 'bambu-p1s',
   bedW: 256,
   bedH: 256,
-  bedMarginLeft: 0,
-  bedMarginRight: 0,
-  bedMarginBottom: 0,
-  bedMarginTop: 0,
+  bedMarginLeft: MIN_PRINT_BED_MARGIN_MM,
+  bedMarginRight: MIN_PRINT_BED_MARGIN_MM,
+  bedMarginBottom: MIN_PRINT_BED_MARGIN_MM,
+  bedMarginTop: MIN_PRINT_BED_MARGIN_MM,
   bedKeepouts: [{ id: 'bambu-front-left', name: '前左擦嘴/机构禁放区', x: 0, y: 0, w: 18, h: 28, enabled: true }],
   mx: 40,
   my: 20,
@@ -175,7 +175,7 @@ function segmentDistanceSq(a: Point2D, b: Point2D, c: Point2D, d: Point2D): numb
  * 判断“线段与半径的 Minkowski 和”（圆或胶囊孔）是否完整落在实体安全域中。
  * 与只检查四角相比，这个距离条件能可靠处理凹角、U/缺口轮廓和斜边。
  */
-function sweptCircleFitsMaterial(
+export function sweptCircleFitsMaterial(
   a: Point2D, b: Point2D, radius: number, clearance: number,
   contour: Point2D[], cutouts: Point2D[][],
 ): boolean {
@@ -907,7 +907,13 @@ function mergeRegions(a: Region, b: Region, cfg: SplitConfig, knownShared?: numb
 interface GridPoint { x: number; y: number }
 interface GridEdge { a: GridPoint; b: GridPoint; used: boolean }
 
-function gridKey(p: GridPoint): string { return `${p.x},${p.y}` }
+// Region 的世界原点可能来自曲线极值（例如 0.021985mm），因此相邻单元会以
+// `origin + index + 1` 和 `origin + (index + 1)` 两条浮点路径生成同一节点。
+// 直接拼接 Number 字符串会在几十次累加后出现末位差异，使完整矩形边界在中途
+// 断链并丢掉一侧面板。微米量化只用于拓扑键，不改变最终矢量坐标。
+function gridKey(p: GridPoint): string {
+  return `${Math.round(p.x * 1e6)},${Math.round(p.y * 1e6)}`
+}
 
 function simplifyGridLoop(points: Point2D[]): Point2D[] {
   const out = points.slice()
@@ -1142,7 +1148,7 @@ function filterSlotsForPanel(
  * 所有相位继承原始轮廓的唯一母阵。标准 200×200 外边距仍严格为10mm；
  * 非模数外周优先保证圆孔真正落在相邻长孔中心之间。
  */
-function generateEdgeHoles(
+export function generateEdgeHoles(
   contour: Point2D[], lattice: Pick<BoardBox, 'x' | 'y'>,
   cfg: SplitConfig, slots: HolePos[],
   cutouts: Point2D[][] = [], materialContour: Point2D[] = contour,
@@ -1244,9 +1250,14 @@ function generateEdgeHoles(
     candidates.push(sorted[sorted.length - 1] + pit / 2)
     return candidates
   }
+  const diskInsideMaterial = (hole: HolePos) => {
+    const center = { x: hole.x, y: hole.y }
+    return sweptCircleFitsMaterial(center, center, cfg.jointDiameter / 2,
+      Math.max(0, cfg.holeBoundaryClearance), materialContour, cutouts)
+  }
   const push = (x: number, y: number) => {
     const k = `${Math.round(x * 100) / 100},${Math.round(y * 100) / 100}`
-    if (seen.has(k)) return
+    if (seen.has(k) || !diskInsideMaterial({ x, y })) return
     // 与槽孔冲突: 把胶囊中心线按圆孔半径膨胀后做精确距离判断。
     // 旧代码使用严格小于号, 相切/浮点边界会漏掉, 于是薄盖圆片可能落进长圆孔。
     const expandedR = cfg.slotWidth / 2 + cfg.jointDiameter / 2 + 0.2
@@ -1285,6 +1296,24 @@ function generateEdgeHoles(
     }
   }
   const n = contour.length
+  // Rounded/chamfered corners shorten the straight edge. Project their adjoining
+  // non-axis segments back into its span before applying the nominal edge inset.
+  const outerEdgeSpan = (index: number, horizontal: boolean): [number, number] => {
+    const axis = horizontal ? 'x' : 'y'
+    let min = Math.min(contour[index][axis], contour[(index + 1) % n][axis])
+    let max = Math.max(contour[index][axis], contour[(index + 1) % n][axis])
+    for (const direction of [-1, 1]) {
+      let from = direction < 0 ? index : (index + 1) % n
+      for (let step = 0; step < n - 1; step++) {
+        const to = (from + direction + n) % n
+        const p = contour[from], q = contour[to]
+        if (Math.abs(p.x - q.x) < EPS || Math.abs(p.y - q.y) < EPS) break
+        min = Math.min(min, q[axis]); max = Math.max(max, q[axis])
+        from = to
+      }
+    }
+    return [min, max]
+  }
   for (let i = 0; i < n; i++) {
     const a = contour[i]
     const b = contour[(i + 1) % n]
@@ -1300,7 +1329,7 @@ function generateEdgeHoles(
       // 水平向右=底边, 内法线 +Y; 水平向左=顶边, 内法线 -Y。
       const isBottom = b.x > a.x
       const inward: 1 | -1 = isBottom ? 1 : -1
-      const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x)
+      const [x0, x1] = isOuterEdge ? outerEdgeSpan(i, true) : [Math.min(a.x, b.x), Math.max(a.x, b.x)]
       if (isOuterEdge) {
         const row = nearestHorizontalRow(a.y, x0, x1, inward)
         if (row) {
@@ -1320,7 +1349,7 @@ function generateEdgeHoles(
       // 竖直向上=右边, 内法线 -X; 竖直向下=左边, 内法线 +X。
       const isRight = b.y > a.y
       const inward: 1 | -1 = isRight ? -1 : 1
-      const y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y)
+      const [y0, y1] = isOuterEdge ? outerEdgeSpan(i, false) : [Math.min(a.y, b.y), Math.max(a.y, b.y)]
       if (isOuterEdge) {
         const column = nearestVerticalColumn(a.x, y0, y1, inward)
         if (column) {
@@ -1338,68 +1367,78 @@ function generateEdgeHoles(
       )
     }
   }
-  const diskInsideMaterial = (hole: HolePos) => {
-    const center = { x: hole.x, y: hole.y }
-    return sweptCircleFitsMaterial(
-      center, center,
-      cfg.jointDiameter / 2,
-      Math.max(0, cfg.holeBoundaryClearance),
-      materialContour,
-      cutouts,
-    )
-  }
-  return holes.filter(diskInsideMaterial)
+  return holes
 }
 
 /**
- * 推荐敲落: 只保留【装配体外边界边】端点附近的锚位 (距离 ≤35mm), 内部拼缝不成对。
+ * 默认贯通只由板间接缝端点决定。普通接缝端点两侧各开一个贴近接缝线的孔；
+ * 四板十字交点开两个对角孔。外形孤立角点不自动补孔，保留手动开孔入口。
  */
-function recommendKnockouts(panels: SplitPanel[], cfg: SplitConfig, origPoly: Point2D[]): void {
+export function recommendKnockouts(panels: SplitPanel[], cfg: SplitConfig): void {
   if (!cfg.recommendKnockouts) return
-  const isOutside = (p: Point2D) => !pointInPolygon(p, origPoly)
+  const junctions = new Map<string, Point2D>()
+  const edges = (p: SplitPanel) => panelContour(p).map((a, i, contour) => [a, contour[(i + 1) % contour.length]] as const)
+  const onEdge = (point: Point2D, a: Point2D, b: Point2D) => pointSegmentDistanceSq(point, a, b) <= EPS * EPS
   for (const p of panels) {
-    const contour = panelContour(p)
-    const n = contour.length
-    const ends: Point2D[] = []
-    for (let i = 0; i < n; i++) {
-      const a = contour[i]
-      const b = contour[(i + 1) % n]
-      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
-      // contour 为 CCW, 面板外侧是边行进方向的右法线 (dy, -dx)。
-      // 不能再按整板中心猜测，否则上半部面板的底边、右半部面板的左边会被误判为外边界。
-      const dx = Math.sign(b.x - a.x)
-      const dy = Math.sign(b.y - a.y)
-      const out = { x: mid.x + dy, y: mid.y - dx }
-      if (!isOutside(out)) continue
-      ends.push(a, b)
-    }
-    const ringed: Point2D[] = []
-    for (const c of ends) {
-      if (!ringed.some(q => Math.abs(q.x - c.x) < 0.01 && Math.abs(q.y - c.y) < 0.01)) ringed.push(c)
-    }
-    for (const c of ringed) {
-      let best: HolePos | null = null
-      let bestD = Infinity
-      for (const h of p.edge_holes) {
-        if (h.knocked) continue
-        const d = Math.hypot(h.x - c.x, h.y - c.y)
-        if (d < bestD) { bestD = d; best = h }
-      }
-      if (best && bestD <= 35) best.knocked = true
+    for (const point of panelContour(p)) {
+      junctions.set(`${Math.round(point.x * 1000)},${Math.round(point.y * 1000)}`, point)
     }
   }
-  const PAIR = 29
-  for (let i = 0; i < panels.length; i++) {
-    for (const h of panels[i].edge_holes) {
-      if (!h.knocked) continue
-      for (let j = 0; j < i; j++) {
-        for (const g of panels[j].edge_holes) {
-          if (!g.knocked) continue
-          if (Math.hypot(h.x - g.x, h.y - g.y) < PAIR) { h.knocked = false; break }
-        }
-        if (!h.knocked) break
+  const sharedAxis = (point: Point2D, first: SplitPanel, second: SplitPanel): Array<'H' | 'V'> => {
+    const axes: Array<'H' | 'V'> = []
+    for (const [a, b] of edges(first)) for (const [c, d] of edges(second)) {
+      if (!onEdge(point, a, b) || !onEdge(point, c, d)) continue
+      if (Math.abs(a.x - b.x) <= EPS && Math.abs(c.x - d.x) <= EPS && Math.abs(a.x - c.x) <= EPS &&
+        Math.min(Math.max(a.y, b.y), Math.max(c.y, d.y)) - Math.max(Math.min(a.y, b.y), Math.min(c.y, d.y)) > EPS) {
+        axes.push('V')
+      }
+      if (Math.abs(a.y - b.y) <= EPS && Math.abs(c.y - d.y) <= EPS && Math.abs(a.y - c.y) <= EPS &&
+        Math.min(Math.max(a.x, b.x), Math.max(c.x, d.x)) - Math.max(Math.min(a.x, b.x), Math.min(c.x, d.x)) > EPS) {
+        axes.push('H')
       }
     }
+    return axes
+  }
+  const reach = Math.max(cfg.mx, cfg.my * 2) + Math.max(cfg.jointOffsetX, cfg.jointOffsetY) + cfg.jointDiameter
+  const near = (panel: SplitPanel, point: Point2D) => panel.edge_holes.filter(hole =>
+    Math.hypot(hole.x - point.x, hole.y - point.y) <= reach + EPS)
+  for (const point of junctions.values()) {
+    const incident = panels.filter(panel => edges(panel).some(([a, b]) => onEdge(point, a, b)))
+    if (incident.length < 2) continue
+    const axes = new Set<'H' | 'V'>()
+    for (let i = 0; i < incident.length; i++) for (let j = i + 1; j < incident.length; j++) {
+      for (const axis of sharedAxis(point, incident[i], incident[j])) axes.add(axis)
+    }
+    if (!axes.size) continue
+    const choices: HolePos[] = []
+    if (incident.length === 4 && axes.has('H') && axes.has('V')) {
+      let best: { score: number; key: string; pair: HolePos[] } | null = null
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+        for (const a of near(incident[i], point)) for (const b of near(incident[j], point)) {
+          const ax = a.x - point.x, ay = a.y - point.y
+          const bx = b.x - point.x, by = b.y - point.y
+          if (ax * bx >= 0 || ay * by >= 0) continue
+          const score = Math.hypot(ax, ay) + Math.hypot(bx, by)
+          const key = [a, b].map(h => `${h.x},${h.y}`).sort().join('|')
+          if (!best || score < best.score - EPS || (Math.abs(score - best.score) <= EPS && key < best.key)) {
+            best = { score, key, pair: [a, b] }
+          }
+        }
+      }
+      if (best) choices.push(...best.pair)
+    } else if (incident.length === 2) {
+      const axis = axes.values().next().value
+      for (const panel of incident) {
+        const best = near(panel, point).sort((a, b) => {
+          const perpendicular = (hole: HolePos) => Math.abs(axis === 'V' ? hole.x - point.x : hole.y - point.y)
+          return perpendicular(a) - perpendicular(b) ||
+            Math.hypot(a.x - point.x, a.y - point.y) - Math.hypot(b.x - point.x, b.y - point.y) ||
+            a.x - b.x || a.y - b.y
+        })[0]
+        if (best) choices.push(best)
+      }
+    }
+    for (const choice of choices) choice.knocked = true
   }
 }
 
@@ -1493,13 +1532,18 @@ export function splitOrthogonalPolygon(
   // 内轮廓是真正的板内通孔。外轮廓先负责得到稳定的大板布局；内孔只用于接缝规划，
   // 最终再逐板执行精确布尔差集。这样小孔能完整归属单板，大孔也不会卡死分割器。
   const validHoles: Point2D[][] = []
-  for (const hole of (input.holes ?? []).filter(h => h.length >= 3)) {
-    const hp = normalizeContour(hole, 0.001)
-    if (hp.length < 3) continue
-    const insideCount = hp.filter(p => pointInPolygon(p, poly)).length
-    if (insideCount === hp.length) validHoles.push(hp)
-    else if (insideCount > 0) warnings.push('有内轮廓跨出外轮廓边界，已忽略该无效内孔')
+  const collectHoles = (holes: Point2D[][]) => {
+    for (const hole of holes.filter(h => h.length >= 3)) {
+      const hp = normalizeContour(hole, 0.001)
+      if (hp.length < 3) continue
+      const insideCount = hp.filter(p => pointInPolygon(p, poly)).length
+      if (insideCount === hp.length) validHoles.push(hp)
+      else if (insideCount > 0) warnings.push('有内轮廓跨出外轮廓边界，已忽略该无效内孔')
+    }
   }
+  collectHoles(input.holes ?? [])
+  const planningHoleCount = validHoles.length
+  collectHoles(input.passiveHoles ?? [])
 
   const inputArea = Math.abs(polygonArea(poly)) - validHoles.reduce(
     (sum, hole) => sum + Math.abs(polygonArea(hole)), 0,
@@ -1518,7 +1562,7 @@ export function splitOrthogonalPolygon(
     y1: b.y1 + seamClearance,
   }))
   const protectedHoleIdx = new Set<number>()
-  for (let i = 0; i < expandedHoleBoxes.length; i++) {
+  for (let i = 0; i < planningHoleCount; i++) {
     const b = expandedHoleBoxes[i]
     const w = b.x1 - b.x0, h = b.y1 - b.y0
     if (findRectPrintFitAngle(w, h, cfg) !== null) protectedHoleIdx.add(i)
@@ -1583,7 +1627,9 @@ export function splitOrthogonalPolygon(
     )).length
     if (touched > 1) {
       const b = exactHoleBoxes[i]
-      warnings.push(`内孔 ${Math.round(b.x1 - b.x0)}x${Math.round(b.y1 - b.y0)}mm 已跨 ${touched} 块板精确开孔`)
+      warnings.push(i < planningHoleCount
+        ? `内孔 ${Math.round(b.x1 - b.x0)}x${Math.round(b.y1 - b.y0)}mm 已跨 ${touched} 块板精确开孔`
+        : `结构镂空窗口跨 ${touched} 块板，请更新镂空以避开板缝`)
     }
   }
 
@@ -1591,7 +1637,10 @@ export function splitOrthogonalPolygon(
   // 从根本上避免 136.58/211.90mm 等非模数板件各自重启孔阵造成的错位。
   const latticeOrigin = { x: minX, y: minY }
   const motherGrid = { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
-  const motherSlots = generateSlots(poly, motherGrid, latticeOrigin, cfg, validHoles)
+  // ponytail: source 3MF cap vertices are rounded; 0.1mm tolerance keeps nominal 2mm slot clearance intact.
+  const slotCfg = input.passiveHoles?.length
+    ? { ...cfg, holeBoundaryClearance: Math.max(0, cfg.holeBoundaryClearance - 0.1) } : cfg
+  const motherSlots = generateSlots(poly, motherGrid, latticeOrigin, slotCfg, validHoles)
   const outPanels: SplitPanel[] = []
   for (const piece of pieces) {
     const baseContour = regionContour(piece)
@@ -1629,7 +1678,7 @@ export function splitOrthogonalPolygon(
       const ys = region.contour.map(p => p.y)
       const x = Math.min(...xs), y = Math.min(...ys)
       const w = Math.max(...xs) - x, h = Math.max(...ys) - y
-      const panelSlots = filterSlotsForPanel(motherSlots, region.contour, region.cutouts, cfg)
+      const panelSlots = filterSlotsForPanel(motherSlots, region.contour, region.cutouts, slotCfg)
       const panel: SplitPanel = {
         id: '',
         x, y, w, h,
@@ -1652,6 +1701,7 @@ export function splitOrthogonalPolygon(
   for (let i = 0; i < outPanels.length; i++) outPanels[i].id = `p${i + 1}`
 
   for (const panel of outPanels) {
+    if (input.passiveHoles?.length) continue // rib-scale decorative windows are not board-width defects
     const featureWidth = estimatePanelMinimumFeatureWidth(panel)
     if (featureWidth !== null && featureWidth + EPS < cfg.minFeatureWidth) {
       warnings.push(
@@ -1661,9 +1711,14 @@ export function splitOrthogonalPolygon(
   }
 
   for (const p of outPanels) {
-    p.roundIdx = roundableIndices(p, outPanels, validHoles)
+    // 导入图形的外轮廓已经由源图片/SVG/板型定义；再次把离散斜边的正交台阶
+    // 送进 R8 生成器会产生截图中的三角缺口和错误圆角。只对普通手绘/CAD轮廓
+    // 使用自动板角，且不修改任何分割边或轮廓坐标。
+    p.roundIdx = input.cornerPolicy === 'preserve-source'
+      ? []
+      : roundableIndices(p, outPanels, validHoles)
   }
-  recommendKnockouts(outPanels, cfg, poly)
+  recommendKnockouts(outPanels, cfg)
 
   const coveredArea = outPanels.reduce((s, p) => s + Math.abs(polygonArea(panelContour(p))) -
     (p.cutouts ?? []).reduce((hs, h) => hs + Math.abs(polygonArea(h)), 0), 0)

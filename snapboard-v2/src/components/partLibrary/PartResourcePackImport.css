@@ -1,0 +1,6 @@
+.part-pack-import { display: grid; gap: 10px; margin: 12px 0; padding: 16px; border: 1px solid #38766e; border-radius: 12px; background: #102427; text-align: left; min-width: 0; }
+.part-pack-import > strong { color: #a3f0df; font-size: 14px; }
+.part-pack-import > p, .part-pack-import > small { margin: 0; color: #adbdc8; line-height: 1.6; font-size: 12px; white-space: pre-line; overflow-wrap: anywhere; }
+.part-pack-import > button { padding: 10px 14px; border-radius: 8px; border: 1px solid #60d7c7; background: #22665f; color: #fff; cursor: pointer; }
+.part-pack-import > button:disabled { opacity: .6; cursor: wait; }
+.part-pack-import > p:empty { display: none; }

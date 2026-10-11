@@ -1,0 +1,50 @@
+{
+  "id": "misumi-hfs8",
+  "schemaVersion": 1,
+  "label": "MISUMI HFS8（10 mm 槽）",
+  "kind": "t-slot",
+  "summary": "MISUMI HFS8 大型框架体系；系列数字 8 对应 10 mm 名义槽口。",
+  "status": "planned",
+  "family": "aluminium-profile",
+  "connectorKind": "t-slot",
+  "compatibilityKey": "misumi:hfs8:slot-profile:v1",
+  "systemKey": "misumi-hfs8",
+  "standard": "MISUMI HFS8 manufacturer system",
+  "nominalGeometryMm": { "nominalSlotOpening": 10, "typicalModules": [40, 80] },
+  "grooveSignature": {
+    "system": "misumi",
+    "series": "HFS8",
+    "openingWidthMm": 10,
+    "cavityWidthMm": 20,
+    "cavityDepthMm": 7,
+    "compatibleThreads": ["M4", "M5", "M6", "M8"],
+    "signatureStatus": "verified-2d",
+    "automaticGeometryMatch": true,
+    "manufacturerDimensionsMm": { "slotOpening": 10, "cavityWidth": 20, "cavityDepth": 7, "slotBottomReference": 5.5 }
+  },
+  "supportedInsertModes": ["end-feed", "swivel-in"],
+  "fastenerThreads": ["M4", "M5", "M6", "M8"],
+  "supportedMatingKeys": ["misumi:hfs8:pre-assembly-nut:verified", "misumi:hfs8:post-assembly-nut:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": { "kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-groove", "action": "select-target", "label": "选择 MISUMI HFS8 槽与具体型材料号", "automaticByDefault": false, "stopCondition": "HFS8 体系键和料号已确认", "manualFallback": "手动录入型材与螺母料号" },
+    { "id": "insert-nut", "action": "insert", "label": "按前装/后装类型装入螺母", "automaticByDefault": true, "stopCondition": "螺母进入槽腔且姿态有效", "manualFallback": "切换端部送入或后装旋入" },
+    { "id": "slide-position", "action": "slide-until-stop", "label": "沿槽轴移动到目标位置", "automaticByDefault": true, "stopCondition": "目标轴向坐标满足且区间无冲突", "manualFallback": "沿轴拖动" },
+    { "id": "clamp", "action": "clamp", "label": "支架贴面并夹紧", "automaticByDefault": true, "stopCondition": "贴合与螺纹组合通过检查", "manualFallback": "人工选择螺钉长度与扭矩" }
+  ],
+  "validation": {
+    "geometryChecks": ["MISUMI HFS8 体系键完全匹配", "10/20/7 mm 截面签名匹配", "前装或后装螺母料号正确", "轴向占用区间无冲突"],
+    "requiredMetadata": ["vendorPartNumber", "fastenerPartNumber", "slotAxis", "insertMode"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["MISUMI HFS8 的系列数字不是槽宽；其名义槽宽为 10 mm。", "不得自动匹配 item Line 10 或 Bosch Slot 10。"]
+  },
+  "sources": [
+    { "label": "MISUMI HFS8 official section drawing", "url": "https://us.misumi-ec.com/pdf/fa/2019/2019_US_2766.pdf", "supports": ["HFS8 10/20/7 mm 槽截面", "40/80 mm 模数组"] },
+    { "label": "MISUMI HFS8 fastener table", "url": "https://us.misumi-ec.com/vona2/detail/110310824759/?HissuCode=SL-SHNTC8-8", "supports": ["M4/M5/M6/M8", "10 mm 槽与螺钉长度表"] },
+    { "label": "MISUMI aluminum extrusion Q&A", "url": "https://us.misumi-ec.com/pdf/fa/2010/p2437.pdf", "supports": ["HFS8 为槽宽 10 的大型框架体系", "应用范围"] }
+  ]
+}

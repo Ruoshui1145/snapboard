@@ -1,0 +1,39 @@
+{
+  "id": "wall-adhesive",
+  "schemaVersion": 1,
+  "label": "墙面胶粘底座",
+  "kind": "surface-pad",
+  "summary": "以闭合粘贴 footprint、墙面材质和表面处理记录胶带底座；只校验几何与工艺元数据。",
+  "status": "experimental",
+  "family": "wall",
+  "connectorKind": "surface-plane",
+  "compatibilityKey": "surface-pad:adhesive:qualified-product:v1",
+  "systemKey": "wall-adhesive",
+  "standard": null,
+  "nominalGeometryMm": {"defaultFootprintClearance": 2},
+  "supportedMatingKeys": ["surface-pad:adhesive:product-and-substrate-verified"],
+  "assemblyAxis": "host-normal",
+  "occupancy": {"kind": "surface-footprint", "clearanceMm": 2, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-wall-region", "action": "select-target", "label": "选择墙面有效区域与朝向", "automaticByDefault": false, "stopCondition": "粘贴 footprint 完整落在允许区域", "manualFallback": "移动或旋转底座"},
+    {"id": "qualify-substrate", "action": "verify", "label": "确认具体胶带、墙材、涂层与表面处理", "automaticByDefault": false, "stopCondition": "记录产品料号和厂商允许的基材/工艺", "manualFallback": "保持“待工程确认”状态"},
+    {"id": "align-backing-plane", "action": "align", "label": "底座背面与墙面平行", "automaticByDefault": true, "stopCondition": "平面法向反向共线", "manualFallback": "翻面和法向偏置微调"},
+    {"id": "seat-backing-plane", "action": "translate-until-contact", "label": "沿墙面法向移动至贴面", "automaticByDefault": true, "stopCondition": "背面碰撞代理首次接触", "manualFallback": "手动覆盖贴面距离"},
+    {"id": "apply-product-process", "action": "press", "label": "按具体产品说明清洁、贴合并施压", "automaticByDefault": false, "stopCondition": "用户确认已按料号对应说明完成工艺", "manualFallback": "保存为仅规划、未固定"},
+    {"id": "verify-adhesive-footprint", "action": "verify", "label": "检查 footprint、禁放区和未决风险", "automaticByDefault": true, "stopCondition": "二维区域无冲突且必填工艺元数据完整", "manualFallback": "要求人工复核"}
+  ],
+  "validation": {
+    "geometryChecks": ["接触面闭合且朝向墙面", "footprint 完整落在允许区域", "不进入墙边、接缝、管线等禁放区", "底座和墙面无不可接受穿插"],
+    "requiredMetadata": ["productFamily", "productPartNumber", "footprint", "wallMaterial", "coating", "surfacePreparation", "applicationTemperature", "pressureProcess", "loadCase"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["不得把某一 3M VHB、Command 或其他胶带产品的适用墙材与承载数据推广到整个 adhesive 类别。", "软件输出“几何可贴合/元数据齐全”，不输出通用承重公斤数。", "静载、动载、剪切、剥离、温度和老化需要按具体产品与应用验证。"]
+  },
+  "sources": [
+    {"label": "3M VHB Tape Design Guide", "url": "https://multimedia.3m.com/mws/media/1400379O/3m-vhb-tape-design-guide.pdf?fn=3M-VHB-Tape-Design-Guide_R4.pdf", "supports": ["基材、厚度、应力、温度和表面处理均影响选型", "需要测试真实材料", "施压是工艺的一部分"]},
+    {"label": "3M Applying VHB Tapes", "url": "https://www.3m.com/3M/en_US/vhb-tapes-us/resources/applying-3m-vhb-tapes/", "supports": ["清洁、底涂/打磨与最终施压流程", "应用过程必须按具体系统执行"]},
+    {"label": "3M VHB Surface Preparation Technical Bulletin", "url": "https://multimedia.3m.com/mws/media/66019O/vhb-tm-tape-surface-preparation-technical-bulletin.pdf", "supports": ["材料或涂层变化后应重新评价兼容性", "表面处理要求"]}
+  ]
+}

@@ -1,4 +1,5 @@
 import type { PrintBedKeepout, SplitConfig } from '../types/geometry'
+import { MIN_PRINT_BED_MARGIN_MM } from './printBed'
 
 export interface BambuPrinterPreset {
   id: string
@@ -49,10 +50,10 @@ export function splitConfigForPrinter(id: string): Partial<SplitConfig> {
     printerPreset: preset.id,
     bedW: preset.bedW,
     bedH: preset.bedH,
-    bedMarginLeft: 0,
-    bedMarginRight: 0,
-    bedMarginBottom: 0,
-    bedMarginTop: 0,
+    bedMarginLeft: MIN_PRINT_BED_MARGIN_MM,
+    bedMarginRight: MIN_PRINT_BED_MARGIN_MM,
+    bedMarginBottom: MIN_PRINT_BED_MARGIN_MM,
+    bedMarginTop: MIN_PRINT_BED_MARGIN_MM,
     bedKeepouts: preset.keepouts.map(zone => ({ ...zone })),
   }
 }

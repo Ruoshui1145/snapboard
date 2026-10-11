@@ -17,12 +17,13 @@ export interface RectBounds {
 }
 
 const EPS = 1e-6
+export const MIN_PRINT_BED_MARGIN_MM = 5
 
 export function getPrintBedBounds(cfg: SplitConfig): PrintBedBounds {
-  const minX = Math.max(0, cfg.bedMarginLeft)
-  const minY = Math.max(0, cfg.bedMarginBottom)
-  const maxX = Math.max(minX, cfg.bedW - Math.max(0, cfg.bedMarginRight))
-  const maxY = Math.max(minY, cfg.bedH - Math.max(0, cfg.bedMarginTop))
+  const minX = Math.max(MIN_PRINT_BED_MARGIN_MM, cfg.bedMarginLeft)
+  const minY = Math.max(MIN_PRINT_BED_MARGIN_MM, cfg.bedMarginBottom)
+  const maxX = Math.max(minX, cfg.bedW - Math.max(MIN_PRINT_BED_MARGIN_MM, cfg.bedMarginRight))
+  const maxY = Math.max(minY, cfg.bedH - Math.max(MIN_PRINT_BED_MARGIN_MM, cfg.bedMarginTop))
   return { minX, minY, maxX, maxY, width: maxX - minX, height: maxY - minY }
 }
 

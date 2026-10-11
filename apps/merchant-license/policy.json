@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "accountOnly": false,
+  "localSimulation": false,
+  "controllerUrl": "https://auth.snapboard.cn",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAqZ20VZzmt22b6+g1Rdvq\ncqkClGyvZ3FuSuk7W8JoxMTjgUBcXuu/fn3cdrvsWgNWsJQaSFuQhEoLgI9sLTFg\nZe+4OEFqii+angM0Jn1ysB433FtAq23RTjjsc5lKwQWMNau9QJWDIYFvFJWo3CHN\nqvLhu9WJmX3VAMLvfc6KJhnZA5lDUcP3QUOahs3ViKTOMsmrZz3KKUf/mi/Zof6K\nElfSJtUXqgWi5FbxYr4wptq4/Hq6lg4UcDLiz/lb/4KbLaKo3hj9pBoiDHAB2b+N\n49zVL5AHhYpUUFtX5mssA5cV0BOxzkgz3OdtYnESlaqlpT6UbOLBs31MzEmL3XoD\nf7HOYPHo0bHlPEQhq/C/t5+deWs/y+jM2mINZrsrXs+XqkdDwlj1oCbDubxPFBgF\nQmWqaWgp8gGI2cCAk//Uf1Ru6GnIblki7ku67RHQJZvfhrf6vSCKQGVW6FNx++rF\ni0JBHWPd4vKY2sKaQWXl6QoVrijhajXcSOzxCtVsK8H9AgMBAAE=\n-----END PUBLIC KEY-----\n",
+  "accountOrigin": "https://orders.snapboard.cn"
+}

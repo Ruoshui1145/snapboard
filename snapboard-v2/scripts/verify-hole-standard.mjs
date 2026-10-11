@@ -1,22 +1,6 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-
-const root = process.cwd()
-const outDir = path.join(root, '.tmp-3d-test', 'compiled-hole-standard')
-const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
-execFileSync(process.execPath, [
-  tscPath,
-  '--ignoreConfig',
-  'src/utils/pegboardSplit.ts', 'src/utils/holePattern.ts', 'src/types/geometry.ts',
-  '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
-  '--target', 'es2023', '--skipLibCheck', 'true', '--esModuleInterop', 'true',
-], { cwd: root, stdio: 'inherit' })
-
-const split = await import(`${pathToFileURL(path.join(outDir, 'utils', 'pegboardSplit.js')).href}?t=${Date.now()}`)
-const pattern = await import(`${pathToFileURL(path.join(outDir, 'utils', 'holePattern.js')).href}?t=${Date.now()}`)
+import { checkModule } from './check-module.mjs'
+const [split,pattern]=await Promise.all(['src/utils/pegboardSplit.ts','src/utils/holePattern.ts'].map(checkModule))
 const near = (a, b, tolerance = 1e-4) => Math.abs(a - b) <= tolerance
 
 assert.equal(split.PEGBOARD_DEFAULT_CONFIG.jointDiameter, 5, '用户确认默认圆孔必须为 φ5')
@@ -28,6 +12,8 @@ const result = split.splitOrthogonalPolygon({ points: [
 ] })
 assert.equal(result.panels.length, 1)
 const board = result.panels[0]
+assert.equal(board.edge_holes.filter(hole => hole.knocked).length, 0,
+  '无接缝的单板默认不开孔；外露角由用户从候选孔手动选择')
 const bottomRounds = board.edge_holes.filter(hole => near(hole.y, 10)).map(hole => hole.x).sort((a, b) => a - b)
 assert.deepEqual(bottomRounds, [10, 50, 90, 130, 170], '底边圆孔中心必须严格距底边 10mm')
 const bottomSlots = board.slots.filter(hole => near(hole.y, 10)).map(hole => hole.x).sort((a, b) => a - b)

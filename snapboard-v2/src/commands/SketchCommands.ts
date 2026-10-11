@@ -1,17 +1,32 @@
 // ============ 草图绘制命令 — 所有绘图操作 ============
 import { useAppStore } from '../store/useAppStore'
 import type { Command } from './Command'
-import type { ArcEntity, Constraint, Contour, Point2D, SketchFeature } from '../types/geometry'
-import { remapArcEntity } from '../utils/entities'
-import { getCircleArcSegments, type CircleArcSegment } from '../utils/arc'
+import type {
+  ArcEntity,
+  Constraint,
+  Contour,
+  Point2D,
+  SketchFeature,
+} from '../types/geometry'
+import { createDefaultBoardTexture } from '../utils/boardTexture'
+import {
+  captureRedrawSnapshot,
+  createClearedRedrawPatch,
+  createRestoredRedrawPatch,
+  type RedrawWorkspaceSnapshot,
+} from '../utils/redrawTransaction'
+import { remapArcEntity, standaloneArc } from '../utils/entities'
+import { arcPointAtParameter, getCircleArcSegments, type CircleArcSegment } from '../utils/arc'
+import { planMultiTrim, type EdgeTrimRange } from '../utils/multiTrim'
+import { planClosedMixedArcTrim } from '../utils/mixedArcTrim'
 import { trimClosedEdgeRange, trimOpenEdgeRange, type TrimmedPath } from '../utils/sketchTrim'
 
-let _idCounter = 0
 
 /** 深拷贝轮廓 (撤销/重做安全) */
 function cloneContour(c: Contour): Contour {
   return {
     ...c,
+    source: c.source ? { ...c.source, params: c.source.params ? { ...c.source.params } : undefined } : undefined,
     points: c.points.map(p => ({ ...p })),
     center: c.center ? { ...c.center } : undefined,
     arcs: c.arcs?.map(a => ({ ...a, center: { ...a.center } })),
@@ -19,7 +34,7 @@ function cloneContour(c: Contour): Contour {
   }
 }
 
-const nextId = (prefix: string) => `${prefix}${++_idCounter}`
+const nextId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`
 
 interface TrimContourState {
   points: Point2D[]
@@ -79,26 +94,26 @@ export class CreateContourCommand implements Command {
   private sketchId: string | null = null
 
   constructor(contour: Contour) {
-    this.contour = contour
+    this.contour = cloneContour(contour)
     // 普通折线在创建时若有顶点精确吸附原点，持久记录它；不能只靠“默认固定顶点0”。
-    if (contour.originAnchorIdx === undefined && contour.shape === undefined && !contour.construction) {
+    if (!contour.geometryLocked && contour.originAnchorIdx === undefined && contour.shape === undefined && !contour.construction) {
       const idx = contour.points.findIndex(p => Math.hypot(p.x, p.y) <= 0.25)
-      if (idx >= 0) contour.originAnchorIdx = idx
+      if (idx >= 0) this.contour.originAnchorIdx = idx
     }
   }
 
   execute(): void {
     const s = useAppStore.getState()
-    // 如果没有激活的草图，创建一个
-    if (!s.ui.activeSketchId) {
-      const sketchId = nextId('sketch')
-      const sketch = { id: sketchId, name: '草图 1', type: 'sketch' as const, plane: 'xy' as const, contours: [] }
-      s.project.parts[0]?.features.push(sketch)
-      this.sketchId = sketchId
-      useAppStore.setState({ ui: { ...s.ui, activeSketchId: sketchId } })
+    const sketches = s.project.parts.flatMap(part => part.features).filter(feature => feature.type === 'sketch')
+    // Capture the target once: selection changes must not redirect undo/redo.
+    this.sketchId ??= sketches.find(feature => feature.id === s.ui.activeSketchId)?.id ?? sketches[0]?.id ?? nextId('sketch')
+    let sketch = sketches.find(feature => feature.id === this.sketchId)
+    if (!sketch) {
+      if (!s.project.parts[0]) return
+      sketch = { id: this.sketchId, name: '草图 1', type: 'sketch', plane: 'xy', contours: [] }
+      s.project.parts[0].features.push(sketch)
     }
-    // 添加到当前草图
-    const sketch = s.project.parts[0]?.features.find(f => f.id === (this.sketchId ?? s.ui.activeSketchId))
+    useAppStore.setState({ ui: { ...s.ui, activeSketchId: this.sketchId } })
     if (sketch && sketch.type === 'sketch') {
       sketch.contours.push(this.contour)
     }
@@ -106,7 +121,7 @@ export class CreateContourCommand implements Command {
 
   undo(): void {
     const s = useAppStore.getState()
-    const sketch = s.project.parts[0]?.features.find(f => f.id === (this.sketchId ?? s.ui.activeSketchId))
+    const sketch = s.project.parts.flatMap(part => part.features).find(f => f.id === this.sketchId)
     if (sketch && sketch.type === 'sketch') {
       sketch.contours = sketch.contours.filter(c => c.id !== this.contour.id)
     }
@@ -139,7 +154,7 @@ export class UpdateContourPointsCommand implements Command {
     this.contourId = contourId
     this.oldPoints = oldPoints.map(p => ({ ...p }))
     this.newPoints = newPoints.map(p => ({ ...p }))
-    this.patch = patch ?? null
+    this.patch = patch ? structuredClone(patch) : null
   }
 
   private findContour() {
@@ -157,9 +172,7 @@ export class UpdateContourPointsCommand implements Command {
 
   /** 深拷贝 patch 中的数组字段 (arcs), 保证 undo/redo 之间互不影响 */
   private clonePatchValue(v: unknown): unknown {
-    if (Array.isArray(v)) return v.map(x => ({ ...(x as object) }))
-    if (typeof v === 'object' && v !== null) return { ...(v as object) }
-    return v
+    return structuredClone(v)
   }
 
   execute(): void {
@@ -202,8 +215,9 @@ export class UpdateContourPointsCommand implements Command {
 
 /**
  * 合并开放轮廓命令 (擦除公共边后自动合并, 可撤销):
- * 把同一草图内若干条开放折线替换为一条闭合轮廓 (如两个矩形擦除公共边 → L 型)。
- * 合并结果保留源轮廓的 type/name, 约束置空 (修剪后边索引已失效, 重新标注);
+ * 把同一草图内若干条开放边界替换为一条闭合轮廓
+ * (如两个矩形擦除公共边 → L 型，或开放直线链 + 独立圆弧 → 曲线外轮廓)。
+ * 合并结果保留源轮廓的 type/name 和显式传入的圆弧，约束置空 (修剪后边索引已失效, 重新标注);
  * 源轮廓从草图移除, 合并轮廓追加到草图末尾。
  */
 export class MergeContoursCommand implements Command {
@@ -215,6 +229,7 @@ export class MergeContoursCommand implements Command {
     type: 'outer' | 'inner'
     name: string
     points: Point2D[]
+    arcs?: ArcEntity[]
   }[]
   private before: Contour[] | null = null
   private after: Contour[] | null = null
@@ -227,6 +242,7 @@ export class MergeContoursCommand implements Command {
       type: 'outer' | 'inner'
       name: string
       points: Point2D[]
+      arcs?: ArcEntity[]
     }[],
   ) {
     this.sketchId = sketchId
@@ -252,7 +268,7 @@ export class MergeContoursCommand implements Command {
       points: g.points.map(p => ({ ...p })),
       closed: true,
       constraints: [],
-      arcs: [],
+      arcs: (g.arcs ?? []).map(arc => ({ ...arc, center: { ...arc.center } })),
     }))
     return [...kept, ...merged]
   }
@@ -284,6 +300,13 @@ export class RemoveContourCommand implements Command {
   private contourId: string
   private removed: Contour | null = null
   private sketchId: string | null = null
+  private originalIndex = -1
+  private referencedConstraints: Array<{
+    sketchId: string
+    contourId: string
+    index: number
+    constraint: Constraint
+  }> | null = null
 
   constructor(contourId: string) {
     this.contourId = contourId
@@ -291,12 +314,47 @@ export class RemoveContourCommand implements Command {
 
   execute(): void {
     const s = useAppStore.getState()
+    // 首次执行时同时记录所有从其他轮廓指向目标轮廓的尺寸。孔删除后不能留下悬空标注，
+    // undo 又必须在同一次操作中按原位置完整恢复。
+    if (this.referencedConstraints === null) {
+      this.referencedConstraints = []
+      for (const part of s.project.parts) {
+        for (const f of part.features) {
+          if (f.type !== 'sketch') continue
+          for (const contour of f.contours) {
+            contour.constraints.forEach((constraint, index) => {
+              if (contour.id !== this.contourId && constraint.contourId2 === this.contourId) {
+                this.referencedConstraints!.push({
+                  sketchId: f.id,
+                  contourId: contour.id,
+                  index,
+                  constraint: { ...constraint, labelPos: { ...constraint.labelPos } },
+                })
+              }
+            })
+          }
+        }
+      }
+    }
+    for (const item of this.referencedConstraints) {
+      for (const part of s.project.parts) {
+        const f = part.features.find(feature => feature.id === item.sketchId)
+        if (f?.type !== 'sketch') continue
+        const contour = f.contours.find(candidate => candidate.id === item.contourId)
+        if (contour) {
+          contour.constraints = contour.constraints.filter(constraint => constraint.id !== item.constraint.id)
+        }
+      }
+    }
     for (const part of s.project.parts) {
       for (const f of part.features) {
         if (f.type === 'sketch') {
           const idx = f.contours.findIndex(c => c.id === this.contourId)
           if (idx >= 0) {
-            this.removed = f.contours[idx]
+            if (!this.removed) {
+              this.removed = cloneContour(f.contours[idx])
+              this.originalIndex = idx
+            }
             this.sketchId = f.id
             f.contours.splice(idx, 1)
             return
@@ -311,9 +369,84 @@ export class RemoveContourCommand implements Command {
       const s = useAppStore.getState()
       for (const part of s.project.parts) {
         const f = part.features.find(x => x.id === this.sketchId)
-        if (f?.type === 'sketch') f.contours.push(this.removed)
+        if (f?.type === 'sketch' && !f.contours.some(contour => contour.id === this.contourId)) {
+          const insertAt = Math.max(0, Math.min(this.originalIndex, f.contours.length))
+          f.contours.splice(insertAt, 0, cloneContour(this.removed))
+        }
+      }
+      for (const item of this.referencedConstraints ?? []) {
+        for (const part of s.project.parts) {
+          const f = part.features.find(feature => feature.id === item.sketchId)
+          if (f?.type !== 'sketch') continue
+          const contour = f.contours.find(candidate => candidate.id === item.contourId)
+          if (!contour || contour.constraints.some(constraint => constraint.id === item.constraint.id)) continue
+          const insertAt = Math.max(0, Math.min(item.index, contour.constraints.length))
+          contour.constraints.splice(insertAt, 0, {
+            ...item.constraint,
+            labelPos: { ...item.constraint.labelPos },
+          })
+        }
       }
     }
+  }
+
+  redo(): void {
+    this.execute()
+  }
+}
+
+/**
+ * 一键重画事务。
+ *
+ * 轮廓是分割板、配件吸附、板面纹理和遮挡分析共同依赖的上游数据，不能只把
+ * 2D 数组置空，否则 3D 会留下没有宿主的悬空配件。该命令把当前草图与旧板派生
+ * 状态作为同一次用户操作提交，单次撤销即可恢复整套工作区。
+ *
+ * 保留项：项目元数据、pixelToMM/材料、分割/打印参数、配件资源库、装配宿主与
+ * 连接器定义、遮挡目标模式及绘图工具偏好。清除项只限依附旧几何的数据。
+ */
+export class ClearSketchContoursCommand implements Command {
+  label = '清空设计并重画'
+  private sketchId: string | null
+  private before: RedrawWorkspaceSnapshot<
+    Contour,
+    (ReturnType<typeof useAppStore.getState>)['boards'][number],
+    (ReturnType<typeof useAppStore.getState>)['placedParts'][number],
+    (ReturnType<typeof useAppStore.getState>)['boardTexture'],
+    (ReturnType<typeof useAppStore.getState>)['assemblyScene'],
+    NonNullable<(ReturnType<typeof useAppStore.getState>)['splitResult']>
+  > | null = null
+
+  constructor(sketchId: string | null) {
+    this.sketchId = sketchId
+  }
+
+  private findSketch(): SketchFeature | null {
+    if (!this.sketchId) return null
+    const s = useAppStore.getState()
+    for (const part of s.project.parts) {
+      const feature = part.features.find(item => item.id === this.sketchId)
+      if (feature?.type === 'sketch') return feature
+    }
+    return null
+  }
+
+  execute(): void {
+    const state = useAppStore.getState()
+    const sketch = this.findSketch()
+    if (this.before === null) {
+      this.before = captureRedrawSnapshot(state, sketch?.contours.map(cloneContour) ?? [])
+    }
+    if (sketch) sketch.contours = []
+    useAppStore.setState(createClearedRedrawPatch(state, createDefaultBoardTexture()))
+  }
+
+  undo(): void {
+    const sketch = this.findSketch()
+    if (this.before === null) return
+    if (sketch) sketch.contours = this.before.contours.map(cloneContour)
+    const state = useAppStore.getState()
+    useAppStore.setState(createRestoredRedrawPatch(state, this.before))
   }
 
   redo(): void {
@@ -671,7 +804,7 @@ export class TrimEdgeSegmentCommand implements Command {
 
 /**
  * 开放折线修剪命令：删除内部边时把左右余段拆成两个独立轮廓。
- * 旧实现会直接删掉一个顶点，再把缺口两侧自动连成斜线；这里保留真实拓扑并支持撤销/重做。
+ * 缺口两侧不补连线；修剪结果支持撤销和重做。
  */
 export class TrimOpenEdgeRangeCommand implements Command {
   label = '修剪开放折线'
@@ -751,6 +884,246 @@ export class TrimOpenEdgeRangeCommand implements Command {
 
   redo(): void {
     this.execute()
+  }
+}
+
+/**
+ * 独立圆弧区间修剪：删除 [t1,t2] 弧段，左右余段分别保留为独立圆弧。
+ * 与直线区间修剪相同，命令完整保存原轮廓并支持撤销/重做。
+ */
+export class TrimStandaloneArcRangeCommand implements Command {
+  label = '修剪圆弧区间'
+  private contourId: string
+  private t1: number
+  private t2: number
+  private extraContourId: string
+  private sketchId: string | null = null
+  private originalIndex = -1
+  private before: Contour | null = null
+  private after: Contour[] | null = null
+
+  constructor(contourId: string, t1: number, t2: number, extraContourId: string) {
+    this.contourId = contourId
+    this.t1 = Math.max(0, Math.min(1, Math.min(t1, t2)))
+    this.t2 = Math.max(0, Math.min(1, Math.max(t1, t2)))
+    this.extraContourId = extraContourId
+  }
+
+  private findSketch(): SketchFeature | null {
+    const s = useAppStore.getState()
+    for (const part of s.project.parts) {
+      for (const feature of part.features) {
+        if (feature.type === 'sketch' && (feature.id === this.sketchId || feature.contours.some(c => c.id === this.contourId))) {
+          return feature
+        }
+      }
+    }
+    return null
+  }
+
+  private makeSegment(c: Contour, from: number, to: number, id: string, suffix: string): Contour | null {
+    const arc = standaloneArc(c)
+    if (!arc || to - from <= 1e-6) return null
+    const start = arcPointAtParameter(arc.center, arc.radius, c.points[arc.p1], c.points[arc.p2], arc.sweep, from)
+    const end = arcPointAtParameter(arc.center, arc.radius, c.points[arc.p1], c.points[arc.p2], arc.sweep, to)
+    return {
+      ...cloneContour(c),
+      id,
+      name: suffix ? `${c.name} · ${suffix}` : c.name,
+      points: [start, end],
+      closed: false,
+      constraints: [],
+      arcs: [{
+        ...arc,
+        id: nextId('arc'),
+        p1: 0,
+        p2: 1,
+        center: { ...arc.center },
+      }],
+    }
+  }
+
+  private computeAfter(c: Contour): Contour[] {
+    const segments = [
+      this.makeSegment(c, 0, this.t1, this.contourId, ''),
+      this.makeSegment(c, this.t2, 1, this.extraContourId, '余段'),
+    ].filter((item): item is Contour => item !== null)
+    if (segments.length === 1) segments[0].id = this.contourId
+    return segments
+  }
+
+  execute(): void {
+    const sketch = this.findSketch()
+    if (!sketch) return
+    if (!this.before) {
+      const index = sketch.contours.findIndex(c => c.id === this.contourId)
+      if (index < 0 || !standaloneArc(sketch.contours[index])) return
+      this.sketchId = sketch.id
+      this.originalIndex = index
+      this.before = cloneContour(sketch.contours[index])
+      this.after = this.computeAfter(sketch.contours[index])
+    }
+    const ids = new Set([this.contourId, this.extraContourId])
+    sketch.contours = sketch.contours.filter(c => !ids.has(c.id))
+    const insertAt = Math.max(0, Math.min(this.originalIndex, sketch.contours.length))
+    sketch.contours.splice(insertAt, 0, ...(this.after ?? []).map(cloneContour))
+  }
+
+  undo(): void {
+    const sketch = this.findSketch()
+    if (!sketch || !this.before) return
+    const ids = new Set([this.contourId, this.extraContourId])
+    sketch.contours = sketch.contours.filter(c => !ids.has(c.id))
+    const insertAt = Math.max(0, Math.min(this.originalIndex, sketch.contours.length))
+    sketch.contours.splice(insertAt, 0, cloneContour(this.before))
+  }
+
+  redo(): void {
+    this.execute()
+  }
+}
+
+/** 一次快速擦除手势中的多个直线区间，原子保留全部连通余段。 */
+export class TrimMultipleRangesCommand implements Command {
+  label = '批量修剪多个区间'
+  private contourId: string
+  private ranges: EdgeTrimRange[]
+  private extraContourIds: string[]
+  private sketchId: string | null = null
+  private originalIndex = -1
+  private before: Contour | null = null
+  private after: Contour[] | null = null
+
+  constructor(contourId: string, ranges: EdgeTrimRange[], extraContourIds: string[]) {
+    this.contourId = contourId
+    this.ranges = ranges.map(range => ({ ...range }))
+    this.extraContourIds = [...extraContourIds]
+  }
+
+  private findSketch(): SketchFeature | null {
+    const s = useAppStore.getState()
+    for (const part of s.project.parts) {
+      for (const feature of part.features) {
+        if (feature.type === 'sketch' && (feature.id === this.sketchId || feature.contours.some(c => c.id === this.contourId))) {
+          return feature
+        }
+      }
+    }
+    return null
+  }
+
+  private computeAfter(c: Contour): Contour[] {
+    const plan = planMultiTrim(c.points, c.closed, this.ranges)
+    if (!plan.changed) return [cloneContour(c)]
+    return plan.after.map((path, index) => {
+      const state = stateFromTrimmedPath(c, path)
+      return {
+        ...cloneContour(c),
+        id: index === 0 ? c.id : this.extraContourIds[index - 1] ?? nextId('trim-part'),
+        name: index === 0 ? c.name : `${c.name} · 余段 ${index + 1}`,
+        points: state.points,
+        closed: state.closed,
+        constraints: state.constraints,
+        arcs: state.arcs,
+        originAnchorIdx: state.originAnchorIdx,
+      }
+    })
+  }
+
+  execute(): void {
+    const sketch = this.findSketch()
+    if (!sketch) return
+    if (!this.before) {
+      const index = sketch.contours.findIndex(c => c.id === this.contourId)
+      if (index < 0) return
+      this.sketchId = sketch.id
+      this.originalIndex = index
+      this.before = cloneContour(sketch.contours[index])
+      this.after = this.computeAfter(sketch.contours[index])
+    }
+    const ids = new Set([this.contourId, ...this.extraContourIds, ...(this.after ?? []).map(c => c.id)])
+    sketch.contours = sketch.contours.filter(c => !ids.has(c.id))
+    const insertAt = Math.max(0, Math.min(this.originalIndex, sketch.contours.length))
+    sketch.contours.splice(insertAt, 0, ...(this.after ?? []).map(cloneContour))
+  }
+
+  undo(): void {
+    const sketch = this.findSketch()
+    if (!sketch || !this.before) return
+    const ids = new Set([this.contourId, ...this.extraContourIds, ...(this.after ?? []).map(c => c.id)])
+    sketch.contours = sketch.contours.filter(c => !ids.has(c.id))
+    const insertAt = Math.max(0, Math.min(this.originalIndex, sketch.contours.length))
+    sketch.contours.splice(insertAt, 0, cloneContour(this.before))
+  }
+
+  redo(): void {
+    this.execute()
+  }
+}
+
+/** 闭合混合轮廓中的弧段真实修剪；结果始终打开，绝不补端点直弦。 */
+export class TrimClosedMixedArcRangeCommand implements Command {
+  label = '修剪混合轮廓圆弧'
+  private contourId: string
+  private arcId: string
+  private t1: number
+  private t2: number
+  private before: Contour | null = null
+  private after: Contour | null = null
+
+  constructor(contourId: string, arcId: string, t1: number, t2: number) {
+    this.contourId = contourId
+    this.arcId = arcId
+    this.t1 = t1
+    this.t2 = t2
+  }
+
+  private findContour(): Contour | null {
+    const s = useAppStore.getState()
+    for (const part of s.project.parts) {
+      for (const feature of part.features) {
+        if (feature.type !== 'sketch') continue
+        const contour = feature.contours.find(item => item.id === this.contourId)
+        if (contour) return contour
+      }
+    }
+    return null
+  }
+
+  private apply(state: Contour): void {
+    const contour = this.findContour()
+    if (!contour) return
+    const copy = cloneContour(state)
+    Object.assign(contour, copy)
+  }
+
+  execute(): void {
+    const contour = this.findContour()
+    if (!contour) return
+    if (!this.before) {
+      const plan = planClosedMixedArcTrim(contour, this.arcId, { t1: this.t1, t2: this.t2 })
+      if (!plan) return
+      this.before = cloneContour(plan.before)
+      const component = plan.components[0]
+      this.after = {
+        ...cloneContour(contour),
+        points: component.points.map(point => ({ ...point })),
+        closed: false,
+        arcs: component.arcs.map(arc => ({ ...arc, center: { ...arc.center } })),
+        // 修剪改变了边索引；未建立完整引用重映射前保守清空尺寸，避免悬空约束。
+        constraints: [],
+        originAnchorIdx: component.originAnchorIdx,
+      }
+    }
+    if (this.after) this.apply(this.after)
+  }
+
+  undo(): void {
+    if (this.before) this.apply(this.before)
+  }
+
+  redo(): void {
+    if (this.after) this.apply(this.after)
   }
 }
 
@@ -924,6 +1297,8 @@ export class SplitEdgeCommand implements Command {
     }
     const constraints: Constraint[] = []
     for (const cons of c.constraints) {
+      // 旧整边长度不能落到拆分后的第一小段，否则会把 40mm 子段继续驱动成原 100mm。
+      if (cons.type === 'length' && cons.edgeIndex === k) continue
       constraints.push({ ...cons, edgeIndex: remapE(cons.edgeIndex), edgeIndex2: remapE(cons.edgeIndex2), vertexIdx1: remapV(cons.vertexIdx1), vertexIdx2: remapV(cons.vertexIdx2) })
     }
     const arcs: ArcEntity[] = []

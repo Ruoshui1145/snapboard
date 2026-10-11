@@ -12,7 +12,7 @@ const packFile = path.join(source, 'pack.json')
 const pack = JSON.parse(await fs.readFile(packFile, 'utf8'))
 if (!pack.id || !pack.version) throw new Error('pack.json 缺少 id/version')
 
-const allowed = new Set(['.json', '.md', '.txt', '.3mf', '.stl', '.glb', '.gltf', '.step', '.stp', '.sldprt', '.x_t', '.x_b', '.png', '.jpg', '.jpeg', '.webp'])
+const allowed = new Set(['.json', '.md', '.txt', '.3mf', '.stl', '.glb', '.gltf', '.bin', '.step', '.stp', '.sldprt', '.x_t', '.x_b', '.png', '.jpg', '.jpeg', '.webp'])
 const archive = {}
 async function collect(dir) {
   for (const entry of await fs.readdir(dir, { withFileTypes: true })) {

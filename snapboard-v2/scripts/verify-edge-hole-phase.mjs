@@ -1,21 +1,6 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
-
-const root = process.cwd()
-const outDir = path.join(root, '.tmp-3d-test', 'compiled-edge-hole-phase')
-const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
-execFileSync(process.execPath, [
-  tscPath,
-  '--ignoreConfig',
-  'src/utils/pegboardSplit.ts', 'src/types/geometry.ts',
-  '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
-  '--target', 'es2023', '--skipLibCheck', 'true',
-], { cwd: root, stdio: 'inherit' })
-
-const split = await import(`${pathToFileURL(path.join(outDir, 'utils', 'pegboardSplit.js')).href}?t=${Date.now()}`)
+import { checkModule } from './check-module.mjs'
+const split = await checkModule('src/utils/pegboardSplit.ts')
 const near = (a, b, tolerance = 1e-4) => Math.abs(a - b) <= tolerance
 const rect = (width, height) => [
   { x: 0, y: 0 }, { x: width, y: 0 },
@@ -63,6 +48,18 @@ for (const panel of panels) {
   assert.deepEqual(localKeys(panel.edge_holes, panel), localKeys(standard.edge_holes, standard), `${panel.id} 圆孔未复现 DXF 局部模板`)
 }
 const [bottomLeft, bottomRight, topLeft] = panels
+const openedNear = (result, point, radius = 35) => result.panels.flatMap(panel =>
+  panel.edge_holes.filter(hole => hole.knocked && Math.hypot(hole.x - point.x, hole.y - point.y) < radius)
+    .map(hole => ({ panel: panel.id, x: hole.x, y: hole.y })))
+const cross = openedNear(fourBoard, { x: 200, y: 200 })
+assert.equal(cross.length, 2, '四板十字接缝交点应恰好推荐两个孔')
+assert.notEqual(cross[0].panel, cross[1].panel)
+assert.ok((cross[0].x - 200) * (cross[1].x - 200) < 0 &&
+  (cross[0].y - 200) * (cross[1].y - 200) < 0, '十字交点的两个孔必须对角')
+const seamEnd = openedNear(fourBoard, { x: 200, y: 0 })
+assert.equal(seamEnd.length, 2, '普通接缝在外边界端点应两板各推荐一个孔')
+assert.notEqual(seamEnd[0].panel, seamEnd[1].panel)
+assert.ok(seamEnd.every(hole => Math.abs(hole.x - 200) === 10), '普通竖向接缝孔应贴近接缝线')
 // 水平接缝：下板顶边 B 相、上板底边 A 相，相差 20mm。
 const bottom = bottomLeft
 const top = topLeft
@@ -151,6 +148,14 @@ for (const hole of screenshotOuter.edge_holes) {
   }
 }
 
+const nineByFive = split.splitOrthogonalPolygon({ points: rect(2000, 1000) })
+assert.equal(nineByFive.panels.length, 45, '9×5 分板压力样本应有 45 块板')
+assert.equal(nineByFive.coverageRatio, 1)
+assert.deepEqual(nineByFive.warnings, [])
+const largeCross = openedNear(nineByFive, { x: 240, y: 200 })
+assert.deepEqual(largeCross.map(hole => [hole.x, hole.y]).sort((a, b) => a[0] - b[0]),
+  [[230, 190], [250, 210]], '9×5 内部十字接缝应保留两颗对角孔')
+
 console.log(JSON.stringify({
   standard200: { count: standard.edge_holes.length, holes: coords(standard.edge_holes) },
   fourBoardDxf: { panels: panels.length, slotsPerPanel: 50, circlesPerPanel: 18, diameter: 5 },
@@ -161,4 +166,5 @@ console.log(JSON.stringify({
   motherGrid: { panels: nonModularMother.panels.length, uniqueSlots: slotKeys.size },
   steppedCorners: { panels: stepped.panels.length, minimumCircleSpacing: 20 },
   screenshotOuter: { size: `${screenshotOuter.w}x${screenshotOuter.h}`, holes: screenshotOuter.edge_holes.length },
+  seamRecommendation: { cross, seamEnd, nineByFive: { panels: nineByFive.panels.length, cross: largeCross } },
 }, null, 2))

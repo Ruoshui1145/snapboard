@@ -1,0 +1,38 @@
+{
+  "id": "wall-dual-lock",
+  "schemaVersion": 1,
+  "label": "墙面 Dual Lock 可重复扣合底座",
+  "kind": "surface-pad",
+  "summary": "两片蘑菇头扣件分别与墙面和底座粘接，再沿法向压合；同时记录粘接 footprint 与扣合 footprint。",
+  "status": "experimental",
+  "family": "wall",
+  "connectorKind": "surface-plane",
+  "compatibilityKey": "surface-pad:dual-lock:qualified-pair:v1",
+  "systemKey": "3m-dual-lock-or-qualified-equivalent",
+  "standard": "Manufacturer system; exact stem type and adhesive backing required",
+  "nominalGeometryMm": {"defaultFootprintClearance": 2},
+  "supportedMatingKeys": ["surface-pad:dual-lock:pair-and-substrate-verified"],
+  "assemblyAxis": "host-normal",
+  "occupancy": {"kind": "surface-footprint", "clearanceMm": 2, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-wall-region", "action": "select-target", "label": "选择两片扣件 footprint 对应的墙面区域", "automaticByDefault": false, "stopCondition": "全部 footprint 位于有效区域", "manualFallback": "移动、旋转或缩减方案"},
+    {"id": "verify-dual-lock-pair", "action": "verify", "label": "确认扣件配对、背胶和墙材", "automaticByDefault": false, "stopCondition": "具体扣件料号、配对方式和背胶适用基材均已记录", "manualFallback": "保持待工程确认"},
+    {"id": "align-mating-pads", "action": "align", "label": "两侧扣合面平行且 footprint 重叠", "automaticByDefault": true, "stopCondition": "法向相对且有效扣合区域满足方案", "manualFallback": "平面内移动和旋转微调"},
+    {"id": "engage-dual-lock", "action": "press", "label": "沿法向压合扣件", "automaticByDefault": false, "stopCondition": "用户确认按具体产品要求完成扣合", "manualFallback": "保存为已对齐、未扣合"},
+    {"id": "verify-dual-lock-footprint", "action": "verify", "label": "检查占用、边界、拆装路径与工艺状态", "automaticByDefault": true, "stopCondition": "footprint 无冲突且维护拆卸方向可达", "manualFallback": "要求人工复核"}
+  ],
+  "validation": {
+    "geometryChecks": ["墙侧与零件侧扣件区域一一对应", "两侧扣合面平行", "记录扣合后的法向间距", "拆卸方向与维护空间可达", "墙侧背胶 footprint 不进入禁放区"],
+    "requiredMetadata": ["wallSidePartNumber", "partSidePartNumber", "stemTypes", "adhesiveBackings", "wallMaterial", "footprints", "engagedThickness", "serviceEnvironment", "loadCase"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["Dual Lock 不是单片胶带：必须分别保存墙侧、零件侧和配对关系。", "扣件面积建议、闭合强度与背胶性能依具体产品、基材、环境和安装过程变化。", "几何扣合成功不构成承重、寿命或可重复开合次数承诺。"]
+  },
+  "sources": [
+    {"label": "3M Dual Lock Reclosable Fasteners resources", "url": "https://www.3m.com/3M/en_US/dual-lock-reclosable-fasteners-us/resources/", "supports": ["官方设计资料入口", "需要按应用选择具体扣件"]},
+    {"label": "3M Dual Lock Roll Goods Design Criteria", "url": "https://multimedia.3m.com/mws/media/433941O/dual-lock-reclosable-fasteners-roll-goods-design-criteria.pdf?fn=70070940096.pdf", "supports": ["性能取决于扣件、被粘材料、环境和安装方法", "终端用户必须验证具体用途", "面积仅能按具体设计准则评估"]},
+    {"label": "3M Dual Lock product overview", "url": "https://www.3m.com/3M/en_US/dual-lock-reclosable-fasteners-us/", "supports": ["可重复拆装用途", "不同强度/类型和应用边界"]}
+  ]
+}

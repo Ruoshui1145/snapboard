@@ -1,0 +1,5 @@
+.hole-editor{margin:10px 12px;padding:12px;border:1px solid #46645f;border-radius:12px;background:#20262e;color:#e0e7f2}
+.hole-editor-toggle.is-active{background:#74d7c62a!important;border-color:#74d7c6!important;color:#a7eddf!important}
+.hole-editor button{border:1px solid #4b555f;border-radius:7px;padding:7px 10px;background:#2b3139;color:inherit;cursor:pointer;white-space:nowrap}
+.hole-editor button.is-active{background:#74d7c62a;border-color:#74d7c6;color:#a7eddf}
+.hole-editor-controls{display:grid;gap:7px;font-size:13px}.hole-editor-controls small{color:#b6c4cc}.hole-editor-modes{display:flex;flex-wrap:wrap;gap:5px}.hole-editor-controls p{margin:0;color:#ffc18a}

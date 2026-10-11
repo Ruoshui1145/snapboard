@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://snapboard.local/schema/assembly-host-pack.schema.json",
+  "title": "SnapBoard Assembly Host Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "kind", "id", "name", "version", "author", "license", "hosts"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "assembly-host-pack" },
+    "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "version": { "type": "string", "minLength": 1, "maxLength": 40 },
+    "author": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "license": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "description": { "type": "string", "maxLength": 1000 },
+    "hosts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^hosts/.+/host\\.json$" }
+    }
+  }
+}

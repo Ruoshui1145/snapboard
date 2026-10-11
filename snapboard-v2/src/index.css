@@ -16,6 +16,10 @@
   --aurora-pink: #ef83b1;
   --glass-highlight: rgba(255, 255, 255, 0.055);
   --glass-shadow: 0 22px 60px rgba(0, 0, 0, 0.38);
+  /* 三档统一玻璃语言：覆盖内容的层必须使用 raise，禁止降低不透明度制造透穿。 */
+  --glass-raise: rgba(13, 18, 30, 0.96);
+  --glass-panel: rgba(12, 17, 28, 0.74);
+  --glass-float: rgba(16, 22, 34, 0.9);
   --danger: #ff6b6b;
   --gold: #ffd166;
 

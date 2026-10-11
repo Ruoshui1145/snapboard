@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { PART_CATEGORY_FOLDER, PART_CATEGORY_OPTIONS, type PartCategory, type PartDefinition } from '../../partLibrary/types'
 import { dimensionsLabel, inspectModelFile, type ModelInspection } from '../../utils/modelInspection'
+import { useFileDrop } from '../../hooks/useFileDrop'
 
 const readableSize = (bytes: number) => {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
@@ -10,6 +11,14 @@ const readableSize = (bytes: number) => {
 
 const fileStem = (name: string) => name.replace(/\.[^.]+$/, '')
 const CUSTOM_SUBCATEGORY = '__custom__'
+const chooseUsagePhoto = (files: File[], accept: (file: File) => void, fail: (message: string) => void) => {
+  if (files.length !== 1) { fail('实装照片一次只接收一张'); return }
+  const file = files[0]
+  if (!/^image\/(png|jpeg|webp)$/.test(file.type) && (file.type || !/\.(png|jpe?g|webp)$/i.test(file.name))) {
+    fail('实装照片请使用 PNG、JPG 或 WebP'); return
+  }
+  fail(''); accept(file)
+}
 
 interface FileStatus {
   name: string
@@ -52,6 +61,7 @@ export function PartImportDialog({ files, onClose, onImported, initialCategory =
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [renderNodes, setRenderNodes] = useState<Record<string, string>>({})
+  const usageDrop = useFileDrop(files => chooseUsagePhoto(files, setUsageImageFile, setError), busy, { accept: 'image/png,image/jpeg,image/webp', maxBytes: 10 * 1024 * 1024, onError: setError })
 
   useEffect(() => {
     let alive = true
@@ -293,10 +303,11 @@ export function PartImportDialog({ files, onClose, onImported, initialCategory =
                 onChange={event => setDescription(event.target.value)}
               />
             </label>
-            {single && <label>
+            {single && <label className="file-drop-field" {...usageDrop.dropProps}>
               <span>实装示例图 <i>可选</i></span>
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setUsageImageFile(event.target.files?.[0] ?? null)} />
-              <small>{usageImageFile ? `已选择：${usageImageFile.name}` : '悬停配件缩略图时显示，例如装到宿舍板后的照片。'}</small>
+              <span className="file-drop-prompt"><span className="file-drop-plus" aria-hidden="true">＋</span>点击或拖入照片</span>
+              <input type="file" disabled={busy} accept="image/png,image/jpeg,image/webp" onChange={event => { if (event.target.files?.length) chooseUsagePhoto(Array.from(event.target.files), setUsageImageFile, setError); event.target.value = '' }} />
+              <small>{usageImageFile ? `已选择：${usageImageFile.name}` : '拖入一张实装照片，或点击选择；悬停配件缩略图时显示。'}</small>
             </label>}
           </div>
 
@@ -337,6 +348,7 @@ export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
   const [usageImageFile, setUsageImageFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const usageDrop = useFileDrop(files => chooseUsagePhoto(files, setUsageImageFile, setError), busy, { accept: 'image/png,image/jpeg,image/webp', maxBytes: 10 * 1024 * 1024, onError: setError })
 
   useEffect(() => {
     let alive = true
@@ -517,14 +529,17 @@ export function PartRenameDialog({ part, onClose, onRenamed }: RenameProps) {
             {subcategoryMode === 'custom' && <input value={subcategory} maxLength={40} autoFocus placeholder="输入新的细分文件夹名称" onChange={event => setSubcategory(event.target.value)} />}
             <small>{subcategoryLoading ? '正在读取已有细分文件夹…' : subcategoryMode === 'custom' ? '当前名称不在已有目录中，将按新目录保存。' : '先从已有目录选择；自定义选项固定在最后。'}</small>
           </label>
-          <label className="part-edit-usage-field">
+          <label className="part-edit-usage-field file-drop-field" {...usageDrop.dropProps}>
             <span>实际安装照片 <i>可选</i></span>
+            <span className="file-drop-prompt"><span className="file-drop-plus" aria-hidden="true">＋</span>点击或拖入新照片</span>
             {part.model.usageImage && <img src={`/partLibrary/${part.model.usageImage}`} alt={`${part.name} 当前实装示例`} />}
             <div className="part-edit-usage-actions">
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={event => setUsageImageFile(event.target.files?.[0] ?? null)} />
+              <input type="file" disabled={busy} accept="image/png,image/jpeg,image/webp" onChange={event => { if (event.target.files?.length) chooseUsagePhoto(Array.from(event.target.files), setUsageImageFile, setError); event.target.value = '' }} />
               {part.model.usageImage && <button type="button" className="danger" onClick={() => void removeUsageImage()} disabled={busy}>删除照片</button>}
             </div>
-            <small>{usageImageFile ? `点击“保存信息”替换为：${usageImageFile.name}` : part.model.usageImage ? '可重新选择图片替换，或点击“删除照片”立即移除。' : '添加装到洞洞板后的真实照片，帮助用户理解用途。'}</small>
+            <small>{usageImageFile ? `点击“保存信息”替换为：${usageImageFile.name}` : part.model.usageImage
+              ? '可拖入新照片替换；点击“删除照片”立即移除。'
+              : '拖入一张照片或点击选择；保存信息后生效。'}</small>
           </label>
         </div>
         {error && <div className="part-import-error">{error}</div>}

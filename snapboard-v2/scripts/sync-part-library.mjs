@@ -2,6 +2,33 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { categoryFromDirName } from './part-category-rules.mjs'
 
+const occlusionClasses = new Set(['slim-hook', 'vented-tray', 'floating-shelf', 'narrow-bracket', 'standard'])
+
+const inferOcclusion = (manifest, category, mount) => {
+  const explicit = manifest.occlusion && typeof manifest.occlusion === 'object' ? manifest.occlusion : {}
+  const search = `${manifest.name ?? ''} ${manifest.description ?? ''}`.toLowerCase()
+  let inferredClass = 'standard'
+  if (category === 'hook' || category === 'cable') inferredClass = 'slim-hook'
+  else if (/镂空|网格|通透|vented|mesh/.test(search)) inferredClass = 'vented-tray'
+  else if (category === 'shelf') inferredClass = 'floating-shelf'
+  else if (category === 'bracket' || category === 'fastener') inferredClass = 'narrow-bracket'
+
+  const occlusionClass = occlusionClasses.has(explicit.class) ? explicit.class : inferredClass
+  const defaultVoidRatio = {
+    'slim-hook': 0.7,
+    'vented-tray': 0.45,
+    'floating-shelf': 0.35,
+    'narrow-bracket': 0.45,
+    standard: 0.05,
+  }[occlusionClass]
+  const requestedVoidRatio = Number(explicit.voidRatio)
+  const voidRatio = Number.isFinite(requestedVoidRatio)
+    ? Math.max(0, Math.min(1, requestedVoidRatio))
+    : defaultVoidRatio
+  const mountPoints = typeof mount === 'object' && Array.isArray(mount.anchors) ? mount.anchors.length : 0
+  return { class: occlusionClass, voidRatio, mountPoints }
+}
+
 const root = process.cwd()
 const sourceRoot = path.join(root, '配件资源包')
 const libraryDir = path.join(root, 'public', 'partLibrary')
@@ -253,6 +280,7 @@ for (const entry of await childDirectories(sourceRoot)) {
         warnings.push(`${entry.name}/${path.basename(dir)}: 已忽略不允许的文件 ${file}`)
       }
     }
+    const normalizedMount = inferSlotAxes(manifest.mount ?? { mode: 'free', anchors: [] })
     parts.push({
       id,
       localId,
@@ -283,7 +311,8 @@ for (const entry of await childDirectories(sourceRoot)) {
         ...(copiedUsageImage ? { usageImage: copiedUsageImage } : {}),
         ...(Array.isArray(explicit.previewDirection) && explicit.previewDirection.length === 3 ? { previewDirection: explicit.previewDirection.map(Number) } : {}),
       },
-      mount: inferSlotAxes(manifest.mount ?? { mode: 'free', anchors: [] }),
+      occlusion: inferOcclusion(manifest, manifest.category ?? dirCategory, normalizedMount),
+      mount: normalizedMount,
       defaultRotation: manifest.defaultRotation ?? 0,
       ...(copiedThumbnail ? { thumbnail: copiedThumbnail } : {}),
     })

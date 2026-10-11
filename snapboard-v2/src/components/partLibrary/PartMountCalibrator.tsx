@@ -192,6 +192,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
   const [contactMode, setContactMode] = useState(false)
   const contactModeRef = useRef(false)
   const [contactZ, setContactZ] = useState<number | null>(recoveredInitial.contactZ)
+  const contactZRef = useRef<number | null>(recoveredInitial.contactZ)
   const [contactSource, setContactSource] = useState<'none' | 'auto' | 'manual'>(recoveredInitial.contactZ === null ? 'none' : 'manual')
   const [selectionCommitted, setSelectionCommitted] = useState(false)
   // 5×15 长孔配合约 5 mm 安装柱时，从中心插入到底部的理论行程为 (15-5)/2 = 5 mm。
@@ -214,6 +215,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
   anchorsRef.current = anchors
   holeKindRef.current = holeKind
   contactModeRef.current = contactMode
+  contactZRef.current = contactZ
   orientationRef.current = orientation
 
   const modelPivotWorld = () => {
@@ -225,17 +227,18 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     return pivot
   }
 
-  /** SolidWorks 风格首孔定向：端面法向朝向板面，长孔主轴自动转为竖直。
-   *  长轴无正负之分，因此选择最小的面内转角；上下手性由用户之后显式翻转。 */
-  const autoOrientFirstAnchor = (anchor: PartMountAnchor): { anchor: PartMountAnchor; rotated: boolean; degrees: number } => {
+  /** 完成选孔后的 SolidWorks 风格批量定向：端面法向朝向板面，长孔主轴转为竖直。
+   *  逐个点孔期间绝不能调用它，否则零件和参考板会在用户尚未确认时跳动。 */
+  const autoOrientSelection = (selectedAnchors: PartMountAnchor[]): { anchors: PartMountAnchor[]; rotated: boolean; degrees: number } => {
     const model = modelRef.current
     const node = model?.userData.orientationNode as THREE.Object3D | undefined
-    if (!model || !node || anchorsRef.current.length > 0 || !anchor.normal) return { anchor, rotated: false, degrees: 0 }
-    const normal = new THREE.Vector3(...anchor.normal).normalize()
+    const firstAnchor = selectedAnchors[0]
+    if (!model || !node || !firstAnchor?.normal) return { anchors: selectedAnchors, rotated: false, degrees: 0 }
+    const normal = new THREE.Vector3(...firstAnchor.normal).normalize()
     const normalCorrection = new THREE.Quaternion().setFromUnitVectors(normal, new THREE.Vector3(0, 0, -1))
     let inPlaneAngle = 0
-    if (anchor.accepts.includes('slot') && anchor.profile?.axis) {
-      const detectedAxis = new THREE.Vector3(anchor.profile.axis[0], anchor.profile.axis[1], 0)
+    if (firstAnchor.accepts.includes('slot') && firstAnchor.profile?.axis) {
+      const detectedAxis = new THREE.Vector3(firstAnchor.profile.axis[0], firstAnchor.profile.axis[1], 0)
         .applyQuaternion(normalCorrection)
       const currentAngle = Math.atan2(detectedAxis.y, detectedAxis.x)
       inPlaneAngle = Math.PI / 2 - currentAngle
@@ -246,11 +249,26 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     const inPlaneCorrection = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), inPlaneAngle)
     const correction = inPlaneCorrection.multiply(normalCorrection)
     const correctionAngle = THREE.MathUtils.radToDeg(2 * Math.acos(THREE.MathUtils.clamp(Math.abs(correction.w), -1, 1)))
-    if (correctionAngle < 0.5) return { anchor: { ...anchor, axis: anchor.accepts.includes('slot') ? [0, 1] : anchor.axis }, rotated: false, degrees: 0 }
+    if (correctionAngle < 0.5) {
+      return {
+        anchors: selectedAnchors.map(anchor => anchor.accepts.includes('slot') ? { ...anchor, axis: [0, 1] as [number, number] } : anchor),
+        rotated: false,
+        degrees: 0,
+      }
+    }
 
     const pivot = node.position.clone()
-    const position = new THREE.Vector3(...anchor.position).sub(pivot).applyQuaternion(correction).add(pivot)
-    const correctedNormal = normal.applyQuaternion(correction).normalize()
+    const correctedAnchors = selectedAnchors.map(anchor => {
+      const position = new THREE.Vector3(...anchor.position).sub(pivot).applyQuaternion(correction).add(pivot)
+      const correctedNormal = new THREE.Vector3(...(anchor.normal ?? [0, 0, -1])).applyQuaternion(correction).normalize()
+      return {
+        ...anchor,
+        position: [round3(position.x), round3(position.y), round3(position.z)] as [number, number, number],
+        normal: [round3(correctedNormal.x), round3(correctedNormal.y), round3(correctedNormal.z)] as [number, number, number],
+        axis: anchor.accepts.includes('slot') ? [0, 1] as [number, number] : anchor.axis,
+        profile: anchor.profile ? { ...anchor.profile, ...(anchor.accepts.includes('slot') ? { axis: [0, 1] as [number, number] } : {}) } : undefined,
+      }
+    })
     node.quaternion.premultiply(correction)
     node.updateMatrixWorld(true)
     model.updateMatrixWorld(true)
@@ -266,17 +284,10 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       gizmo.position.copy(center)
       setRotationGizmoAngles(gizmo, nextOrientation)
     }
-    return {
-      anchor: {
-        ...anchor,
-        position: [round3(position.x), round3(position.y), round3(position.z)],
-        normal: [round3(correctedNormal.x), round3(correctedNormal.y), round3(correctedNormal.z)],
-        axis: anchor.accepts.includes('slot') ? [0, 1] : anchor.axis,
-        profile: anchor.profile ? { ...anchor.profile, ...(anchor.accepts.includes('slot') ? { axis: [0, 1] as [number, number] } : {}) } : undefined,
-      },
-      rotated: true,
-      degrees: correctionAngle,
-    }
+    anchorsRef.current = correctedAnchors
+    setAnchors(correctedAnchors)
+    clearVisualPatches()
+    return { anchors: correctedAnchors, rotated: true, degrees: correctionAngle }
   }
 
   const clearVisualPatches = () => {
@@ -437,6 +448,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       simulationPositionRef.current = null
       setSelectionCommitted(false)
       setDetectedSlideY(null)
+      contactZRef.current = null
       setContactZ(null)
       setContactSource('none')
       setSimulationPhase('idle')
@@ -522,6 +534,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
           return
         }
         const nextZ = round3(contactCenter.z)
+        contactZRef.current = nextZ
         setContactZ(nextZ)
         setContactSource('manual')
         setSelectionCommitted(false)
@@ -571,20 +584,12 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       // 标定页面中的正确装配朝向以参考板为准：长孔必须竖直才能插入板孔。
       // 不再从端面三角网格猜测 15°/90° 方向，避免采样误差把整件旋转。
       if (next.accepts[0] === 'slot') next.axis = [0, 1]
-      const autoOrientation = autoOrientFirstAnchor(next)
-      next = autoOrientation.anchor
       simulationPositionRef.current = null
       setDetectedSlideY(null)
       setSelectionCommitted(false)
-      if (autoOrientation.rotated) {
-        setContactZ(null)
-        setContactSource('none')
-        clearVisualPatches()
-      }
       setSimulationPhase('idle')
       setAnchors(current => [...current, next])
-      setMessage(`${autoOrientation.rotated ? `已根据首孔自动转向 ${autoOrientation.degrees.toFixed(1)}°；` : ''}已新增${holeKindRef.current === 'slot' ? '长圆孔' : '圆孔'}锚点${next.profile ? `，代理尺寸 ${next.profile.width}×${next.profile.length} mm` : ''}。继续选择其余孔，完成后再执行装配。`)
-      if (autoOrientation.rotated) return
+      setMessage(`已新增${holeKindRef.current === 'slot' ? '长圆孔' : '圆孔'}锚点${next.profile ? `，代理尺寸 ${next.profile.width}×${next.profile.length} mm` : ''}。当前只记录孔位，不改变零件姿态；选择完毕后再执行自动装配。`)
       const geometry = new THREE.BufferGeometry()
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(patch.triangles, 3))
       const overlay = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
@@ -728,6 +733,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       setAnchors([])
       clearVisualPatches()
     }
+    contactZRef.current = null
     setContactZ(null)
     setContactSource('none')
     setSlideY(5)
@@ -786,11 +792,12 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
   /** 从安装柱端面沿其内法向投射双面三角形射线，寻找最近的贴板平面。 */
   const detectContactFace = (): { z: number; spread: number } | null => {
     const model = modelRef.current
-    if (!model || !anchors.length) return null
+    const activeAnchors = anchorsRef.current
+    if (!model || !activeAnchors.length) return null
     model.updateMatrixWorld(true)
     const rootInverse = model.matrixWorld.clone().invert()
     const hits: number[] = []
-    for (const anchor of anchors) {
+    for (const anchor of activeAnchors) {
       const outward = new THREE.Vector3(...(anchor.normal ?? [0, 0, -1])).normalize()
       const inward = outward.clone().negate()
       const origin = new THREE.Vector3(...anchor.position).addScaledVector(inward, 0.2)
@@ -836,11 +843,24 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
   }
 
   const completeSelection = () => {
-    if (!anchors.length) {
+    let activeAnchors = anchorsRef.current
+    if (!activeAnchors.length) {
       setMessage('请先选择全部长圆孔/圆孔安装柱，再完成孔位。')
       return
     }
-    let resolvedContactZ = contactZ
+    resetSimulation()
+    // 手动接触面意味着用户已经确认了朝向；否则在明确提交后才允许自动转向。
+    const autoOrientation = contactSource === 'manual'
+      ? { anchors: activeAnchors, rotated: false, degrees: 0 }
+      : autoOrientSelection(activeAnchors)
+    activeAnchors = autoOrientation.anchors
+    anchorsRef.current = activeAnchors
+    if (autoOrientation.rotated) {
+      contactZRef.current = null
+      setContactZ(null)
+      setContactSource('none')
+    }
+    let resolvedContactZ = contactZRef.current
     let automatic = false
     if (contactSource !== 'manual' || resolvedContactZ === null) {
       const detected = detectContactFace()
@@ -854,12 +874,14 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       }
       resolvedContactZ = detected.z
       automatic = true
+      contactZRef.current = detected.z
       setContactZ(detected.z)
       setContactSource('auto')
       setContactMode(false)
     }
     setSelectionCommitted(true)
-    setMessage(`孔位选择已完成；${automatic ? `自动识别接触面 z=${resolvedContactZ?.toFixed(2)} mm，` : '使用手动接触面，'}开始单次装配检测。`)
+    setMessage(`孔位选择已完成；${autoOrientation.rotated ? `确认后自动转向 ${autoOrientation.degrees.toFixed(1)}°，` : ''}${automatic ? `自动识别接触面 z=${resolvedContactZ?.toFixed(2)} mm，` : '使用手动接触面，'}开始装配检测。`)
+    if (autoSimulation) window.setTimeout(() => { void runFullSimulation() }, 0)
   }
 
   /** 长轴没有正负方向，自动转向可能留下 180° 手性歧义；此按钮只翻上下，不改变孔距和接触深度。 */
@@ -870,7 +892,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     resetSimulation()
     const correction = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI)
     const pivot = node.position.clone()
-    const flippedAnchors = anchors.map(anchor => {
+    const flippedAnchors = anchorsRef.current.map(anchor => {
       const position = new THREE.Vector3(...anchor.position).sub(pivot).applyQuaternion(correction).add(pivot)
       const normal = new THREE.Vector3(...(anchor.normal ?? [0, 0, -1])).applyQuaternion(correction).normalize()
       return {
@@ -888,11 +910,12 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     orientationRef.current = nextOrientation
     setOrientation(nextOrientation)
     if (rotationGizmoRef.current) setRotationGizmoAngles(rotationGizmoRef.current, nextOrientation)
+    anchorsRef.current = flippedAnchors
     setAnchors(flippedAnchors)
     clearVisualPatches()
-    setSelectionCommitted(false)
+    setSelectionCommitted(true)
     setMessage('已将零件上下翻转 180°，正在按相同孔位重新执行装配检测。')
-    window.setTimeout(() => setSelectionCommitted(true), 0)
+    if (autoSimulation) window.setTimeout(() => { void runFullSimulation() }, 0)
   }
 
   const resetSimulation = () => {
@@ -909,20 +932,23 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     setBoardColliderState('idle')
     setSimulationPhase('idle')
     setSimulationBusy(false)
+    setMessage('已返回标定位置；可继续选择长圆孔、圆孔或接触面。')
   }
 
   const prepareSimulation = () => {
     const model = modelRef.current
     const board = referenceBoardRef.current
-    if (!model || !board || contactZ === null) {
-      setMessage(contactZ === null ? '请先选择接触面，再执行模拟装配。' : '模拟板或模型尚未准备完成。')
+    const activeContactZ = contactZRef.current
+    const activeAnchors = anchorsRef.current
+    if (!model || !board || activeContactZ === null) {
+      setMessage(activeContactZ === null ? '请先选择接触面，再执行模拟装配。' : '模拟板或模型尚未准备完成。')
       return null
     }
-    if (!anchors.length) {
+    if (!activeAnchors.length) {
       setMessage('请先选择至少一个长圆孔或圆孔锚点。')
       return null
     }
-    const normalizedAnchors = anchors.map(anchor => anchor.accepts.includes('slot') ? { ...anchor, axis: [0, 1] as [number, number] } : anchor)
+    const normalizedAnchors = activeAnchors.map(anchor => anchor.accepts.includes('slot') ? { ...anchor, axis: [0, 1] as [number, number] } : anchor)
     const anchorZ = normalizedAnchors.filter(anchor => anchor.required !== false).map(anchor => anchor.position[2])
     const anchorPlaneSpread = anchorZ.length ? Math.max(...anchorZ) - Math.min(...anchorZ) : 0
     if (anchorPlaneSpread > 1) {
@@ -945,7 +971,7 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       }
     })
     const boardCenter = new THREE.Box3().setFromObject(board).getCenter(new THREE.Vector3())
-    const fit = fitPartAnchors(normalizedAnchors, targets, boardCenter, 180, 4, 0, undefined, contactZ, 0)
+    const fit = fitPartAnchors(normalizedAnchors, targets, boardCenter, 180, 4, 0, undefined, activeContactZ, 0)
     if (!fit) {
       setMessage('当前锚点间距无法匹配模拟板孔位；请检查是否选错端面或选了镜像孔组。')
       return null
@@ -993,6 +1019,12 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
     if (!prepared) return
     prepared.locked.copy(prepared.inserted).add(new THREE.Vector3(0, -Math.max(0, prepared.slideDistance), 0))
     setSimulationBusy(true)
+    const model = modelRef.current
+    if (model) {
+      // 每次点击“下滑”都先回到贴面位置，确保动画可以连续重播。
+      model.position.copy(prepared.inserted)
+      model.updateMatrixWorld(true)
+    }
     if (prepared.slideDistance > 0) await animateModelPosition(prepared.locked, 360)
     setSimulationPhase('locked')
     setSimulationBusy(false)
@@ -1037,14 +1069,6 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
       }
     }
   }
-
-  useEffect(() => {
-    if (!autoSimulation || !selectionCommitted || !modelReady || contactZ === null || !anchors.length) return
-    const timer = window.setTimeout(() => { void runFullSimulation() }, 900)
-    return () => window.clearTimeout(timer)
-    // 只有用户明确完成孔位后才播放一次；逐个新增锚点绝不能触发装配动画。
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoSimulation, selectionCommitted, modelReady, contactZ, anchors])
 
   const removeLast = () => {
     simulationPositionRef.current = null
@@ -1119,9 +1143,9 @@ export function PartMountCalibrator({ part, onClose, onSaved }: Props) {
               <h4>1. 标定安装位置</h4>
               <p>选择孔型并点击安装柱端面；最后选择接触面。端面齐全后会自动开始碰撞装配检测。</p>
               <div className="calib-kind">
-                <button className={!contactMode && holeKind === 'slot' ? 'on' : ''} onClick={() => { setContactMode(false); setHoleKind('slot') }}>长圆孔</button>
-                <button className={!contactMode && holeKind === 'round' ? 'on' : ''} onClick={() => { setContactMode(false); setHoleKind('round') }}>圆孔</button>
-                <button className={contactMode ? 'on' : ''} onClick={() => setContactMode(true)}>接触面</button>
+                <button className={!contactMode && holeKind === 'slot' ? 'on' : ''} onClick={() => { resetSimulation(); setSelectionCommitted(false); setContactMode(false); setHoleKind('slot') }}>长圆孔</button>
+                <button className={!contactMode && holeKind === 'round' ? 'on' : ''} onClick={() => { resetSimulation(); setSelectionCommitted(false); setContactMode(false); setHoleKind('round') }}>圆孔</button>
+                <button className={contactMode ? 'on' : ''} onClick={() => { resetSimulation(); setSelectionCommitted(false); setContactMode(true) }}>接触面</button>
               </div>
               <div className="calib-selection-summary">
                 <span className={anchors.length ? 'done' : ''}>孔位 <b>{anchors.length}</b></span>

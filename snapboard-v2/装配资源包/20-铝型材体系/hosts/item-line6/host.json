@@ -1,0 +1,49 @@
+{
+  "id": "item-line6",
+  "schemaVersion": 1,
+  "label": "item Line 6 铝型材槽",
+  "kind": "t-slot",
+  "summary": "item Line 6 厂商体系内的槽螺母定位与夹紧装配。",
+  "status": "planned",
+  "family": "aluminium-profile",
+  "connectorKind": "t-slot",
+  "compatibilityKey": "item:line6:slot-profile:v1",
+  "systemKey": "item-line6",
+  "standard": "item Line 6 manufacturer system",
+  "nominalGeometryMm": { "nominalSlotOpening": 6.2, "typicalModule": 30 },
+  "grooveSignature": {
+    "system": "item",
+    "series": "Line 6",
+    "openingWidthMm": 6.2,
+    "cavityWidthMm": 16.3,
+    "cavityDepthMm": 9.75,
+    "compatibleThreads": ["M4", "M5", "M6"],
+    "signatureStatus": "verified-2d",
+    "automaticGeometryMatch": true,
+    "manufacturerDimensionsMm": { "a": 6.2, "b": 16.3, "c": 9.75, "d": 3, "e": 0.15 }
+  },
+  "supportedInsertModes": ["end-feed", "swivel-in"],
+  "fastenerThreads": ["M4", "M5", "M6"],
+  "supportedMatingKeys": ["item:line6:t-nut:verified", "item:line6:fastener:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": { "kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-groove", "action": "select-target", "label": "选择 item Line 6 槽与具体型材料号", "automaticByDefault": false, "stopCondition": "体系键和料号已确认", "manualFallback": "手动录入型材与紧固件料号" },
+    { "id": "insert-nut", "action": "insert", "label": "按料号从端部送入或原位旋入螺母", "automaticByDefault": true, "stopCondition": "螺母进入槽腔且姿态有效", "manualFallback": "切换插入方式并旋转微调" },
+    { "id": "slide-position", "action": "slide-until-stop", "label": "沿槽轴移动到目标位置", "automaticByDefault": true, "stopCondition": "目标轴向坐标满足且区间无冲突", "manualFallback": "沿轴拖动" },
+    { "id": "clamp", "action": "clamp", "label": "支架贴面并夹紧", "automaticByDefault": true, "stopCondition": "贴合与螺纹组合通过检查", "manualFallback": "手动选择螺母、螺钉和扭矩" }
+  ],
+  "validation": {
+    "geometryChecks": ["item Line 6 体系键完全匹配", "完整槽签名匹配", "螺母料号支持所选插入方式", "轴向占用区间无冲突"],
+    "requiredMetadata": ["vendorPartNumber", "fastenerPartNumber", "slotAxis", "insertMode"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["不得自动匹配 Bosch Slot 6 或 MISUMI HFS5。", "跨系列连接必须使用已验证转接件。"]
+  },
+  "sources": [
+    { "label": "item Technical Data for Profiles", "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf", "supports": ["Line 6 的 a/b/c/d/e 槽尺寸", "槽翼名义载荷"] },
+    { "label": "item T-Slot Nut Zn", "url": "https://www.item24.com/en-us/t-slot-nut-6-zn-m4-bright-zinc-plated-44145", "supports": ["Line 6 螺母与 M4 变体", "系列专用紧固件"] }
+  ]
+}

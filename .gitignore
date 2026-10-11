@@ -27,3 +27,22 @@ vendor/lumina-studio/runtime-reference/
 # Public-facing documentation lives in apps/wiki/ instead.
 商业运营/
 _archive/
+
+# Local signing material and build-only staging
+**/.env
+**/.env.*
+!**/.env.example
+!snapboard-v2/.env.diy
+**/*.pem
+**/*.key
+**/*.pfx
+**/*.p12
+desktop/payload/
+desktop/generated/
+desktop/icon.ico
+release/
+.local/
+
+# Build the public site from source; do not commit stale bundles or imported models.
+apps/wiki/static/design/
+snapboard-v2/public/partLibrary/community-assets/

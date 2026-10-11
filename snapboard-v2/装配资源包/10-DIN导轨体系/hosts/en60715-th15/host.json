@@ -1,0 +1,35 @@
+{
+  "id": "en60715-th15",
+  "schemaVersion": 1,
+  "label": "EN 60715 15 mm 微型帽型导轨",
+  "kind": "rail-clip",
+  "summary": "15 mm 宽、5.5 mm 高的微型帽型导轨，面向小型端子等专用部件。",
+  "status": "planned",
+  "family": "din-rail",
+  "connectorKind": "rail-profile",
+  "compatibilityKey": "en60715:th15-5.5:profile:v1",
+  "systemKey": "en60715-th15",
+  "standard": "EN 60715 miniature top-hat family",
+  "nominalGeometryMm": {"railWidth": 15, "railDepth": 5.5},
+  "supportedMatingKeys": ["en60715:clip:th15-5.5:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": {"kind": "axis-interval", "clearanceMm": 0.3, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-mini-rail-segment", "action": "select-target", "label": "选择微型导轨区段", "automaticByDefault": false, "stopCondition": "区段覆盖连接器宽度", "manualFallback": "沿轴向移动"},
+    {"id": "align-mini-clip", "action": "align", "label": "微型卡扣与导轨截面对齐", "automaticByDefault": true, "stopCondition": "轴向平行且正反方向有效", "manualFallback": "翻转或旋转微调"},
+    {"id": "seat-mini-clip", "action": "insert", "label": "按具体连接器工艺卡入", "automaticByDefault": false, "stopCondition": "锁止特征闭合", "manualFallback": "产品专用手动卡入"},
+    {"id": "verify-mini-profile", "action": "verify", "label": "检查微型截面和轴向占用", "automaticByDefault": true, "stopCondition": "TH15 精确键匹配且区间无冲突", "manualFallback": "拒绝使用 TH35 卡扣"}
+  ],
+  "validation": {
+    "geometryChecks": ["检查 15×5.5 mm 截面", "验证连接器专用于微型导轨", "验证轴向占用和端部余量"],
+    "requiredMetadata": ["vendorPartNumber", "profileDeclaration", "clipFeatures", "occupiedLength"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["15 mm 微型导轨与 35 mm 帽型导轨没有直接连接器互换关系。", "UI 应明确显示“微型 15 mm”，避免把名称 TH15 误读为 15 mm 深 TH35。"]
+  },
+  "sources": [
+    {"label": "Phoenix Contact NS 15 UNPERF 500MM", "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-15-unperf-500mm-1207642", "supports": ["EN 60715 产品声明", "15 mm 宽度", "5.5 mm 深度", "具体料号和材质"]}
+  ]
+}

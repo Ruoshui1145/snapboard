@@ -1,0 +1,101 @@
+{
+  "id": "en60715-th35-7.5",
+  "schemaVersion": 1,
+  "label": "IEC/EN 60715 TH35-7.5 帽型导轨",
+  "kind": "rail-clip",
+  "summary": "35 mm 宽、7.5 mm 高的帽型导轨；上沿挂入、下卡扣旋转锁止，沿轴向占用连续区段。",
+  "status": "experimental",
+  "family": "din-rail",
+  "connectorKind": "rail-profile",
+  "compatibilityKey": "en60715:th35-7.5:profile:v1",
+  "systemKey": "en60715-th35",
+  "standard": "IEC/EN 60715 TH35 family; exact product declaration must be retained",
+  "nominalGeometryMm": {
+    "railWidth": 35,
+    "railDepth": 7.5,
+    "referenceThickness": 1
+  },
+  "supportedMatingKeys": ["en60715:clip:th35-7.5:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": {
+    "kind": "axis-interval",
+    "clearanceMm": 0.5,
+    "collisionPolicy": "reject-overlap"
+  },
+  "recipe": [
+    {
+      "id": "select-rail-segment",
+      "action": "select-target",
+      "label": "选择导轨轴向区段",
+      "automaticByDefault": false,
+      "stopCondition": "可用区段覆盖零件占用长度及两侧余量",
+      "manualFallback": "沿导轨轴拖动到空闲区段"
+    },
+    {
+      "id": "align-upper-hook",
+      "action": "align",
+      "label": "卡扣上钩与导轨上沿对齐",
+      "automaticByDefault": true,
+      "stopCondition": "卡扣轴与导轨轴平行，上钩进入捕获范围",
+      "manualFallback": "翻转朝向或旋转微调"
+    },
+    {
+      "id": "seat-upper-hook",
+      "action": "insert",
+      "label": "先挂入导轨上沿",
+      "automaticByDefault": true,
+      "stopCondition": "上钩接触代理闭合",
+      "manualFallback": "沿宿主法向微调插入深度"
+    },
+    {
+      "id": "snap-lower-latch",
+      "action": "rotate-until-snap",
+      "label": "绕导轨轴旋转至下卡扣锁止",
+      "automaticByDefault": true,
+      "stopCondition": "下卡扣越过下沿并进入锁止状态",
+      "manualFallback": "显示旋转手柄并由用户确认锁止"
+    },
+    {
+      "id": "verify-rail-interval",
+      "action": "verify",
+      "label": "校验截面、区段占用及端部余量",
+      "automaticByDefault": true,
+      "stopCondition": "精确兼容键匹配且轴向区间无冲突",
+      "manualFallback": "拒绝自动锁止并要求选用适配器或其他区段"
+    }
+  ],
+  "validation": {
+    "geometryChecks": [
+      "读取具体料号截面而非仅判断 35 mm 名义宽度",
+      "验证卡扣上钩、下锁扣和背部净空",
+      "验证轴向占用区间和端部余量",
+      "带电气接地语义时额外验证材质、涂层和安装方式"
+    ],
+    "requiredMetadata": ["vendorPartNumber", "profileDeclaration", "upperHook", "lowerLatch", "railAxis", "occupiedLength"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": [
+      "TH35-7.5 与 TH35-15 不能只因宽度同为 35 mm 自动互认。",
+      "软件可校验几何装配，不继承设备厂商的电气、接地或承载认证。"
+    ]
+  },
+  "sources": [
+    {
+      "label": "Phoenix Contact NS 35/7.5 UNPERF 250MM",
+      "url": "https://www.phoenixcontact.com/en-us/products/din-rail-ns-35-75-unperf-250mm-1207647",
+      "supports": ["EN 60715 产品声明", "35 mm 宽度", "7.5 mm 深度"]
+    },
+    {
+      "label": "Schneider Electric TeSys island DIN rail requirements",
+      "url": "https://productinfo.se.com/tesys_island_guides/viewer?docidentity=DINRail-CA57BC61&extension=xml&lang=en&manualidentity=DocumentTypeProductCategoryRangeNam-7CC5D581",
+      "supports": ["IEC 60715 帽型导轨", "35 mm 及 7.5/15 mm 设备适配边界", "宽度、厚度与高度公差示例"]
+    },
+    {
+      "label": "Schneider Electric RM35 installation sheet",
+      "url": "https://download.se.com/files?p_Doc_Ref=S1A19592&p_File_Name=S1A1959200+05.pdf&p_enDocType=Instruction+sheet",
+      "supports": ["先挂入再旋转至 Click 的装配顺序", "工具辅助拆卸"]
+    }
+  ]
+}

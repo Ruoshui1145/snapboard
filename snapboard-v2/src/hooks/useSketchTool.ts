@@ -6,18 +6,22 @@
 // 吸附: 端点/中点/圆心 明显高亮 (金色圆环+十字+标签)
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
+import { formatDimensionInput, parseDimensionInput } from '../utils/dimensionInput'
 import type { ArcEntity, Constraint, Contour, Point2D, Sweep } from '../types/geometry'
 import {
   CreateContourCommand, UpdateContourPointsCommand, AddConstraintCommand,
-  RemoveContourCommand, TrimEdgeCommand, UpdateConstraintCommand,
-  AddArcEntityCommand, RemoveArcEntityCommand, QuickTrimCommand,
+  RemoveContourCommand, RemoveConstraintCommand, TrimEdgeCommand, UpdateConstraintCommand,
+  AddArcEntityCommand,
   SplitEdgeCommand, TrimCircleSegmentsCommand, MergeContoursCommand,
-  TrimEdgeSegmentCommand, TrimOpenEdgeRangeCommand,
+  TrimEdgeSegmentCommand, TrimOpenEdgeRangeCommand, TrimStandaloneArcRangeCommand,
+  TrimMultipleRangesCommand, TrimClosedMixedArcRangeCommand,
 } from '../commands/SketchCommands'
-import { CompositeCommand } from '../commands/Command'
+import { CompositeCommand, type Command } from '../commands/Command'
+import { circleSizeSolveContour, dimensionEditCommand } from '../commands/DimensionEditCommand'
 import {
   solveSketch, p2pDistance, horizontal, vertical, angle,
-  type SolverConstraint,
+  circleDiameter, circleRadius, arcRadius, arcLength as arcLengthConstraint, tangentLineArc,
+  type SolveOpts, type SolveResult, type SolverConstraint,
 } from '../engine/solver'
 import { computeContourState, existingConstraintsToSolver } from '../engine/solveState'
 import { screenToWorld } from '../engine/viewportCamera'
@@ -27,17 +31,42 @@ import {
 } from '../utils/entities'
 import {
   circumcenter, pointAngle, arcPointAt, sweepThrough, normAngle, arcMidAngle, arcSpan,
-  getCircleArcSegments, circleSegmentDistance,
+  getCircleArcSegments, circleSegmentDistance, isLineTangentToArcAt,
+  collectArcIntersectionParams, collectCurveIntersectionParamsOnLine, findArcTrimRange,
 } from '../utils/arc'
 import { offsetClosedPolygon } from '../utils/offset'
-import { mergeOpenChainGroups } from '../utils/contourMerge'
+import { closeOpenChainWithStandaloneArc, mergeOpenChainGroups, mergeOpenContourGeometries } from '../utils/contourMerge'
+import { collinearChainContainingVertices, resolveCollinearEdgeChain, sameCollinearEdgeChain } from '../utils/collinearChain'
+import { extractPlanarFaces } from '../utils/planarFaces'
 import { stableAnchorIndex, withStableAnchor } from '../utils/sketchAnchor'
 import { pointInDimensionLabel } from '../utils/dimensionLabel'
-import { translateContourGeometry } from '../utils/constraintGeometry'
+import {
+  contourDimensionCenter,
+  translateContourCenterToLineDistance,
+  translateContourGeometry,
+} from '../utils/constraintGeometry'
+import {
+  isRegularPolygonContour,
+  polygonReferenceRadiusForCenterEdgeDistance,
+  polygonReferenceRadiusForParallelGap,
+  polygonReferenceRadiusForSide,
+  polygonReferenceRadiusForVertexDistance,
+  regularPolygonConstraintPatch,
+  resizeRegularPolygon,
+} from '../utils/regularPolygon'
 import {
   findCoincidentTrimRanges, findTrimRangeAtPoint,
   type StraightEdgeRef, type TrimRange,
 } from '../utils/sketchTrim'
+import { resolveParametricEraseIntent, slotBoundaryDistance } from '../utils/eraserPolicy'
+import {
+  contourInsideMarquee,
+  isBoxTransformSafe,
+  selectionBounds,
+  transformContourGeometry,
+  type SelectionBounds,
+  type TransformedContourGeometry,
+} from '../utils/selectionTransform'
 
 // ---- 阈值 (屏幕像素; 使用处经 screenToWorld 换算为世界单位) ----
 const SNAP_RADIUS = 8    // 吸附阈值
@@ -49,6 +78,7 @@ const EDGE_SNAP_TOL = 6  // 在线吸附阈值 (落点在已有线上 → 分割
 
 /** 工具操作提示 (画布底部提示条) */
 const TOOL_HINTS: Partial<Record<string, string>> = {
+  select: '点击边选择轮廓 · 空白处按住拖动框选 · 拖框内移动 · 拖角点等比缩放 · 拖顶部圆点旋转',
   line: '点击添加顶点 (画线即实线) · 端点落到已有线上自动分割成端点 · 靠近起点闭合 · 双击结束 · 辅助线模式两点生成辅助线',
   rect: '两点矩形: 对角两点 · 中心矩形: 中心→角点 · 三点矩形: 边两点→拖宽 (工具栏切换)',
   circle: '圆心圆: 圆心→圆周 · 圆周圆(3点): 点三个圆周点 · 完成后点 R 数字可改',
@@ -114,7 +144,7 @@ export interface OffsetPreviewShape {
 
 /** 绘制预览 (橡皮筋): 由 SketchViewport2D 叠加绘制 */
 export interface SketchPreview {
-  kind: 'pen' | 'rect' | 'rectCenter' | 'rect3pt' | 'circle' | 'circle3pt' | 'polygon' | 'slot' | 'drag' | 'arcCenter' | 'arc3pt' | 'eraserHover' | 'eraserSweep' | 'hover' | 'offsetPreview' | 'dimPlace'
+  kind: 'pen' | 'rect' | 'rectCenter' | 'rect3pt' | 'circle' | 'circle3pt' | 'polygon' | 'slot' | 'drag' | 'arcCenter' | 'arc3pt' | 'eraserHover' | 'eraserSweep' | 'hover' | 'offsetPreview' | 'dimPlace' | 'marquee' | 'groupTransform'
   /** 已确认的点 / 拖动时的新点集 */
   points: Point2D[]
   /** 当前鼠标位置 (吸附后) */
@@ -150,10 +180,14 @@ export interface SketchPreview {
   hoverT1?: number
   hoverT2?: number
   /** eraserSweep: 已标记的边 */
-  sweepHits?: { contourId: string; edgeIdx: number }[]
+  sweepHits?: { contourId: string; edgeIdx: number; t1?: number; t2?: number; whole?: boolean }[]
   /** polygon 预览参数 */
   polygonSides?: number
   polygonCircumscribed?: boolean
+  /** 框选或组变换预览。 */
+  selectionStart?: Point2D
+  selectionEnd?: Point2D
+  transformContours?: Array<{ contourId: string; geometry: TransformedContourGeometry }>
 }
 
 interface ToolState {
@@ -164,6 +198,8 @@ interface ToolState {
   slotPts: Point2D[]
   /** 圆弧工具已确认的点 (arcCenter: [圆心,起点] / arc3pt: [起点,终点]) */
   arcPts: Point2D[]
+  /** 圆弧完成时才提交的落边拆点；取消/失败时直接丢弃。 */
+  arcPendingSplits: Array<{ contourId: string; edgeIdx: number; point: Point2D }>
   /** 三点矩形已确认的点 (p1, p2) */
   rectPts: Point2D[]
   /** 三点圆已确认的圆周点 */
@@ -209,16 +245,42 @@ interface ToolState {
   lastPenClick: { x: number; y: number; t: number } | null
 
   /** 快速擦除状态 (path=自由曲线轨迹) */
-  eraser: { sweeping: boolean; startPos: Point2D | null; lastPos: Point2D | null; path: Point2D[]; hits: Map<string, number[]> }
+  eraser: {
+    sweeping: boolean
+    startPos: Point2D | null
+    lastPos: Point2D | null
+    path: Point2D[]
+    hits: Map<string, number[]>
+    /** 每个命中边首次扫过的位置，单边快速擦除复用点擦除的分段语义。 */
+    hitPoints: Map<string, Map<number, Point2D>>
+  }
+  selection: {
+    marquee: {
+      start: Point2D
+      current: Point2D
+      active: boolean
+      timer: number | null
+    } | null
+    transform: {
+      mode: 'move' | 'scale' | 'rotate'
+      start: Point2D
+      current: Point2D
+      bounds: SelectionBounds
+      contours: Contour[]
+      preview: Array<{ contourId: string; geometry: TransformedContourGeometry }>
+    } | null
+  }
   snap: { x: number; y: number; label: string } | null
 }
 
 const newToolState = (): ToolState => ({
-  drawing: false, start: null, penPoints: [], slotPts: [], arcPts: [], rectPts: [], circlePts: [],
+  drawing: false, start: null, penPoints: [], slotPts: [], arcPts: [], arcPendingSplits: [], rectPts: [], circlePts: [],
   offset: null, offsetD: 0, dimPlace: null, pendingEdge: null,
   pendingVertex: null, drag: null, dragEdge: null, dragCircle: null, dragArcEdge: null,
   dragStartPos: null, dragOrig: null, dragNew: null, dragPatch: null, dragged: false,
-  lastPenClick: null, eraser: { sweeping: false, startPos: null, lastPos: null, path: [], hits: new Map() },
+  lastPenClick: null,
+  eraser: { sweeping: false, startPos: null, lastPos: null, path: [], hits: new Map(), hitPoints: new Map() },
+  selection: { marquee: null, transform: null },
   snap: null,
 })
 
@@ -299,8 +361,8 @@ function isOrtho(c: Contour): boolean {
   for (let i = 0; i < total; i++) {
     const a = c.points[i], b = c.points[(i + 1) % n]
     const dx = Math.abs(b.x - a.x), dy = Math.abs(b.y - a.y)
-    // 允许轻微浮点偏差：只要一条轴明显占优，就按正交处理并锁定 H/V
-    if (Math.min(dx, dy) > Math.max(dx, dy) * 0.15) return false
+    // 求解分类只接受数值误差级偏差；屏幕吸附容差不能变成持久化几何约束。
+    if (Math.min(dx, dy) > 1e-7) return false
   }
   return true
 }
@@ -310,7 +372,7 @@ function isClosedGeo(c: Contour): boolean {
   if (c.closed) return true
   const pts = c.points
   if (pts.length < 3) return false
-  return Math.hypot(pts[pts.length - 1].x - pts[0].x, pts[pts.length - 1].y - pts[0].y) < CLOSE_RADIUS
+  return Math.hypot(pts[pts.length - 1].x - pts[0].x, pts[pts.length - 1].y - pts[0].y) <= 1e-7
 }
 
 /**
@@ -319,6 +381,67 @@ function isClosedGeo(c: Contour): boolean {
  *  - 几何闭合判定: 端点重合的"开放"轮廓按闭合求解 (缺闭合边约束正是变梯形的根因)
  *  - 真开放链 (有缺口): 补其它边长度保持约束 → 完全约束, 只动目标边, 不会漂移
  */
+function contourSolveOptions(
+  c: Contour,
+  fixedIndices: number[],
+  closed = isClosedGeo(c),
+): SolveOpts {
+  const standalone = standaloneArc(c) !== null
+  return {
+    // 圆心虚拟点承担平移锚定；圆和独立圆弧若再固定端点，半径尺寸会冲突。
+    fixedIndices: c.shape === 'circle' || standalone ? [] : fixedIndices,
+    closed,
+    ...(c.shape === 'circle' && c.center && c.radius ? { circle: { center: c.center, radius: c.radius } } : {}),
+    ...((c.arcs?.length ?? 0) > 0 ? { arcs: c.arcs } : {}),
+  }
+}
+
+/**
+ * 识别圆角弧两端原本就存在的线—弧切线关系。只有前后两条相邻直线都相切时
+ * 才在半径编辑中加入临时 tangent_la，避免把普通装饰弧强行改造成圆角。
+ */
+function mixedArcTangentStabilizers(c: Contour, arc: ArcEntity): SolverConstraint[] {
+  if (standaloneArc(c) || c.points.length < 3) return []
+  const n = c.points.length
+  const previousEdge = (arc.p1 - 1 + n) % n
+  const nextEdge = arc.p2
+  const edgeExists = (edge: number) => c.closed || (edge >= 0 && edge < n - 1)
+  const candidates = [
+    { edge: previousEdge, shared: arc.p1 },
+    { edge: nextEdge, shared: arc.p2 },
+  ]
+  const tangencies = candidates.flatMap(({ edge, shared }) => {
+    if (!edgeExists(edge) || edgeArc(c, edge)) return []
+    const a = c.points[edge]
+    const b = c.points[(edge + 1) % n]
+    return isLineTangentToArcAt(a, b, arc.center, c.points[shared])
+      ? [tangentLineArc(edge, (edge + 1) % n, arc.id)]
+      : []
+  })
+  return tangencies.length === 2 ? tangencies : []
+}
+
+function arcEndpointTouchCount(c: Contour, edge: number): number {
+  const n = c.points.length
+  const endpoints = new Set([edge, (edge + 1) % n])
+  const touched = new Set<number>()
+  for (const arc of c.arcs ?? []) {
+    if (endpoints.has(arc.p1)) touched.add(arc.p1)
+    if (endpoints.has(arc.p2)) touched.add(arc.p2)
+  }
+  return touched.size
+}
+
+function axisConstraintForEdge(c: Contour, edge: number): SolverConstraint | null {
+  const n = c.points.length
+  const a = c.points[edge]
+  const b = c.points[(edge + 1) % n]
+  const dx = Math.abs(b.x - a.x)
+  const dy = Math.abs(b.y - a.y)
+  if (Math.max(dx, dy) < 1e-6 || Math.min(dx, dy) > 1e-7) return null
+  return dx >= dy ? horizontal(edge, (edge + 1) % n) : vertical(edge, (edge + 1) % n)
+}
+
 async function orthoSolve(
   c: Contour,
   extra: SolverConstraint[],
@@ -329,7 +452,9 @@ async function orthoSolve(
   const n = c.points.length
   const closed = isClosedGeo(c)
   const geom: SolverConstraint[] = []
+  const curvedEdges = new Set((c.arcs ?? []).map(arc => arc.p1))
   for (let i = 0; i < n; i++) {
+    if (curvedEdges.has(i)) continue
     const a = c.points[i], b = c.points[(i + 1) % n]
     const isH = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y)
     geom.push(isH ? horizontal(i, (i + 1) % n) : vertical(i, (i + 1) % n))
@@ -344,7 +469,7 @@ async function orthoSolve(
     }
   }
   geom.push(...existingConstraintsToSolver(c, pixelToMM, replaceId), ...extra)
-  return solveSketch(c.points, geom, { fixedIndices: [stableAnchorIndex(c)], closed })
+  return solveSketch(c.points, geom, contourSolveOptions(c, [stableAnchorIndex(c)], closed))
 }
 
 /** 将一组点尽量“正交化”：每条边按原/当前主轴方向锁成水平或垂直 */
@@ -405,6 +530,11 @@ export { snapOrthogonalPoints, isValidPolygon }
 export function useSketchTool() {
   const activeTool = useAppStore(s => s.ui.activeTool)
   const stateRef = useRef<ToolState>(newToolState())
+  const dimensionSequence = useRef(0)
+  function dimensionTicket() {
+    const project = useAppStore.getState().project, sequence = ++dimensionSequence.current
+    return () => useAppStore.getState().project === project && dimensionSequence.current === sequence
+  }
   const [snapState, setSnapState] = useState<{ x: number; y: number; label: string } | null>(null)
   const [preview, setPreview] = useState<SketchPreview | null>(null)
   const [hint, setHint] = useState<string | null>(null)
@@ -428,13 +558,21 @@ export function useSketchTool() {
     let bd = screenToWorld(HIT_RADIUS)
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           // 无限构造线: 用点到无限直线距离
           if (c.construction && c.infinite && c.points.length >= 2 && !c.closed) {
             const d = distToInfiniteLine(pos, c.points[0], c.points[1])
             if (d < bd) { bd = d; best = { contourId: c.id, edgeIdx: 0 } }
             continue
+          }
+          // 擦除槽口时命中真实胶囊边界。旧逻辑命中中心线，导致用户点在可见边上没有反应。
+          if (s.ui.activeTool === 'eraser') {
+            const slotDistance = slotBoundaryDistance(c, pos)
+            if (slotDistance !== null) {
+              if (slotDistance < bd) { bd = slotDistance; best = { contourId: c.id, edgeIdx: -1 } }
+              continue
+            }
           }
           // 圆: 修剪工具下按“圆与多边形交点拆出的圆弧段”命中; 其他工具仍按整圆
           if (c.shape === 'circle' && c.center && c.radius) {
@@ -476,7 +614,7 @@ export function useSketchTool() {
     let bestD = originD < bd ? originD : bd
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           if (c.shape === 'circle') {
             // 圆: 仅圆心可中心命中
@@ -490,6 +628,7 @@ export function useSketchTool() {
             continue
           }
           const cc = contourCenter(c)
+            ?? (s.ui.activeTool === 'smartdim' && c.type === 'inner' ? contourDimensionCenter(c) : null)
           if (cc) {
             // 独立圆弧/多边形: 中心可命中 (整体平移)
             const d = Math.hypot(pos.x - cc.x, pos.y - cc.y)
@@ -513,7 +652,7 @@ export function useSketchTool() {
     const s = useAppStore.getState()
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           for (let i = 0; i < c.points.length; i++) {
             const p = c.points[i]
@@ -532,7 +671,7 @@ export function useSketchTool() {
     let best: { contourId: string; constraintId: string; distance: number } | null = null
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           for (const cons of c.constraints) {
             if (!cons.labelPos) continue
@@ -559,7 +698,7 @@ export function useSketchTool() {
     if (best) bd = originD
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           // 顶点
           for (const p of c.points) {
@@ -580,6 +719,7 @@ export function useSketchTool() {
           }
           // 圆心/中心 (低优先级: 距离需更近才命中)
           const cc = contourCenter(c)
+            ?? (s.ui.activeTool === 'smartdim' && c.type === 'inner' ? contourDimensionCenter(c) : null)
           if (cc) {
             const d = Math.hypot(pos.x - cc.x, pos.y - cc.y)
             if (d < bd && d < screenToWorld(CENTER_HIT)) {
@@ -601,7 +741,7 @@ export function useSketchTool() {
     let bestD = bd
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         for (const c of f.contours) {
           if (c.shape === 'circle' || c.slotWidth !== undefined || c.construction) continue
           const total = edgeCount(c)
@@ -692,6 +832,19 @@ export function useSketchTool() {
     return { x, y, guides, label }
   }
 
+  /**
+   * 把绘制提交点解析为与预览完全一致的坐标。
+   *
+   * 直接端点/中点吸附优先；没有直接吸附时再采用参考线的单轴对齐结果。
+   * 提交与预览共用吸附和参考线规则，避免落笔后坐标偏移、边界出现细小台阶。
+   */
+  function committedGuidedPoint(anchor: Point2D, pos: Point2D): SnapResult {
+    const snapped = computeSnap(pos)
+    if (snapped.label) return snapped
+    const guided = computeGuides(anchor, pos)
+    return { x: guided.x, y: guided.y, label: guided.label }
+  }
+
   // ---- 求解状态检查 (约束操作后调用): 轮廓状态色 ----
 
   async function checkState(contourId: string) {
@@ -700,6 +853,119 @@ export function useSketchTool() {
     const s = useAppStore.getState()
     const st = await computeContourState(c, s.project.config.pixelToMM)
     s.setUI({ solveStates: { ...s.ui.solveStates, [contourId]: st } })
+  }
+
+  function cloneSelectionContour(contour: Contour): Contour {
+    return {
+      ...contour,
+      points: contour.points.map(point => ({ ...point })),
+      center: contour.center ? { ...contour.center } : undefined,
+      arcs: contour.arcs?.map(arc => ({ ...arc, center: { ...arc.center } })),
+      slotParams: contour.slotParams ? { ...contour.slotParams } : undefined,
+      constraints: contour.constraints.map(constraint => ({
+        ...constraint,
+        labelPos: { ...constraint.labelPos },
+      })),
+      source: contour.source
+        ? { ...contour.source, params: contour.source.params ? { ...contour.source.params } : undefined }
+        : undefined,
+    }
+  }
+
+  function selectedContours(): Contour[] {
+    const s = useAppStore.getState()
+    const ids = s.ui.selectedContourIds.length > 0
+      ? s.ui.selectedContourIds
+      : s.ui.selectedContourId ? [s.ui.selectedContourId] : []
+    return ids.map(findContour).filter((contour): contour is Contour => contour !== null)
+  }
+
+  function selectionBoxHit(pos: Point2D, bounds: SelectionBounds): 'move' | 'scale' | 'rotate' | null {
+    const handleRadius = screenToWorld(11)
+    const rotateHandle = { x: bounds.center.x, y: bounds.minY - screenToWorld(30) }
+    if (Math.hypot(pos.x - rotateHandle.x, pos.y - rotateHandle.y) <= handleRadius) return 'rotate'
+    const corners = [
+      { x: bounds.minX, y: bounds.minY },
+      { x: bounds.maxX, y: bounds.minY },
+      { x: bounds.maxX, y: bounds.maxY },
+      { x: bounds.minX, y: bounds.maxY },
+    ]
+    if (corners.some(corner => Math.hypot(pos.x - corner.x, pos.y - corner.y) <= handleRadius)) return 'scale'
+    if (pos.x >= bounds.minX && pos.x <= bounds.maxX && pos.y >= bounds.minY && pos.y <= bounds.maxY) return 'move'
+    return null
+  }
+
+  function transformSelectionAt(
+    interaction: NonNullable<ToolState['selection']['transform']>,
+    pos: Point2D,
+  ): Array<{ contourId: string; geometry: TransformedContourGeometry }> {
+    let translateX = 0
+    let translateY = 0
+    let scale = 1
+    let rotation = 0
+    if (interaction.mode === 'move') {
+      translateX = pos.x - interaction.start.x
+      translateY = pos.y - interaction.start.y
+    } else if (interaction.mode === 'scale') {
+      const initial = Math.hypot(
+        interaction.start.x - interaction.bounds.center.x,
+        interaction.start.y - interaction.bounds.center.y,
+      )
+      const current = Math.hypot(pos.x - interaction.bounds.center.x, pos.y - interaction.bounds.center.y)
+      scale = Math.max(0.05, Math.min(20, current / Math.max(initial, 1e-9)))
+    } else {
+      const startAngle = Math.atan2(
+        interaction.start.y - interaction.bounds.center.y,
+        interaction.start.x - interaction.bounds.center.x,
+      )
+      const currentAngle = Math.atan2(
+        pos.y - interaction.bounds.center.y,
+        pos.x - interaction.bounds.center.x,
+      )
+      rotation = currentAngle - startAngle
+    }
+    return interaction.contours.map(contour => ({
+      contourId: contour.id,
+      geometry: transformContourGeometry(contour, {
+        center: interaction.bounds.center,
+        translateX,
+        translateY,
+        scale,
+        rotation,
+      }),
+    }))
+  }
+
+  function buildEraserSweepPreviewHits(eraser: ToolState['eraser']): NonNullable<SketchPreview['sweepHits']> {
+    const straightEdges = collectStraightEdges()
+    const wholeContours = new Set<string>()
+    return [...eraser.hits].flatMap(([contourId, edgeIndices]) => edgeIndices.map(edgeIdx => {
+      const contour = findContour(contourId)
+      const point = eraser.hitPoints.get(contourId)?.get(edgeIdx)
+      if (!contour || !point) return { contourId, edgeIdx }
+      if (resolveParametricEraseIntent(contour, edgeIdx) === 'whole-feature') {
+        if (wholeContours.has(contourId)) return null
+        wholeContours.add(contourId)
+        return { contourId, edgeIdx, whole: true }
+      }
+      if (standaloneArc(contour)) {
+        const range = resolveStandaloneArcTrimRange(contour, point)
+        return { contourId, edgeIdx, t1: range.t1, t2: range.t2 }
+      }
+      const mixedArc = edgeArc(contour, edgeIdx)
+      if (contour.closed && mixedArc) {
+        const range = resolveArcEntityTrimRange(contour, mixedArc, point, false)
+        return { contourId, edgeIdx, t1: range.t1, t2: range.t2 }
+      }
+      if (!edgeArc(contour, edgeIdx) && contour.shape === undefined) {
+        const target = straightEdges.find(edge => edge.contourId === contourId && edge.edgeIdx === edgeIdx)
+        if (target) {
+          const range = resolveTrimRange(target, point, straightEdges)
+          return { contourId, edgeIdx, t1: range.t1, t2: range.t2 }
+        }
+      }
+      return { contourId, edgeIdx }
+    }).filter((hit): hit is NonNullable<typeof hit> => hit !== null))
   }
 
   // ---- 鼠标按下: select 拖动检测 / 快速擦除 ----
@@ -711,16 +977,73 @@ export function useSketchTool() {
 
     // 快速擦除: 开始扫线
     if (s.ui.activeTool === 'eraser' && s.ui.eraserMode === 'sweep') {
-      st.eraser = { sweeping: true, startPos: pos, lastPos: pos, path: [{ ...pos }], hits: new Map() }
+      st.eraser = {
+        sweeping: true,
+        startPos: pos,
+        lastPos: pos,
+        path: [{ ...pos }],
+        hits: new Map(),
+        hitPoints: new Map(),
+      }
       const hit = hitTest(pos)
-      if (hit) st.eraser.hits.set(hit.contourId, [hit.edgeIdx])
+      if (hit) {
+        st.eraser.hits.set(hit.contourId, [hit.edgeIdx])
+        st.eraser.hitPoints.set(hit.contourId, new Map([[hit.edgeIdx, { ...pos }]]))
+      }
       setPreview({
         kind: 'eraserSweep', points: [{ ...pos }], current: pos, snapPos: null,
-        sweepHits: [...st.eraser.hits].flatMap(([cid, es]) => es.map(e => ({ contourId: cid, edgeIdx: e }))),
+        sweepHits: buildEraserSweepPreviewHits(st.eraser),
       })
       return
     }
     if (s.ui.activeTool !== 'select') return
+
+    const selected = selectedContours()
+    const bounds = selectionBounds(selected)
+    const boxMode = bounds ? selectionBoxHit(pos, bounds) : null
+    const geometryHit = hitTest(pos) ?? vertexHit(pos)
+    if (geometryHit && findContour(geometryHit.contourId)?.geometryLocked) {
+      s.setUI({ selectedContourId: geometryHit.contourId })
+      setHint('CAD 几何已锁定，仅可修改轮廓用途')
+      return
+    }
+    if (bounds && boxMode && (boxMode !== 'move' || !geometryHit)) {
+      if (selected.some(contour => !isBoxTransformSafe(contour))) {
+        setHint('该选择组包含驱动尺寸或构造几何；请先解除约束，再使用包围框移动、缩放或旋转')
+        return
+      }
+      const interaction: NonNullable<ToolState['selection']['transform']> = {
+        mode: boxMode,
+        start: { ...pos },
+        current: { ...pos },
+        bounds,
+        contours: selected.map(cloneSelectionContour),
+        preview: [],
+      }
+      interaction.preview = transformSelectionAt(interaction, pos)
+      st.selection.transform = interaction
+      setPreview({
+        kind: 'groupTransform', points: [], current: pos, snapPos: null,
+        transformContours: interaction.preview,
+      })
+      return
+    }
+
+    if (!geometryHit) {
+      const marquee: NonNullable<ToolState['selection']['marquee']> = {
+        start: { ...pos }, current: { ...pos }, active: false, timer: null,
+      }
+      marquee.timer = window.setTimeout(() => {
+        if (stateRef.current.selection.marquee !== marquee) return
+        marquee.active = true
+        setPreview({
+          kind: 'marquee', points: [], current: marquee.current, snapPos: null,
+          selectionStart: marquee.start, selectionEnd: marquee.current,
+        })
+      }, 240)
+      st.selection.marquee = marquee
+      return
+    }
 
     // 顶点/圆心命中 → 顶点拖动
     const vh = vertexHit(pos)
@@ -769,6 +1092,37 @@ export function useSketchTool() {
     const st = stateRef.current
     const s = useAppStore.getState()
 
+    if (st.selection.transform) {
+      const interaction = st.selection.transform
+      interaction.current = { ...pos }
+      interaction.preview = transformSelectionAt(interaction, pos)
+      if (Math.hypot(pos.x - interaction.start.x, pos.y - interaction.start.y) > screenToWorld(2)) {
+        st.dragged = true
+      }
+      setPreview({
+        kind: 'groupTransform', points: [], current: pos, snapPos: null,
+        transformContours: interaction.preview,
+      })
+      return
+    }
+
+    if (st.selection.marquee) {
+      const marquee = st.selection.marquee
+      marquee.current = { ...pos }
+      if (!marquee.active && Math.hypot(pos.x - marquee.start.x, pos.y - marquee.start.y) > screenToWorld(4)) {
+        marquee.active = true
+        if (marquee.timer !== null) window.clearTimeout(marquee.timer)
+        marquee.timer = null
+      }
+      if (marquee.active) {
+        setPreview({
+          kind: 'marquee', points: [], current: pos, snapPos: null,
+          selectionStart: marquee.start, selectionEnd: marquee.current,
+        })
+      }
+      return
+    }
+
     // 悬停约束标注 (所有工具生效): 高亮 + 手型光标 + 点击改值
     setHoverConstraint(constraintHit(pos))
 
@@ -788,13 +1142,19 @@ export function useSketchTool() {
             const arr = st.eraser.hits.get(hit.contourId)
             if (arr) { if (!arr.includes(hit.edgeIdx)) arr.push(hit.edgeIdx) }
             else st.eraser.hits.set(hit.contourId, [hit.edgeIdx])
+            const points = st.eraser.hitPoints.get(hit.contourId)
+            if (points) {
+              if (!points.has(hit.edgeIdx)) points.set(hit.edgeIdx, { ...sp })
+            } else {
+              st.eraser.hitPoints.set(hit.contourId, new Map([[hit.edgeIdx, { ...sp }]]))
+            }
           }
         }
         st.eraser.lastPos = pos
       }
       setPreview({
         kind: 'eraserSweep', points: st.eraser.path.map(p => ({ ...p })), current: pos, snapPos: null,
-        sweepHits: [...st.eraser.hits].flatMap(([cid, es]) => es.map(e => ({ contourId: cid, edgeIdx: e }))),
+        sweepHits: buildEraserSweepPreviewHits(st.eraser),
       })
       return
     }
@@ -807,7 +1167,28 @@ export function useSketchTool() {
         return
       }
       const contour = findContour(hit.contourId)
-      if (contour && hit.edgeIdx >= 0 && !edgeArc(contour, hit.edgeIdx) && contour.shape === undefined) {
+      const standalone = contour ? standaloneArc(contour) : null
+      if (contour && resolveParametricEraseIntent(contour, hit.edgeIdx) === 'whole-feature') {
+        setPreview({
+          kind: 'eraserHover', points: [], current: pos, snapPos: null,
+          hoverContourId: hit.contourId, hoverEdgeIdx: hit.edgeIdx, hoverWhole: true,
+        })
+      } else if (contour && standalone) {
+        const range = resolveStandaloneArcTrimRange(contour, pos)
+        setPreview({
+          kind: 'eraserHover', points: [], current: pos, snapPos: null,
+          hoverContourId: hit.contourId, hoverEdgeIdx: standalone.p1,
+          hoverT1: range.t1, hoverT2: range.t2,
+        })
+      } else if (contour && contour.closed && hit.edgeIdx >= 0 && edgeArc(contour, hit.edgeIdx)) {
+        const arc = edgeArc(contour, hit.edgeIdx)!
+        const range = resolveArcEntityTrimRange(contour, arc, pos, false)
+        setPreview({
+          kind: 'eraserHover', points: [], current: pos, snapPos: null,
+          hoverContourId: hit.contourId, hoverEdgeIdx: hit.edgeIdx,
+          hoverT1: range.t1, hoverT2: range.t2,
+        })
+      } else if (contour && hit.edgeIdx >= 0 && !edgeArc(contour, hit.edgeIdx) && contour.shape === undefined) {
         const edges = collectStraightEdges()
         const target = edges.find(edge => edge.contourId === hit.contourId && edge.edgeIdx === hit.edgeIdx)
         const range = target ? resolveTrimRange(target, pos, edges) : null
@@ -993,7 +1374,7 @@ export function useSketchTool() {
           const vc = findContour(vh.contourId)
           const p = vh.vertexIdx === -3
             ? { x: 0, y: 0 }
-            : vc ? (vh.vertexIdx === -2 ? contourCenter(vc) : vc.points[vh.vertexIdx]) : null
+            : vc ? (vh.vertexIdx === -2 ? contourDimensionCenter(vc) : vc.points[vh.vertexIdx]) : null
           if (p) {
             const lbl = vh.vertexIdx === -3 ? '固定原点' : vh.vertexIdx === -2 ? (vc?.shape === 'polygon' ? '中心' : '圆心') : '端点'
             setPreview({ kind: 'hover', points: [], current: pos, snapPos: p, snapLabel: lbl })
@@ -1153,6 +1534,59 @@ export function useSketchTool() {
 
   const handleUp = useCallback(() => {
     const st = stateRef.current
+    if (st.selection.transform) {
+      const interaction = st.selection.transform
+      st.selection.transform = null
+      setPreview(null)
+      const moved = Math.hypot(
+        interaction.current.x - interaction.start.x,
+        interaction.current.y - interaction.start.y,
+      ) > screenToWorld(1)
+      st.dragged = true
+      if (!moved) return
+      const commands = interaction.contours.flatMap(contour => {
+        const transformed = interaction.preview.find(item => item.contourId === contour.id)?.geometry
+        return transformed
+          ? [new UpdateContourPointsCommand(contour.id, contour.points, transformed.points, transformed.patch)]
+          : []
+      })
+      if (commands.length > 0) {
+        const label = interaction.mode === 'move'
+          ? '移动选择组'
+          : interaction.mode === 'scale' ? '缩放选择组' : '旋转选择组'
+        useAppStore.getState().execute(new CompositeCommand(label, commands))
+        useAppStore.getState().setUI({ selectedContourIds: interaction.contours.map(contour => contour.id) })
+        if (interaction.mode !== 'move') {
+          window.dispatchEvent(new CustomEvent('snapboard:fit-active-sketch'))
+        }
+      }
+      return
+    }
+
+    if (st.selection.marquee) {
+      const marquee = st.selection.marquee
+      if (marquee.timer !== null) window.clearTimeout(marquee.timer)
+      st.selection.marquee = null
+      setPreview(null)
+      if (marquee.active) {
+        const s = useAppStore.getState()
+        const sketch = s.project.parts
+          .flatMap(part => part.features)
+          .find(feature => feature.type === 'sketch' && feature.id === s.ui.activeSketchId)
+        const ids = sketch?.type === 'sketch'
+          ? sketch.contours
+              .filter(contour => !contour.construction && !contour.infinite)
+              .filter(contour => contourInsideMarquee(contour, marquee.start, marquee.current))
+              .map(contour => contour.id)
+          : []
+        s.setUI({ selectedContourIds: ids, selectedConstraintId: null })
+        st.dragged = true
+        setHint(ids.length > 0
+          ? `已框选 ${ids.length} 个轮廓：拖框内移动，拖角点等比缩放，拖顶部圆点旋转`
+          : '框选范围内没有完整轮廓')
+        return
+      }
+    }
     // 快速擦除提交
     if (st.eraser.sweeping) {
       commitEraserSweep()
@@ -1217,16 +1651,41 @@ export function useSketchTool() {
   function commitEraserSweep() {
     const st = stateRef.current
     const hits = st.eraser.hits
-    st.eraser = { sweeping: false, startPos: null, lastPos: null, path: [], hits: new Map() }
+    const hitPoints = st.eraser.hitPoints
+    st.eraser = {
+      sweeping: false,
+      startPos: null,
+      lastPos: null,
+      path: [],
+      hits: new Map(),
+      hitPoints: new Map(),
+    }
     setPreview(null)
     if (!hits.size) return
     const s = useAppStore.getState()
+    let needsAutoMerge = false
     for (const [contourId, edges] of hits) {
       const c = findContour(contourId)
-      if (!c) continue
-      // 圆/槽口/独立弧/全删 → 整轮廓删除
-      if (edges.includes(-1) || c.slotWidth !== undefined || standaloneArc(c) !== null) {
+      if (!c || c.geometryLocked) continue
+      // 统一策略决定整特征删除；被交点切开的圆会继续进入下方的圆弧段修剪。
+      if (resolveParametricEraseIntent(c, edges[0] ?? -1) === 'whole-feature') {
         removeContour(contourId)
+        continue
+      }
+      // 圆/槽口/全删 → 整轮廓删除
+      if (edges.includes(-1) || c.slotWidth !== undefined) {
+        removeContour(contourId)
+        continue
+      }
+      const standalone = standaloneArc(c)
+      if (standalone) {
+        const point = hitPoints.get(contourId)?.get(standalone.p1)
+        const range = point ? resolveStandaloneArcTrimRange(c, point) : { t1: 0, t2: 1 }
+        const fullArc = range.t1 <= 1e-6 && range.t2 >= 1 - 1e-6
+        if (fullArc) removeContour(contourId)
+        else s.execute(new TrimStandaloneArcRangeCommand(contourId, range.t1, range.t2, newContourId()))
+        if (!fullArc) needsAutoMerge = true
+        checkState(contourId)
         continue
       }
         // 被多边形切割的圆: 只删除扫过的圆弧段, 保留其余段
@@ -1236,29 +1695,51 @@ export function useSketchTool() {
             removeContour(contourId)
           } else {
             s.execute(new TrimCircleSegmentsCommand(contourId, segIndices))
+            needsAutoMerge = true
           }
           checkState(contourId)
           continue
         }
-      // 弧边 → 退回直边; 直边 → 收集批量修剪
-      const lineEdges: number[] = []
-      for (const e of edges) {
-        const arc = edgeArc(c, e)
-        if (arc) s.execute(new RemoveArcEntityCommand(contourId, arc.id))
-        else lineEdges.push(e)
+      const arcEdges = edges.filter(edge => edgeArc(c, edge))
+      if (arcEdges.length > 0) {
+        if (arcEdges.length !== 1 || edges.length !== 1 || !c.closed) {
+          setHint('一次快速擦除同时命中圆弧和其它边时不会冒险改写拓扑，请分次擦除')
+          continue
+        }
+        const edgeIdx = arcEdges[0]
+        const arc = edgeArc(c, edgeIdx)!
+        const point = hitPoints.get(contourId)?.get(edgeIdx)
+        const range = point ? resolveArcEntityTrimRange(c, arc, point, false) : { t1: 0, t2: 1 }
+        s.execute(new TrimClosedMixedArcRangeCommand(c.id, arc.id, range.t1, range.t2))
+        needsAutoMerge = true
+        checkState(contourId)
+        continue
       }
+      const lineEdges = [...edges]
       if (lineEdges.length) {
         const total = edgeCount(c)
-        if (lineEdges.length >= total || c.points.length <= 3) {
+        if (lineEdges.length >= total) {
           removeContour(contourId)
         } else {
-          s.execute(new QuickTrimCommand(contourId, lineEdges))
+          const edgesSnapshot = collectStraightEdges()
+          const ranges = lineEdges.flatMap(edgeIdx => {
+            const target = edgesSnapshot.find(edge => edge.contourId === contourId && edge.edgeIdx === edgeIdx)
+            const point = hitPoints.get(contourId)?.get(edgeIdx)
+            if (!target || !point) return []
+            const range = resolveTrimRange(target, point, edgesSnapshot)
+            return [{ edgeIdx, t1: range.t1, t2: range.t2 }]
+          })
+          if (ranges.length > 0) {
+            const extraIds = Array.from({ length: ranges.length + 1 }, () => newContourId())
+            s.execute(new TrimMultipleRangesCommand(contourId, ranges, extraIds))
+            needsAutoMerge = true
+          }
         }
       }
       checkState(contourId)
     }
     // 擦除后: 端点相接的开放链自动合并 (L 型等)
-    autoMergeOpenContours()
+    if (needsAutoMerge) autoMergeOpenContours()
   }
 
   // ---- 删除轮廓并清理选中 (修复: 修剪/删除后选中残留) ----
@@ -1266,8 +1747,16 @@ export function useSketchTool() {
   function removeContour(contourId: string) {
     const s = useAppStore.getState()
     s.execute(new RemoveContourCommand(contourId))
-    if (s.ui.selectedContourId === contourId) {
-      s.setUI({ selectedContourId: null, selectedConstraintId: null })
+    if (s.ui.selectedContourIds.includes(contourId)) {
+      s.setUI({
+        selectedContourIds: s.ui.selectedContourIds.filter(id => id !== contourId),
+        selectedConstraintId: null,
+      })
+    } else if (s.ui.selectedConstraintId) {
+      const selectedConstraintStillExists = s.project.parts.some(part => part.features.some(feature =>
+        feature.type === 'sketch' && feature.contours.some(contour =>
+          contour.constraints.some(constraint => constraint.id === s.ui.selectedConstraintId))))
+      if (!selectedConstraintStillExists) s.setUI({ selectedConstraintId: null })
     }
   }
 
@@ -1279,28 +1768,124 @@ export function useSketchTool() {
     const s = useAppStore.getState()
     for (const part of s.project.parts) {
       for (const f of part.features) {
-        if (f.type !== 'sketch') continue
+        if (f.type !== 'sketch' || (s.ui.activeSketchId && f.id !== s.ui.activeSketchId)) continue
         const open = f.contours.filter(c =>
           !c.closed && !c.construction && c.shape === undefined &&
           (c.arcs?.length ?? 0) === 0 && c.points.length >= 2)
-        if (open.length < 2) continue
-        const groups = mergeOpenChainGroups(open.map(c => ({
-          contourId: c.id, name: c.name, closed: c.closed, points: c.points,
-        })))
-        const merges = groups.filter(g => g.sourceIds.length >= 2)
-        if (merges.length === 0) continue
-        const sources = new Set(merges.flatMap(g => g.sourceIds))
-        const type = f.contours.find(c => sources.has(c.id))?.type ?? 'outer'
-        const output = merges.map(g => ({ g, mergedId: newContourId() }))
-        s.execute(new MergeContoursCommand(f.id, output.map(o => ({
-          mergedId: o.mergedId,
-          removeIds: o.g.sourceIds,
-          type,
-          name: o.g.chain.name || '合并轮廓',
-          points: o.g.chain.points,
-        }))))
-        if (output[0]) s.setUI({ selectedContourId: output[0].mergedId, selectedConstraintId: null })
-        setHint(`已自动合并 ${merges.length} 处端点相接的开放轮廓为闭合轮廓`)
+        if (open.length >= 2) {
+          const groups = mergeOpenChainGroups(open.map(c => ({
+            contourId: c.id, name: c.name, closed: c.closed, points: c.points,
+          })))
+          const merges = groups.filter(g => g.sourceIds.length >= 2 && g.chain.closed)
+          if (merges.length > 0) {
+            const output = merges.map(g => ({ g, mergedId: newContourId() }))
+            const mergeCommands = output.flatMap(o => {
+              const types = new Set(f.contours.filter(c => o.g.sourceIds.includes(c.id)).map(c => c.type))
+              if (types.size !== 1) return []
+              return [{
+                mergedId: o.mergedId,
+                removeIds: o.g.sourceIds,
+                type: [...types][0],
+                name: o.g.chain.name || '合并轮廓',
+                points: o.g.chain.points,
+              }]
+            })
+            if (mergeCommands.length > 0) {
+              s.execute(new MergeContoursCommand(f.id, mergeCommands))
+              s.setUI({ selectedContourId: mergeCommands[0].mergedId, selectedConstraintId: null })
+              setHint(`已自动合并 ${mergeCommands.length} 处端点相接的开放轮廓为闭合轮廓`)
+            }
+          }
+        }
+
+        // 直线链 + 独立圆弧闭合：这是“矩形边框被圆弧分割”形成可制造曲线外轮廓的关键。
+        const lineChains = f.contours.filter(c =>
+          !c.closed && !c.construction && c.shape === undefined &&
+          (c.arcs?.length ?? 0) === 0 && c.points.length >= 2)
+        const arcChains = f.contours.filter(c => !c.closed && standaloneArc(c) !== null)
+        const used = new Set<string>()
+        const mixedGroups: Array<{
+          mergedId: string
+          removeIds: string[]
+          type: 'outer' | 'inner'
+          name: string
+          points: Point2D[]
+          arcs: ArcEntity[]
+        }> = []
+        for (const arcContour of arcChains) {
+          if (used.has(arcContour.id)) continue
+          const arc = standaloneArc(arcContour)
+          if (!arc) continue
+          for (const chain of lineChains) {
+            if (used.has(chain.id)) continue
+            const closure = closeOpenChainWithStandaloneArc(chain.points, arcContour.points, arc)
+            if (!closure) continue
+            const mergedId = newContourId()
+            mixedGroups.push({
+              mergedId,
+              removeIds: [chain.id, arcContour.id],
+              type: chain.type,
+              name: `${chain.name} · 圆弧闭合`,
+              points: closure.points,
+              arcs: [closure.arc],
+            })
+            used.add(chain.id)
+            used.add(arcContour.id)
+            break
+          }
+        }
+        if (mixedGroups.length > 0) {
+          s.execute(new MergeContoursCommand(f.id, mixedGroups))
+          s.setUI({ selectedContourId: mixedGroups[0].mergedId, selectedConstraintId: null })
+          setHint(`已将 ${mixedGroups.length} 组直线链与圆弧合并为闭合曲线轮廓`)
+        }
+
+        // 擦除闭合混合轮廓的一段直边后再补线，会形成“开放混合链 + 独立直线”。
+        // 先按端点顺序直接重组并保留弧索引，让2D显示与分割器看到同一个闭合轮廓。
+        const openGeometry = f.contours.filter(contour =>
+          !contour.closed && !contour.construction && contour.shape === undefined && contour.points.length >= 2)
+        const consumed = new Set<string>()
+        const repairedMixed: Array<{
+          mergedId: string; removeIds: string[]; type: 'outer' | 'inner'; name: string; points: Point2D[]; arcs: ArcEntity[]
+        }> = []
+        for (let i = 0; i < openGeometry.length; i++) for (let j = i + 1; j < openGeometry.length; j++) {
+          const first = openGeometry[i], second = openGeometry[j]
+          if (consumed.has(first.id) || consumed.has(second.id) || first.type !== second.type) continue
+          if (!(first.arcs?.length || second.arcs?.length)) continue
+          const merged = mergeOpenContourGeometries(first, second)
+          if (!merged) continue
+          repairedMixed.push({
+            mergedId: newContourId(), removeIds: [first.id, second.id], type: first.type,
+            name: `${first.name} · 补线闭合`, points: merged.points, arcs: merged.arcs,
+          })
+          consumed.add(first.id); consumed.add(second.id)
+        }
+        if (repairedMixed.length) {
+          s.execute(new MergeContoursCommand(f.id, repairedMixed))
+          s.setUI({ selectedContourId: repairedMixed[0].mergedId, selectedConstraintId: null })
+          setHint(`已将补线与开放曲线合并为 ${repairedMixed.length} 个闭合轮廓`)
+        }
+
+        // 多分支开放边界：建立端点半边图并提取所有有界面。按 outer/inner
+        // 分组可避免外轮廓线与开孔线被误焊成同一个区域。
+        for (const contourType of ['outer', 'inner'] as const) {
+          const candidates = extractPlanarFaces(
+            f.contours.filter(contour => !contour.closed && contour.type === contourType),
+            { tolerance: 0.1, minimumArea: 1, type: contourType, idPrefix: `face-${Date.now()}` },
+          )
+          if (candidates.length === 0) continue
+          const groups = candidates.map(candidate => ({
+            mergedId: newContourId(),
+            removeIds: candidate.sourceIds,
+            type: contourType,
+            name: candidate.contour.name,
+            points: candidate.contour.points,
+            arcs: candidate.contour.arcs ?? [],
+          }))
+          s.execute(new MergeContoursCommand(f.id, groups))
+          s.setUI({ selectedContourId: groups[0].mergedId, selectedConstraintId: null })
+          setHint(`已从开放边界识别并生成 ${groups.length} 个闭合区域`)
+        }
       }
     }
   }
@@ -1311,12 +1896,20 @@ export function useSketchTool() {
     const st = stateRef.current
     const s = useAppStore.getState()
     const tool = s.ui.activeTool
+    const cadHit = hitTest(pos) ?? vertexHit(pos)
+    if (cadHit && findContour(cadHit.contourId)?.geometryLocked && (tool === 'eraser' || tool === 'smartdim')) {
+      setHint('CAD 几何已锁定，仅可修改轮廓用途')
+      return
+    }
 
     // 拖动结束的 click 抑制
     if (st.dragged) { st.dragged = false; return }
 
-    // 标注点击优先 (任何工具): 悬停高亮后单击 = 修改尺寸, 不再继续绘图
-    const consHit = constraintHit(pos)
+    // 标注通常优先；但智能尺寸已经选中目标，或本次明确命中顶点/孔中心时，
+    // 必须让几何选择优先。否则中心/外板边附近已有标签会吞掉点击，表现为“点了没反应”。
+    const smartDimGeometryFirst = tool === 'smartdim'
+      && (!!st.dimPlace || !!st.pendingVertex || !!st.pendingEdge || vertexHit(pos) !== null)
+    const consHit = smartDimGeometryFirst ? null : constraintHit(pos)
     if (consHit) { editDimension(consHit.contourId, consHit.constraintId); return }
 
     switch (tool) {
@@ -1380,7 +1973,9 @@ export function useSketchTool() {
       // ── 矩形: 两点/中心/三点 子模式 ──
       case 'rect': {
         if (s.ui.rectSubMode === '3point') {
-          const sn = computeSnap(pos)
+          const sn = st.rectPts.length > 0
+            ? committedGuidedPoint(st.rectPts[st.rectPts.length - 1], pos)
+            : computeSnap(pos)
           if (st.rectPts.length === 0) {
             st.rectPts = [{ x: sn.x, y: sn.y }]
             setHint('三点矩形: 再点确定第一条边的终点')
@@ -1401,7 +1996,7 @@ export function useSketchTool() {
           st.start = { x: sn.x, y: sn.y }
           setHint(s.ui.rectSubMode === 'center' ? '中心矩形: 移动确定角点 (Esc 取消)' : '再点一次完成 (Esc 取消)')
         } else {
-          const sn = computeSnap(pos)
+          const sn = committedGuidedPoint(st.start!, pos)
           const p2 = { x: sn.x, y: sn.y }
           if (s.ui.rectSubMode === 'center') finishRectCenter(st.start!, p2)
           else finishRect(st.start!, p2)
@@ -1492,9 +2087,26 @@ export function useSketchTool() {
 
       // ── 弧: 二级菜单 (三点弧 / 圆心弧) ──
       case 'arc': {
-        const snapped = computeSnap(pos)
-        const p = { x: snapped.x, y: snapped.y }
         const pts = st.arcPts
+        let snapped = computeSnap(pos)
+        const endpointStep = s.ui.arcSubMode === 'arcCenter' ? pts.length >= 1 : pts.length < 2
+        // 圆弧起终点落在直边内部时，必须像直线工具一样真实插入拓扑顶点。
+        // 仅做视觉吸附会让擦除/修剪仍把整条边视为一个区间。
+        if (endpointStep && !snapped.label) {
+          const edgeSnap = edgeSnapPoint(pos)
+          if (edgeSnap) {
+            if (!st.arcPendingSplits.some(item =>
+              item.contourId === edgeSnap.contourId && Math.hypot(item.point.x - edgeSnap.point.x, item.point.y - edgeSnap.point.y) < 0.1)) {
+              st.arcPendingSplits.push({
+                contourId: edgeSnap.contourId,
+                edgeIdx: edgeSnap.edgeIdx,
+                point: { ...edgeSnap.point },
+              })
+            }
+            snapped = { x: edgeSnap.point.x, y: edgeSnap.point.y, label: '线上' }
+          }
+        }
+        const p = { x: snapped.x, y: snapped.y }
         if (s.ui.arcSubMode === 'arcCenter') {
           if (pts.length === 0) {
             st.arcPts = [p]
@@ -1506,6 +2118,7 @@ export function useSketchTool() {
           } else {
             finishArcCenter(pts[0], pts[1], p)
             st.arcPts = []
+            st.arcPendingSplits = []
             setPreview(null)
             setHint(TOOL_HINTS.arc ?? null)
           }
@@ -1520,6 +2133,7 @@ export function useSketchTool() {
           } else {
             finishArc3pt(pts[0], pts[1], p)
             st.arcPts = []
+            st.arcPendingSplits = []
             setPreview(null)
             setHint(TOOL_HINTS.arc ?? null)
           }
@@ -1590,12 +2204,24 @@ export function useSketchTool() {
 
               break
             }
+            const ownVertexHit = vh?.contourId === c1.id && vh.vertexIdx >= 0
+            if (c1.shape === 'polygon' && hit.edgeIdx >= 0 && !ownVertexHit) {
+              st.dimPlace = {
+                contourId: c1.id,
+                kind: 'pointline',
+                edgeIndex: hit.edgeIdx,
+                vertexIdx1: -2,
+              }
+              setHint('多边形中心到边：拖动确定内切距标注位置 · 点击放置并改值')
+              break
+            }
           }
           // 顶点/孔中心 + 基准边 = 点线距离。中心到外板边时平移整个内孔，保留孔径/宽高。
-          if (!isOrigin && c1 && hit && hit.edgeIdx >= 0 && !vh && (!isCenter || hit.contourId !== p1.contourId)) {
+          const externalCenterEdge = isCenter && hit?.contourId !== p1.contourId
+          if (!isOrigin && c1 && hit && hit.edgeIdx >= 0 && (!vh || externalCenterEdge) && (!isCenter || externalCenterEdge)) {
             const lineContour = findContour(hit.contourId)
-            if (!lineContour || edgeArc(lineContour, hit.edgeIdx) || (lineContour.arcs?.length ?? 0) > 0) {
-              setHint('含圆角边的轮廓暂不支持尺寸标注'); break
+            if (!lineContour || edgeArc(lineContour, hit.edgeIdx)) {
+              setHint('圆弧边暂不支持中心定位尺寸，请选择直边'); break
             }
             st.dimPlace = {
               contourId: lineContour.id, kind: 'pointline', edgeIndex: hit.edgeIdx,
@@ -1618,6 +2244,16 @@ export function useSketchTool() {
               setHint('原点基准尺寸: 拖动定位 · 点击放置并改值 (Esc 取消)')
               break
             }
+            if (c1 && c2?.id === c1.id && p1.vertexIdx >= 0 && vh.vertexIdx >= 0) {
+              const chain = collinearChainContainingVertices(c1, p1.vertexIdx, vh.vertexIdx)
+              if (chain) {
+                st.dimPlace = { contourId: c1.id, kind: 'length', edgeIndex: chain.edgeIndices[0] }
+                setHint(chain.edgeIndices.length > 1
+                  ? `已识别 ${chain.edgeIndices.length} 段共线边为一条直线 · 拖动放置整体尺寸`
+                  : '拖动确定直线长度标注位置 · 点击放置并改值')
+                break
+              }
+            }
             if (c1 && (c1.arcs?.length ?? 0) > 0) { setHint('含圆角边的轮廓暂不支持尺寸标注'); break }
             if (c1 && c2 && (c1.arcs?.length ?? 0) === 0 && (c2.arcs?.length ?? 0) === 0) {
               const contourId2 = vh.contourId === p1.contourId ? undefined : vh.contourId
@@ -1633,13 +2269,16 @@ export function useSketchTool() {
         }
 
         // 已选边 + 点顶点 = 点线距离 (边两击流程中的第二击点顶点)
+        const selfPolygonCenter = st.pendingEdge && vh?.vertexIdx === -2
+          && vh.contourId === st.pendingEdge.contourId
+          && findContour(vh.contourId)?.shape === 'polygon'
         if (st.pendingEdge && vh && vh.vertexIdx >= -2 &&
-            (vh.vertexIdx >= 0 || vh.contourId !== st.pendingEdge.contourId)) {
+            (vh.vertexIdx >= 0 || vh.contourId !== st.pendingEdge.contourId || selfPolygonCenter)) {
           const pe = st.pendingEdge
           st.pendingEdge = null
           const cpe = findContour(pe.contourId)
-          if (!cpe || edgeArc(cpe, pe.edgeIdx) || (cpe.arcs?.length ?? 0) > 0) {
-            setHint('含圆角边的轮廓暂不支持尺寸标注')
+          if (!cpe || edgeArc(cpe, pe.edgeIdx)) {
+            setHint('圆弧边暂不支持中心定位尺寸，请选择直边')
             break
           }
           st.dimPlace = {
@@ -1676,28 +2315,62 @@ export function useSketchTool() {
         if (edgeArc(c3, hit.edgeIdx)) {
           if (standaloneArc(c3)) {
             if (!st.pendingEdge) {
-                st.pendingEdge = hit
-                setHint('再点同弧=弧长; 点其他=半径/角度/距离 (Esc 取消)')
-              } else if (st.pendingEdge.contourId === hit.contourId && st.pendingEdge.edgeIdx === hit.edgeIdx) {
-                st.pendingEdge = null
-                st.dimPlace = { contourId: hit.contourId, kind: 'arclength', edgeIndex: hit.edgeIdx }
-                setHint('拖动确定弧长标注位置 · 点击放置并改值 (Esc 取消)')
-              } else {
-                st.pendingEdge = null
-                st.dimPlace = { contourId: hit.contourId, kind: 'radius' }
-                setHint('圆心+圆周=半径')
-              }
-            setHint('拖动确定 R 标注方向 · 点击放置并改值 (Esc 取消)')
-          } else setHint('圆弧边暂不支持尺寸标注')
+              st.pendingEdge = hit
+              setHint('再点同弧=弧长; 点其他=半径/角度/距离 (Esc 取消)')
+            } else if (st.pendingEdge.contourId === hit.contourId && st.pendingEdge.edgeIdx === hit.edgeIdx) {
+              st.pendingEdge = null
+              st.dimPlace = { contourId: hit.contourId, kind: 'arclength', edgeIndex: hit.edgeIdx }
+              setHint('拖动确定弧长标注位置 · 点击放置并改值 (Esc 取消)')
+            } else {
+              st.pendingEdge = null
+              st.dimPlace = { contourId: hit.contourId, kind: 'radius' }
+              setHint('拖动确定 R 标注方向 · 点击放置并改值 (Esc 取消)')
+            }
+          } else {
+            const targetArc = edgeArc(c3, hit.edgeIdx)
+            if (!targetArc || mixedArcTangentStabilizers(c3, targetArc).length !== 2) {
+              setHint('该弧尚未与两侧直线形成切线圆角，暂不开放驱动尺寸')
+            } else {
+              st.pendingEdge = null
+              st.dimPlace = { contourId: hit.contourId, kind: 'radius', edgeIndex: hit.edgeIdx }
+              setHint('圆角半径：保持两侧切线关系 · 点击放置并改值 (Esc 取消)')
+            }
+          }
           break
         }
-        if (c3 && (c3.arcs?.length ?? 0) > 0) { setHint('含圆角边的轮廓暂不支持尺寸标注'); break }
+        const clickedChain = resolveCollinearEdgeChain(c3, hit.edgeIdx)
+        const canonicalHit = clickedChain ? { ...hit, edgeIdx: clickedChain.edgeIndices[0] } : hit
+        if ((c3.arcs?.length ?? 0) > 0) {
+          const touchCount = clickedChain
+            ? new Set(clickedChain.edgeIndices.flatMap(edge => [edge, (edge + 1) % c3.points.length]).filter(vertex => (c3.arcs ?? []).some(arc => arc.p1 === vertex || arc.p2 === vertex))).size
+            : arcEndpointTouchCount(c3, hit.edgeIdx)
+          const axisConstraint = axisConstraintForEdge(c3, canonicalHit.edgeIdx)
+          if (touchCount > 1 || !axisConstraint) {
+            st.pendingEdge = null
+            setHint(touchCount > 1
+              ? '该直线连接两段圆弧，需先补齐相切约束再驱动长度'
+              : '混合轮廓当前只开放水平/竖直直线的长度尺寸')
+            break
+          }
+          if (!st.pendingEdge) {
+            st.pendingEdge = canonicalHit
+            setHint(clickedChain && clickedChain.edgeIndices.length > 1 ? `已识别 ${clickedChain.edgeIndices.length} 段共线边 · 再点该直线任意一段添加整体长度` : '再点同一直线添加长度；圆弧端点保持不动 (Esc 取消)')
+          } else if (st.pendingEdge.contourId === hit.contourId && sameCollinearEdgeChain(c3, st.pendingEdge.edgeIdx, hit.edgeIdx)) {
+            st.pendingEdge = null
+            st.dimPlace = { contourId: hit.contourId, kind: 'length', edgeIndex: canonicalHit.edgeIdx }
+            setHint('拖动确定整条共线边的长度标注位置 · 点击放置并改值')
+          } else {
+            st.pendingEdge = null
+            setHint('混合轮廓暂只支持同一直线的长度尺寸')
+          }
+          break
+        }
         if (!st.pendingEdge) {
-          st.pendingEdge = hit
-          setHint('再点同边=长度; 平行边=间距; 斜边=角度 (Esc 取消)')
-        } else if (st.pendingEdge.contourId === hit.contourId && st.pendingEdge.edgeIdx === hit.edgeIdx) {
+          st.pendingEdge = canonicalHit
+          setHint(clickedChain && clickedChain.edgeIndices.length > 1 ? `已识别 ${clickedChain.edgeIndices.length} 段共线边 · 再点任意一段=整体长度` : '再点同边=长度; 平行边=间距; 斜边=角度 (Esc 取消)')
+        } else if (st.pendingEdge.contourId === hit.contourId && sameCollinearEdgeChain(c3, st.pendingEdge.edgeIdx, hit.edgeIdx)) {
           st.pendingEdge = null
-          st.dimPlace = { contourId: hit.contourId, kind: 'length', edgeIndex: hit.edgeIdx }
+          st.dimPlace = { contourId: hit.contourId, kind: 'length', edgeIndex: canonicalHit.edgeIdx }
           setHint('拖动确定尺寸线距离 · 点击放置并改值 (Esc 取消)')
         } else {
           const e1 = st.pendingEdge.edgeIdx, e2 = hit.edgeIdx
@@ -1918,6 +2591,32 @@ export function useSketchTool() {
     setPreview(null)
     setHint(TOOL_HINTS.line ?? null)
     checkState(id)
+    if (!isCenter) autoMergeOpenContours()
+  }
+
+  function commitPendingArcSplits() {
+    const pending = stateRef.current.arcPendingSplits.splice(0)
+    const s = useAppStore.getState()
+    for (const item of pending) {
+      const contour = findContour(item.contourId)
+      if (!contour || contour.points.some(point => Math.hypot(point.x - item.point.x, point.y - item.point.y) < 0.1)) continue
+      const total = edgeCount(contour)
+      let targetEdge = -1
+      for (let offset = 0; offset < total; offset++) {
+        const edge = (item.edgeIdx + offset) % total
+        if (edgeArc(contour, edge)) continue
+        const a = contour.points[edge]
+        const b = contour.points[(edge + 1) % contour.points.length]
+        const projected = closestOnSeg(item.point, a, b)
+        if (Math.hypot(projected.x - item.point.x, projected.y - item.point.y) <= 0.25) {
+          targetEdge = edge
+          break
+        }
+      }
+      if (targetEdge < 0) continue
+      s.execute(new SplitEdgeCommand(item.contourId, targetEdge, item.point))
+      checkState(item.contourId)
+    }
   }
 
   /** 三点弧: 端点吸附同一轮廓相邻顶点 → 直边替换为圆角; 否则生成独立圆弧 */
@@ -1927,6 +2626,7 @@ export function useSketchTool() {
     if (!cc) { setHint('三点共线, 无法生成圆弧'); return }
     if (cc.radius < 5) { setHint('圆弧半径过小'); return }
     if (Math.hypot(p2.x - p1.x, p2.y - p1.y) < 5) { setHint('起终点过近'); return }
+    commitPendingArcSplits()
 
     // 端点吸附检测 → 相邻顶点直边变圆角
     const v1 = findVertex(p1)
@@ -1973,6 +2673,7 @@ export function useSketchTool() {
     const a2 = pointAngle(center, end)
     const span = normAngle(a2 - a1)
     if (span < 0.02 || span > Math.PI * 2 - 0.02) { setHint('起终点角度差过小, 无法生成圆弧'); return }
+    commitPendingArcSplits()
     const endOnArc = arcPointAt(center, r, a2)
     const id = newContourId()
     s.execute(new CreateContourCommand({
@@ -2077,13 +2778,57 @@ export function useSketchTool() {
 
   // ---- 点擦除 (端点结构感知): 交点两侧修剪, 重合公共边两侧同时处理 ----
 
+  function allSketchContours(): Contour[] {
+    const s = useAppStore.getState()
+    const contours: Contour[] = []
+    for (const part of s.project.parts) {
+      for (const feature of part.features) {
+        if (feature.type === 'sketch' && (!s.ui.activeSketchId || feature.id === s.ui.activeSketchId)) {
+          contours.push(...feature.contours)
+        }
+      }
+    }
+    return contours
+  }
+
+  function resolveStandaloneArcTrimRange(contour: Contour, pos: Point2D): TrimRange {
+    const arc = standaloneArc(contour)
+    if (!arc) return { t1: 0, t2: 1 }
+    return resolveArcEntityTrimRange(contour, arc, pos, true)
+  }
+
+  function resolveArcEntityTrimRange(
+    contour: Contour,
+    arc: ArcEntity,
+    pos: Point2D,
+    excludeOwnContour: boolean,
+  ): TrimRange {
+    const breaks = collectArcIntersectionParams(
+      arc.center,
+      arc.radius,
+      contour.points[arc.p1],
+      contour.points[arc.p2],
+      arc.sweep,
+      allSketchContours(),
+      excludeOwnContour ? contour.id : undefined,
+    )
+    return findArcTrimRange(
+      pos,
+      arc.center,
+      contour.points[arc.p1],
+      contour.points[arc.p2],
+      arc.sweep,
+      breaks.filter(value => value > 1e-6 && value < 1 - 1e-6),
+    )
+  }
+
   /** 当前草图中所有有限直边的快照。修剪计算和提交共享同一份快照，避免拖动后命中旧拓扑。 */
   function collectStraightEdges(): StraightEdgeRef[] {
     const s = useAppStore.getState()
     const edges: StraightEdgeRef[] = []
     for (const part of s.project.parts) {
       for (const feature of part.features) {
-        if (feature.type !== 'sketch') continue
+        if (feature.type !== 'sketch' || (s.ui.activeSketchId && feature.id !== s.ui.activeSketchId)) continue
         for (const contour of feature.contours) {
           if (contour.shape !== undefined || contour.slotWidth !== undefined ||
               (contour.construction && contour.infinite && !contour.closed)) continue
@@ -2111,9 +2856,11 @@ export function useSketchTool() {
     const len2 = dx * dx + dy * dy
     const extraBreaks: number[] = []
     if (len2 > 1e-6) {
+      const contours: Contour[] = []
       for (const part of s.project.parts) {
         for (const feature of part.features) {
-          if (feature.type !== 'sketch') continue
+          if (feature.type !== 'sketch' || (s.ui.activeSketchId && feature.id !== s.ui.activeSketchId)) continue
+          contours.push(...feature.contours)
           for (const contour of feature.contours) {
             if (!(contour.construction && contour.infinite && !contour.closed && contour.points.length >= 2)) continue
             const ip = segInfiniteIntersect(target.a, target.b, contour.points[0], contour.points[1])
@@ -2122,6 +2869,7 @@ export function useSketchTool() {
           }
         }
       }
+      extraBreaks.push(...collectCurveIntersectionParamsOnLine(target.a, target.b, contours))
     }
     return findTrimRangeAtPoint(
       target.a,
@@ -2153,16 +2901,32 @@ export function useSketchTool() {
     const hit = hitTest(pos)
     if (!hit) return // 未命中任何边: 不做任何删除
     const c = findContour(hit.contourId)
-    if (!c) return
+    if (!c || c.geometryLocked) return
 
-    // 整对象: 整圆(非分段)/槽口/独立圆弧/无限构造线
-    if (hit.edgeIdx === -1 || c.slotWidth !== undefined || standaloneArc(c) !== null) {
+    // 统一策略决定整特征删除；被交点切开的圆必须保留单圆弧修剪语义。
+    if (resolveParametricEraseIntent(c, hit.edgeIdx) === 'whole-feature') {
+      removeContour(c.id)
+      return
+    }
+
+    // 整对象: 整圆(非分段)/槽口/无限构造线
+    if (hit.edgeIdx === -1 || c.slotWidth !== undefined) {
       removeContour(c.id)
       autoMergeOpenContours()
       return
     }
     if (c.shape === 'circle') {
       s.execute(new TrimCircleSegmentsCommand(c.id, [hit.edgeIdx]))
+      checkState(c.id)
+      autoMergeOpenContours()
+      return
+    }
+    const standalone = standaloneArc(c)
+    if (standalone) {
+      const range = resolveStandaloneArcTrimRange(c, pos)
+      const fullArc = range.t1 <= 1e-6 && range.t2 >= 1 - 1e-6
+      if (fullArc) removeContour(c.id)
+      else s.execute(new TrimStandaloneArcRangeCommand(c.id, range.t1, range.t2, newContourId()))
       checkState(c.id)
       autoMergeOpenContours()
       return
@@ -2174,7 +2938,12 @@ export function useSketchTool() {
     }
     const arc = edgeArc(c, hit.edgeIdx)
     if (arc) {
-      s.execute(new RemoveArcEntityCommand(c.id, arc.id))
+      if (!c.closed) {
+        setHint('开放混合轮廓的弧段修剪尚未建立稳定拓扑，已取消本次操作')
+        return
+      }
+      const range = resolveArcEntityTrimRange(c, arc, pos, false)
+      s.execute(new TrimClosedMixedArcRangeCommand(c.id, arc.id, range.t1, range.t2))
       checkState(c.id)
       autoMergeOpenContours()
       return
@@ -2198,11 +2967,13 @@ export function useSketchTool() {
   // ---- 输入框 (防重入: Enter/blur 只提交一次; 单例) ----
   function showInput(initial: number, onCommit: (val: number) => void) {
     activeInput?.remove()
+    const inputProject = useAppStore.getState().project
     const input = document.createElement('input')
     input.type = 'number'
-    input.value = initial.toFixed(1)
-    input.step = '0.5'
-    input.style.cssText = `position:fixed;z-index:9999;left:50%;top:40%;transform:translate(-50%,-50%);width:120px;padding:6px 10px;background:#23262e;color:#3ec6b0;border:2px solid #3ec6b0;border-radius:6px;font-size:14px;text-align:center;`
+    input.value = formatDimensionInput(initial)
+    input.step = 'any'
+    input.setAttribute('aria-label', '智能尺寸数值')
+    input.style.cssText = `position:fixed;z-index:9999;left:50%;top:40%;transform:translate(-50%,-50%);width:${Math.max(160, Math.min(260, input.value.length * 10 + 40))}px;padding:6px 10px;background:#23262e;color:#3ec6b0;border:2px solid #3ec6b0;border-radius:6px;font-size:14px;text-align:center;`
     activeInput = input
     document.body.appendChild(input)
     input.focus()
@@ -2217,9 +2988,12 @@ export function useSketchTool() {
     }
     const commit = () => {
       if (done) return
+      // 旧输入框延迟blur、换工程或另一次尺寸编辑后，不能再向新状态提交旧闭包。
+      if (activeInput !== input || useAppStore.getState().project !== inputProject) { finish(); return }
       finish()
-      const val = parseFloat(input.value)
-      if (!isNaN(val)) onCommit(val)
+      const val = parseDimensionInput(input.value, initial)
+      if (!Number.isFinite(val)) { setHint('请输入有效的有限数值'); return }
+      if (val !== initial) onCommit(val)
     }
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); commit() }
@@ -2240,9 +3014,11 @@ export function useSketchTool() {
     const mm = s.project.config.pixelToMM
     const n = c.points.length
     if (pl.kind === 'length' && pl.edgeIndex !== undefined) {
-      const i1 = pl.edgeIndex % n, i2 = (pl.edgeIndex + 1) % n
+      const chain = resolveCollinearEdgeChain(c, pl.edgeIndex)
+      const i1 = chain?.startVertex ?? pl.edgeIndex % n
+      const i2 = chain?.endVertex ?? (pl.edgeIndex + 1) % n
       const a = c.points[i1], b = c.points[i2]
-      const len = Math.hypot(b.x - a.x, b.y - a.y)
+      const len = chain?.totalLength ?? Math.hypot(b.x - a.x, b.y - a.y)
       if (len < 1e-6) return null
       const nx = -(b.y - a.y) / len, ny = (b.x - a.x) / len
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
@@ -2250,7 +3026,8 @@ export function useSketchTool() {
       if (Math.abs(off) < 14) off = off >= 0 ? 14 : -14
       const val = len * mm
       return {
-        id: '', type: 'length', edgeIndex: pl.edgeIndex, value: val,
+        id: '', type: 'length', edgeIndex: chain?.edgeIndices[0] ?? pl.edgeIndex,
+        vertexIdx1: i1, vertexIdx2: i2, value: val,
         labelPos: { x: mid.x + nx * off, y: mid.y + ny * off },
         driving: true, label: lengthLabel(c, i1, i2, val),
       }
@@ -2260,7 +3037,7 @@ export function useSketchTool() {
       const c2 = pl.contourId2 ? findContour(pl.contourId2) ?? c : c
       const resolvePoint = (contour: Contour, idx: number): Point2D | null => {
         if (idx === -3) return { x: 0, y: 0 }
-        if (idx === -2) return contourCenter(contour)
+        if (idx === -2) return contourDimensionCenter(contour)
         return contour.points[idx] ?? null
       }
       const a = resolvePoint(c, pl.vertexIdx1)
@@ -2307,7 +3084,7 @@ export function useSketchTool() {
     if (pl.kind === 'pointline' && pl.edgeIndex !== undefined && pl.vertexIdx1 !== undefined) {
       const c2 = pl.contourId2 ? findContour(pl.contourId2) ?? c : c
       const a = c.points[pl.edgeIndex % n], b = c.points[(pl.edgeIndex + 1) % n]
-      const v = pl.vertexIdx1 === -2 ? contourCenter(c2) : c2.points[pl.vertexIdx1]
+      const v = pl.vertexIdx1 === -2 ? contourDimensionCenter(c2) : c2.points[pl.vertexIdx1]
       if (!v) return null
       const dx = b.x - a.x, dy = b.y - a.y
       const len = Math.hypot(dx, dy)
@@ -2317,12 +3094,13 @@ export function useSketchTool() {
       const proj = (v.x - a.x) * ux + (v.y - a.y) * uy
       const q = { x: a.x + ux * proj, y: a.y + uy * proj }
       const val = Math.abs((v.x - a.x) * nx + (v.y - a.y) * ny) * mm
+      const ownPolygonInset = pl.vertexIdx1 === -2 && !pl.contourId2 && c.shape === 'polygon'
       return {
         id: '', type: 'distance', edgeIndex: pl.edgeIndex, vertexIdx1: pl.vertexIdx1,
         contourId2: pl.contourId2, value: val,
         // 点-线尺寸没有可平移的第二条直线，标签固定在最短距离线中央，避免与箭头失联。
         labelPos: { x: (v.x + q.x) / 2, y: (v.y + q.y) / 2 },
-        driving: true, label: `${pl.vertexIdx1 === -2 ? '中心距' : '距离'} ${val.toFixed(1)} mm`,
+        driving: true, label: `${ownPolygonInset ? '内切距' : pl.vertexIdx1 === -2 ? '中心距' : '距离'} ${val.toFixed(1)} mm`,
       }
     }
       if (pl.kind === 'arclength' && pl.edgeIndex !== undefined) {
@@ -2338,19 +3116,20 @@ export function useSketchTool() {
         return {
           id: '', type: 'arcLength', edgeIndex: pl.edgeIndex, value: val,
           labelPos: { x: center.x + (r + 16) * Math.cos(midAng), y: center.y + (r + 16) * Math.sin(midAng) },
-          driving: true, label: `弧长 ${val.toFixed(1)} mm`,
+          driving: true, label: `弧长 ${Number(val.toFixed(6))} mm`,
         }
       }
     if (pl.kind === 'radius') {
-      const center = c.center ?? standaloneArc(c)?.center
-      const r = c.radius ?? standaloneArc(c)?.radius
+      const targetArc = pl.edgeIndex !== undefined ? edgeArc(c, pl.edgeIndex) : standaloneArc(c)
+      const center = c.center ?? targetArc?.center
+      const r = c.radius ?? targetArc?.radius
       if (!center || !r) return null
       const ang = Math.atan2(pos.y - center.y, pos.x - center.x)
       const val = r * mm
       return {
-        id: '', type: 'radius', value: val,
+        id: '', type: 'radius', edgeIndex: targetArc?.p1, value: val,
         labelPos: { x: center.x + (r / 2) * Math.cos(ang), y: center.y + (r / 2) * Math.sin(ang) },
-        driving: true, label: `R ${val.toFixed(1)} mm`,
+        driving: true, label: `R ${Number(val.toFixed(6))} mm`,
       }
     }
     if (pl.kind === 'diameter') {
@@ -2361,7 +3140,7 @@ export function useSketchTool() {
       return {
         id: '', type: 'diameter', value: val,
         labelPos: { x: center.x + (r + 16) * Math.cos(ang), y: center.y + (r + 16) * Math.sin(ang) },
-        driving: true, label: `直径 ${val.toFixed(1)} mm`,
+        driving: true, label: `直径 ${Number(val.toFixed(6))} mm`,
       }
     }
     if (pl.kind === 'angle' && pl.edgeIndex !== undefined && pl.edgeIndex2 !== undefined) {
@@ -2405,9 +3184,12 @@ export function useSketchTool() {
       && x.contourId2 === cons.contourId2
     const existing = c.constraints.find(sameRefs)
     const consId = existing?.id ?? newConsId()
-    if (existing) {
+    if (c.shape === 'circle' && (cons.type === 'radius' || cons.type === 'diameter')) {
+      // 放置阶段就把同一圆的另一种径向标注改为参考；撤销数值编辑时也不会回到双主动冲突。
+      s.execute(dimensionEditCommand(c, c.points, {}, { ...cons, id: consId }, existing?.id))
+    } else if (existing) {
       s.execute(new UpdateConstraintCommand(pl.contourId, existing.id, {
-        value: cons.value, label: cons.label, labelPos: cons.labelPos, driving: true,
+        value: cons.value, label: cons.label, labelPos: cons.labelPos, driving: cons.driving,
       }))
     } else {
       s.execute(new AddConstraintCommand(pl.contourId, { ...cons, id: consId }))
@@ -2429,7 +3211,7 @@ export function useSketchTool() {
       return
     }
     if (cons.type === 'radius') {
-      showInput(cons.value, (val) => applyRadius(c, contourId, val, cons.id))
+      showInput(cons.value, (val) => applyRadius(c, contourId, val, cons.id, cons.edgeIndex))
       return
     }
     if (cons.type === 'arcLength') {
@@ -2465,118 +3247,258 @@ export function useSketchTool() {
   /** 冲突处理 (SolidWorks 风格): 求解失败 → 尺寸转为被动(参考), 几何保持不变, 原主动尺寸不变 */
   function upsertDriven(_c: Contour, _contourId: string, _base: Partial<Constraint>, _replaceId?: string, _label?: string) {
     // 注: 原实现中"转为被动参考尺寸"的代码位于 return 之后为历史死代码, 已移除;
-    // 当前行为与之前运行时一致: 仅提示求解失败。
+    // 求解失败时仅显示提示。
     setHint('尺寸更新失败：几何未变化，请检查输入值或已有约束冲突')
+  }
+
+  function circularPatch(c: Contour, result: SolveResult, markArcRadiusDriving = false): Partial<Contour> {
+    if (result.circle) return { center: result.circle.center, radius: result.circle.radius }
+    if (result.arcs) {
+      return {
+        arcs: (c.arcs ?? []).map(arc => {
+          const solved = result.arcs?.[arc.id]
+          return solved
+            ? {
+                ...arc,
+                center: solved.center,
+                radius: solved.radius,
+                radiusDriving: markArcRadiusDriving ? true : arc.radiusDriving,
+              }
+            : arc
+        }),
+      }
+    }
+    return {}
+  }
+
+  /**
+   * 规则多边形不是普通折线，而是「中心 + 边数 + 旋转 + 参考半径」参数实体。
+   * 所有尺寸编辑都统一从这里整体验算并重建顶点；否则只移动被点中的两个
+   * 顶点，会把正六边形悄悄拉成不规则折线。
+   */
+  function commitRegularPolygonResize(
+    c: Contour,
+    contourId: string,
+    referenceRadius: number,
+    primaryExisting: Constraint | undefined,
+    primaryConstraint: Constraint,
+  ): boolean {
+    if (!isRegularPolygonContour(c)) return false
+    const s = useAppStore.getState()
+    const resized = resizeRegularPolygon(c, referenceRadius)
+    if (!resized) {
+      setHint('规则多边形尺寸无效，几何未变化')
+      return true
+    }
+    const commands: Command[] = [
+      new UpdateContourPointsCommand(
+        contourId,
+        c.points,
+        resized.points,
+        { center: resized.center, radius: resized.radius },
+      ),
+      ...c.constraints.flatMap(constraint => {
+        const patch = regularPolygonConstraintPatch(
+          constraint,
+          resized,
+          s.project.config.pixelToMM,
+        )
+        return patch ? [new UpdateConstraintCommand(contourId, constraint.id, patch)] : []
+      }),
+    ]
+    if (!primaryExisting) {
+      const patch = regularPolygonConstraintPatch(
+        primaryConstraint,
+        resized,
+        s.project.config.pixelToMM,
+      )
+      commands.push(new AddConstraintCommand(contourId, { ...primaryConstraint, ...patch }))
+    }
+    s.execute(new CompositeCommand('调整规则多边形尺寸', commands))
+    checkState(contourId)
+    setHint(TOOL_HINTS.smartdim ?? null)
+    return true
   }
 
   // ---- 智能尺寸: 圆直径 ----
 
-  function applyDiameter(c: Contour, contourId: string, mmVal: number, replaceId?: string) {
+  async function applyDiameter(c: Contour, contourId: string, mmVal: number, replaceId?: string) {
     const s = useAppStore.getState()
+    const isCurrent = dimensionTicket()
     if (!c.center) return
     if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
     const newR = mmVal / s.project.config.pixelToMM / 2
-    if (newR < 2) return
-    const old = c.points.map(p => ({ ...p }))
-    s.execute(new UpdateContourPointsCommand(contourId, old, circlePoints(c.center, newR), { radius: newR }))
-    const label = `直径 ${mmVal.toFixed(1)} mm`
+    if (!Number.isFinite(newR) || newR <= 1e-6) { setHint('直径过小或毫米比例无效'); return }
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'diameter')
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, {
-        value: mmVal, label,
-        labelPos: { x: c.center.x, y: c.center.y - newR - 20 },
-      }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'diameter', value: mmVal,
-        labelPos: { x: c.center.x, y: c.center.y - newR - 20 },
-        driving: true, label,
-      } as Constraint))
+    const result = await solveSketch(
+      c.points,
+      [
+        ...existingConstraintsToSolver(circleSizeSolveContour(c), s.project.config.pixelToMM, replaceId ?? existing?.id),
+        circleDiameter(mmVal / s.project.config.pixelToMM),
+      ],
+      contourSolveOptions(c, []),
+    )
+    if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+    if (!result.success || !result.circle || result.conflict) {
+      upsertDriven(c, contourId, { type: 'diameter', value: mmVal }, replaceId, `直径 ${mmVal.toFixed(1)} mm`)
+      return
     }
+
+    const label = `直径 ${Number(mmVal.toFixed(6))} mm`
+    const solvedCenter = result.circle.center
+    const solvedRadius = result.circle.radius
+    s.execute(dimensionEditCommand(c, result.points, circularPatch(c, result), {
+      ...existing, id: existing?.id ?? newConsId(), type: 'diameter', value: mmVal,
+      labelPos: { x: solvedCenter.x, y: solvedCenter.y - solvedRadius - 20 },
+      driving: true, label,
+    }, existing?.id))
     checkState(contourId)
+    setHint(TOOL_HINTS.smartdim ?? null)
   }
 
   // ---- 智能尺寸: 半径 (圆心+圆周 / 直接点独立弧 / 编辑 R 标注) ----
 
-  function applyRadius(c: Contour, contourId: string, mmVal: number, replaceId?: string) {
+  async function applyRadius(
+    c: Contour,
+    contourId: string,
+    mmVal: number,
+    replaceId?: string,
+    edgeIndex?: number,
+  ) {
     const s = useAppStore.getState()
+    const isCurrent = dimensionTicket()
     if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
     const newR = mmVal / s.project.config.pixelToMM
-    if (newR < 2) { setHint('半径过小 (至少 1mm)'); return }
-    const old = c.points.map(p => ({ ...p }))
+    if (!Number.isFinite(newR) || newR <= 1e-6) { setHint('半径过小或毫米比例无效'); return }
+    let solvedResult: SolveResult
     let labelPos: Point2D
-    if (c.shape === 'circle' && c.center) {
-      s.execute(new UpdateContourPointsCommand(contourId, old, circlePoints(c.center, newR), { radius: newR }))
-      // R 标注在圆心→圆周半径线的中央
-      labelPos = { x: c.center.x + newR / 2, y: c.center.y }
-    } else if (c.shape === 'polygon' && c.center) {
-      // 多边形参考半径: 保持旋转角重生成顶点, R 标注在半径线中央
-      const n = c.points.length
-      const circ = c.polygonCircumscribed === true
-      const angle0 = Math.atan2(c.points[0].y - c.center.y, c.points[0].x - c.center.x)
-      const rOut = circ ? newR / Math.cos(Math.PI / n) : newR
-      const newPts = Array.from({ length: n }, (_, i) => {
-        const a = angle0 + (2 * Math.PI * i) / n
-        return { x: c.center!.x + rOut * Math.cos(a), y: c.center!.y + rOut * Math.sin(a) }
-      })
-      s.execute(new UpdateContourPointsCommand(contourId, old, newPts, { radius: newR }))
-      labelPos = { x: c.center.x + (newR / 2) * Math.cos(angle0), y: c.center.y + (newR / 2) * Math.sin(angle0) }
-    } else {
-      const arc = standaloneArc(c)
-      if (!arc) return
-      const a1 = pointAngle(arc.center, c.points[0])
-      const a2 = pointAngle(arc.center, c.points[1])
-      const newPts = [arcPointAt(arc.center, newR, a1), arcPointAt(arc.center, newR, a2)]
-      s.execute(new UpdateContourPointsCommand(contourId, old, newPts, {
-        arcs: (c.arcs ?? []).map(a => a.id === arc.id ? { ...a, radius: newR } : a),
-      }))
-      labelPos = arcPointAt(arc.center, newR / 2, arcMidAngle(arc.center, c.points[0], c.points[1], arc.sweep))
-    }
-    const label = `R ${mmVal.toFixed(1)} mm`
     const existing = c.constraints.find(x => x.id === replaceId)
-      ?? c.constraints.find(x => x.type === 'radius')
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
+      ?? c.constraints.find(x => x.type === 'radius' && (edgeIndex === undefined || x.edgeIndex === edgeIndex))
+    if (c.shape === 'polygon' && c.center) {
+      const angle0 = Math.atan2(c.points[0].y - c.center.y, c.points[0].x - c.center.x)
+      commitRegularPolygonResize(c, contourId, newR, existing, {
+        id: newConsId(), type: 'radius', value: mmVal,
+        labelPos: {
+          x: c.center.x + ((c.radius ?? newR) / 2) * Math.cos(angle0),
+          y: c.center.y + ((c.radius ?? newR) / 2) * Math.sin(angle0),
+        },
+        driving: true, label: `R ${mmVal.toFixed(1)} mm`,
+      })
+      return
     } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'radius', value: mmVal, labelPos, driving: true, label,
-      } as Constraint))
+      const standalone = standaloneArc(c)
+      const arc = edgeIndex !== undefined ? edgeArc(c, edgeIndex) : standalone
+      const target = c.shape === 'circle'
+        ? circleRadius(newR)
+        : arc ? arcRadius(arc.id, newR) : null
+      if (!target) return
+      const tangentStabilizers = arc ? mixedArcTangentStabilizers(c, arc) : []
+      if (arc && !standalone && tangentStabilizers.length !== 2) {
+        setHint('该弧尚未与两侧直线形成切线圆角，不能安全驱动半径')
+        return
+      }
+      // 单独修改弧半径时，若没有持久化弧长约束，则用当前圆心角生成一个
+      // 仅供本次求解的弧长约束。这样半径变化只缩放圆弧，不会让端点角度随
+      // 欠约束求解随机漂移；已有弧长约束则继续由它决定新的圆心角。
+      const arcStabilizers: SolverConstraint[] = arc
+        && !c.constraints.some(cons => cons.driving && cons.type === 'arcLength')
+        && tangentStabilizers.length < 2
+        ? [arcLengthConstraint(
+            arc.id,
+            newR * arcSpan(arc.center, c.points[arc.p1], c.points[arc.p2], arc.sweep),
+          )]
+        : []
+      const result = await solveSketch(
+        c.points,
+        [
+          ...existingConstraintsToSolver(circleSizeSolveContour(c), s.project.config.pixelToMM, replaceId ?? existing?.id),
+          target,
+          ...arcStabilizers,
+          ...tangentStabilizers,
+        ],
+        contourSolveOptions(
+          c,
+          arc && !standalone
+            ? Array.from({ length: c.points.length }, (_, index) => index)
+                .filter(index => index !== arc.p1 && index !== arc.p2)
+            : [],
+        ),
+      )
+      if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+      if (!result.success || result.conflict || (c.shape === 'circle' ? !result.circle : !result.arcs?.[arc!.id])) {
+        upsertDriven(c, contourId, { type: 'radius', value: mmVal }, replaceId, `R ${mmVal.toFixed(1)} mm`)
+        return
+      }
+
+      solvedResult = result
+      if (result.circle) {
+        labelPos = { x: result.circle.center.x + result.circle.radius / 2, y: result.circle.center.y }
+      } else {
+        const solvedArc = result.arcs![arc!.id]
+        labelPos = arcPointAt(solvedArc.center, solvedArc.radius / 2, arcMidAngle(solvedArc.center, result.points[arc!.p1], result.points[arc!.p2], arc!.sweep))
+      }
     }
+    const label = `R ${Number(mmVal.toFixed(6))} mm`
+    s.execute(dimensionEditCommand(c, solvedResult.points, circularPatch(c, solvedResult, Boolean(standaloneArc(c))), {
+      ...existing, id: existing?.id ?? newConsId(), type: 'radius',
+      edgeIndex: edgeIndex ?? existing?.edgeIndex ?? (c.shape === 'circle' ? undefined : standaloneArc(c)?.p1),
+      value: mmVal, labelPos, driving: true, label,
+    }, existing?.id))
     checkState(contourId)
+    setHint(TOOL_HINTS.smartdim ?? null)
   }
     // ---- 智能尺寸: 弧长 (独立圆弧) ----
 
-    function applyArcLength(c: Contour, contourId: string, mmVal: number, replaceId?: string) {
+    async function applyArcLength(c: Contour, contourId: string, mmVal: number, replaceId?: string) {
       const s = useAppStore.getState()
+      const isCurrent = dimensionTicket()
       if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
       const arc = standaloneArc(c)
       if (!arc) { setHint('弧长标注仅支持独立圆弧'); return }
-      const p1 = c.points[arc.p1]
-      const p2 = c.points[arc.p2]
-      const span = arcSpan(arc.center, p1, p2, arc.sweep)
-      if (span < 1e-6) { setHint('无法计算弧长'); return }
-      const newR = mmVal / s.project.config.pixelToMM / span
-      if (newR < 2) { setHint('弧长过小'); return }
-      const a1 = pointAngle(arc.center, p1)
-      const a2 = pointAngle(arc.center, p2)
-      const newPts = [arcPointAt(arc.center, newR, a1), arcPointAt(arc.center, newR, a2)]
-      const old = c.points.map(p => ({ ...p }))
-      s.execute(new UpdateContourPointsCommand(contourId, old, newPts, {
-        arcs: (c.arcs ?? []).map(a => a.id === arc.id ? { ...a, radius: newR } : a),
-      }))
-      const labelPos = arcPointAt(arc.center, newR + 16, arcMidAngle(arc.center, newPts[0], newPts[1], arc.sweep))
-      const label = `弧长 ${mmVal.toFixed(1)} mm`
+      const targetLengthPx = mmVal / s.project.config.pixelToMM
+      const circumferencePx = Math.PI * 2 * arc.radius
+      if (targetLengthPx >= circumferencePx - 1e-3) {
+        const maxMm = circumferencePx * s.project.config.pixelToMM
+        setHint(`单段圆弧必须短于整圆周长 ${maxMm.toFixed(1)} mm；整圆请使用圆工具`)
+        return
+      }
       const existing = c.constraints.find(x => x.id === replaceId)
         ?? c.constraints.find(x => x.type === 'arcLength')
-      if (existing) {
-        s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-      } else {
-        s.execute(new AddConstraintCommand(contourId, {
-          id: newConsId(), type: 'arcLength', edgeIndex: arc.p1, value: mmVal, labelPos, driving: true, label,
-        } as Constraint))
+      // 只有弧长时系统仍少一个自由度：半径与圆心角可同时变化。若项目没有
+      // 主动半径/直径尺寸，本次编辑临时保持当前半径，让弧长明确地改变圆心角。
+      const radiusStabilizers: SolverConstraint[] = c.constraints.some(cons =>
+        cons.driving && (cons.type === 'radius' || cons.type === 'diameter'))
+        ? []
+        : [arcRadius(arc.id, arc.radius)]
+      const result = await solveSketch(
+        c.points,
+        [
+          ...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId ?? existing?.id),
+          ...radiusStabilizers,
+          arcLengthConstraint(arc.id, targetLengthPx),
+        ],
+        contourSolveOptions(c, []),
+      )
+      const solvedArc = result.arcs?.[arc.id]
+      if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+      if (!result.success || result.conflict || !solvedArc) {
+        upsertDriven(c, contourId, { type: 'arcLength', value: mmVal }, replaceId, `弧长 ${mmVal.toFixed(1)} mm`)
+        return
       }
+
+      const labelPos = arcPointAt(
+        solvedArc.center,
+        solvedArc.radius + 16,
+        arcMidAngle(solvedArc.center, result.points[arc.p1], result.points[arc.p2], arc.sweep),
+      )
+      const label = `弧长 ${Number(mmVal.toFixed(6))} mm`
+      s.execute(dimensionEditCommand(c, result.points, circularPatch(c, result), {
+        ...existing, id: existing?.id ?? newConsId(), type: 'arcLength', edgeIndex: arc.p1,
+        value: mmVal, labelPos, driving: true, label,
+      }, existing?.id))
       checkState(contourId)
+      setHint(TOOL_HINTS.smartdim ?? null)
     }
 
 
@@ -2593,55 +3515,187 @@ export function useSketchTool() {
 
   async function applyLength(c: Contour, contourId: string, edgeIdx: number, mmVal: number, replaceId?: string) {
     const s = useAppStore.getState()
+    const isCurrent = dimensionTicket()
     if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
     const n = c.points.length
     const i1 = edgeIdx % n
     const i2 = (edgeIdx + 1) % n
     const targetPx = mmVal / s.project.config.pixelToMM
+    if (isRegularPolygonContour(c)) {
+      const referenceRadius = polygonReferenceRadiusForSide(c, targetPx)
+      if (!referenceRadius) { setHint('规则多边形边长无效，几何未变化'); return }
+      const existing = c.constraints.find(x => x.id === replaceId)
+        ?? c.constraints.find(x => x.type === 'length' && x.edgeIndex === edgeIdx)
+      const midpoint = {
+        x: (c.points[i1].x + c.points[i2].x) / 2,
+        y: (c.points[i1].y + c.points[i2].y) / 2 - 20,
+      }
+      commitRegularPolygonResize(c, contourId, referenceRadius, existing, {
+        id: newConsId(), type: 'length', edgeIndex: edgeIdx, value: mmVal,
+        labelPos: midpoint, driving: true, label: lengthLabel(c, i1, i2, mmVal),
+      })
+      return
+    }
+
+    const logicalChain = resolveCollinearEdgeChain(c, edgeIdx)
+    if (logicalChain && logicalChain.edgeIndices.length > 1) {
+      const chainEdges = new Set(logicalChain.edgeIndices)
+      const start = c.points[logicalChain.startVertex]
+      const end = c.points[logicalChain.endVertex]
+      const chainDx = end.x - start.x, chainDy = end.y - start.y
+      const chainLength = Math.hypot(chainDx, chainDy)
+      if (chainLength < 1e-6 || logicalChain.totalLength < 1e-6) { setHint('共线边链长度为零，无法标注'); return }
+      const ux = chainDx / chainLength, uy = chainDy / chainLength
+      const geometryConstraints: SolverConstraint[] = []
+      const totalEdges = edgeCount(c)
+      for (let edge = 0; edge < totalEdges; edge++) {
+        if (edgeArc(c, edge)) continue
+        const axis = axisConstraintForEdge(c, edge)
+        if (axis) geometryConstraints.push(axis)
+        const a = c.points[edge], b = c.points[(edge + 1) % n]
+        const dx = b.x - a.x, dy = b.y - a.y
+        const length = Math.hypot(dx, dy)
+        if (length < 1e-6) continue
+        if (chainEdges.has(edge)) {
+          geometryConstraints.push(p2pDistance(edge, (edge + 1) % n, targetPx * length / logicalChain.totalLength))
+        } else {
+          const alignment = Math.abs(dx / length * ux + dy / length * uy)
+          // 保持与目标链垂直的横向边长度；平行对边允许随整体高度/宽度变化。
+          if (alignment < 0.15) geometryConstraints.push(p2pDistance(edge, (edge + 1) % n, length))
+        }
+      }
+      const chainConstraintIds = new Set(c.constraints.filter(constraint =>
+        constraint.type === 'length' && constraint.edgeIndex !== undefined && chainEdges.has(constraint.edgeIndex)).map(constraint => constraint.id))
+      const persistent = existingConstraintsToSolver(
+        { ...c, constraints: c.constraints.filter(constraint => !chainConstraintIds.has(constraint.id)) },
+        s.project.config.pixelToMM,
+        replaceId,
+      )
+      const tangencies = (c.arcs ?? []).flatMap(arc => mixedArcTangentStabilizers(c, arc))
+      const result = await solveSketch(
+        c.points,
+        [...persistent, ...geometryConstraints, ...tangencies],
+        contourSolveOptions(c, [stableAnchorIndex(c)]),
+      )
+      if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+      if (!result.success || result.conflict) {
+        upsertDriven(c, contourId, {
+          type: 'length', edgeIndex: logicalChain.edgeIndices[0], vertexIdx1: logicalChain.startVertex,
+          vertexIdx2: logicalChain.endVertex, value: mmVal,
+          labelPos: { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 - 20 },
+        }, replaceId, lengthLabel(c, logicalChain.startVertex, logicalChain.endVertex, mmVal))
+        return
+      }
+      const commands: Command[] = [new UpdateContourPointsCommand(contourId, c.points, result.points, circularPatch(c, result))]
+      const solvedStart = result.points[logicalChain.startVertex]
+      const solvedEnd = result.points[logicalChain.endVertex]
+      const label = lengthLabel({ ...c, points: result.points }, logicalChain.startVertex, logicalChain.endVertex, mmVal)
+      const labelPos = { x: (solvedStart.x + solvedEnd.x) / 2, y: (solvedStart.y + solvedEnd.y) / 2 - 20 }
+      const existing = c.constraints.find(constraint => constraint.id === replaceId)
+        ?? c.constraints.find(constraint => constraint.type === 'length' && constraint.edgeIndex !== undefined && chainEdges.has(constraint.edgeIndex))
+      // 两段旧尺寸合并为一个整体尺寸时，只保留一个规范约束；否则下一次求解会
+      // 同时受到“整边 120”与遗留的“上半边 50 / 下半边 50”驱动而过约束。
+      for (const constraintId of chainConstraintIds) {
+        if (constraintId !== existing?.id) commands.push(new RemoveConstraintCommand(contourId, constraintId))
+      }
+      if (existing) {
+        commands.push(new UpdateConstraintCommand(contourId, existing.id, {
+          edgeIndex: logicalChain.edgeIndices[0], vertexIdx1: logicalChain.startVertex, vertexIdx2: logicalChain.endVertex,
+          value: mmVal, label, labelPos, driving: true,
+        }))
+      } else {
+        commands.push(new AddConstraintCommand(contourId, {
+          id: newConsId(), type: 'length', edgeIndex: logicalChain.edgeIndices[0],
+          vertexIdx1: logicalChain.startVertex, vertexIdx2: logicalChain.endVertex,
+          value: mmVal, labelPos, driving: true, label,
+        } as Constraint))
+      }
+      s.execute(new CompositeCommand('修改共线边整体尺寸', commands))
+      checkState(contourId)
+      setHint('已修改整条共线直边；中间拓扑点保持共线')
+      return
+    }
 
     let result
-    if (isOrtho(c)) {
+    const axisConstraint = axisConstraintForEdge(c, i1)
+    const mixedTouchCount = (c.arcs?.length ?? 0) > 0 ? arcEndpointTouchCount(c, i1) : 0
+    if ((c.arcs?.length ?? 0) > 0) {
+      if (edgeArc(c, i1) || mixedTouchCount > 1 || !axisConstraint) {
+        setHint('该混合轮廓边暂不能安全驱动长度')
+        return
+      }
+      const arcEndpoints = new Set((c.arcs ?? []).flatMap(arc => [arc.p1, arc.p2]))
+      let movingIndex = arcEndpoints.has(i1) ? i2 : arcEndpoints.has(i2) ? i1 : i2
+      if (movingIndex === c.originAnchorIdx && mixedTouchCount === 0) {
+        movingIndex = movingIndex === i1 ? i2 : i1
+      }
+      if (movingIndex === c.originAnchorIdx) {
+        setHint('该直线的可移动端已固定到草图原点，不能在保持圆角时修改长度')
+        return
+      }
+      const fixed = Array.from({ length: n }, (_, index) => index).filter(index => index !== movingIndex)
+      result = await solveSketch(
+        c.points,
+        [
+          ...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId),
+          axisConstraint,
+          p2pDistance(i1, i2, targetPx),
+        ],
+        contourSolveOptions(c, fixed),
+      )
+    } else if (isOrtho(c)) {
       // 正交轮廓: 全边 H/V + 新边长, 几何闭合判定; 开放链保持其它边原长 → 不会变梯形
       result = await orthoSolve(c, [p2pDistance(i1, i2, targetPx)], s.project.config.pixelToMM, replaceId, { exclude: new Set([i1]) })
     } else {
       // 一般轮廓: 固定除目标边两端点外的所有点 → 只动目标边
       const fixed = Array.from({ length: n }, (_, i) => i).filter(i => i !== i1 && i !== i2)
-      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), p2pDistance(i1, i2, targetPx)], { fixedIndices: withStableAnchor(c, fixed), closed: isClosedGeo(c) })
+      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), p2pDistance(i1, i2, targetPx)], contourSolveOptions(c, withStableAnchor(c, fixed)))
     }
 
-    if (!result.success) {
+    if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+    if (!result.success || result.conflict) {
       upsertDriven(c, contourId, {
         type: 'length', edgeIndex: edgeIdx, value: mmVal,
         labelPos: { x: (c.points[i1].x + c.points[i2].x) / 2, y: (c.points[i1].y + c.points[i2].y) / 2 - 20 },
       }, replaceId, lengthLabel(c, i1, i2, mmVal))
       return
     }
-    const old = c.points.map(p => ({ ...p }))
-    c.points = result.points
-    s.execute(new UpdateContourPointsCommand(contourId, old, result.points))
-
-    const label = lengthLabel(c, i1, i2, mmVal)
-    const labelPos = { x: (c.points[i1].x + c.points[i2].x) / 2, y: (c.points[i1].y + c.points[i2].y) / 2 - 20 }
+    const label = lengthLabel({ ...c, points: result.points }, i1, i2, mmVal)
+    const labelPos = { x: (result.points[i1].x + result.points[i2].x) / 2, y: (result.points[i1].y + result.points[i2].y) / 2 - 20 }
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'length' && x.edgeIndex === edgeIdx)
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'length', edgeIndex: edgeIdx, value: mmVal,
-        labelPos, driving: true, label,
-      } as Constraint))
-    }
+    const patch = circularPatch(c, result)
+    if (c.slotWidth !== undefined && result.points.length >= 2) patch.slotParams = { width: c.slotWidth, length: Math.hypot(result.points[1].x-result.points[0].x,result.points[1].y-result.points[0].y)+c.slotWidth }
+    s.execute(dimensionEditCommand(c, result.points, patch, { ...existing, id: existing?.id ?? newConsId(), type: 'length', edgeIndex: edgeIdx, value: mmVal, labelPos, driving: true, label }, existing?.id))
     checkState(contourId)
+    setHint(TOOL_HINTS.smartdim ?? null)
   }
 
   // ---- 智能尺寸: 两点距离 ----
 
   async function applyDistance(c: Contour, contourId: string, v1: number, v2: number, mmVal: number, replaceId?: string) {
     const s = useAppStore.getState()
+    const isCurrent = dimensionTicket()
     if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
     const n = c.points.length
     const targetPx = mmVal / s.project.config.pixelToMM
+    if (isRegularPolygonContour(c)) {
+      const referenceRadius = polygonReferenceRadiusForVertexDistance(c, v1, v2, targetPx)
+      if (!referenceRadius) { setHint('规则多边形点距无效，几何未变化'); return }
+      const existing = c.constraints.find(x => x.id === replaceId)
+        ?? c.constraints.find(x => x.type === 'distance' && x.vertexIdx1 === v1 && x.vertexIdx2 === v2)
+      const resolve = (index: number) => index === -2 ? c.center! : c.points[index]
+      const a = resolve(v1)
+      const b = resolve(v2)
+      commitRegularPolygonResize(c, contourId, referenceRadius, existing, {
+        id: newConsId(), type: 'distance', vertexIdx1: v1, vertexIdx2: v2,
+        value: mmVal,
+        labelPos: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 20 },
+        driving: true,
+        label: `${v1 === -2 || v2 === -2 ? '中心距' : '距离'} ${mmVal.toFixed(1)} mm`,
+      })
+      return
+    }
     let result
     if (isOrtho(c)) {
       // 正交板子: 全边 H/V + 两点距离, 几何闭合判定 → 保持矩形/凸形/凹形结构 (不会变梯形)
@@ -2649,31 +3703,21 @@ export function useSketchTool() {
     } else {
       // 一般轮廓: 固定除两端点外的所有点 → 只动这两个顶点
       const fixed = Array.from({ length: n }, (_, i) => i).filter(i => i !== v1 && i !== v2)
-      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), p2pDistance(v1, v2, targetPx)], { fixedIndices: withStableAnchor(c, fixed), closed: isClosedGeo(c) })
+      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), p2pDistance(v1, v2, targetPx)], contourSolveOptions(c, withStableAnchor(c, fixed)))
     }
-    if (!result.success) {
+    if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+    if (!result.success || result.conflict) {
       upsertDriven(c, contourId, {
         type: 'distance', vertexIdx1: v1, vertexIdx2: v2, value: mmVal,
         labelPos: { x: (c.points[v1].x + c.points[v2].x) / 2, y: (c.points[v1].y + c.points[v2].y) / 2 - 20 },
       }, replaceId, `间距 ${mmVal.toFixed(1)} mm`)
       return
     }
-    const old = c.points.map(p => ({ ...p }))
-    c.points = result.points
-    s.execute(new UpdateContourPointsCommand(contourId, old, result.points))
-
     const label = `距离 ${mmVal.toFixed(1)} mm`
-    const labelPos = { x: (c.points[v1].x + c.points[v2].x) / 2, y: (c.points[v1].y + c.points[v2].y) / 2 - 20 }
+    const labelPos = { x: (result.points[v1].x + result.points[v2].x) / 2, y: (result.points[v1].y + result.points[v2].y) / 2 - 20 }
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'distance' && x.vertexIdx1 === v1 && x.vertexIdx2 === v2)
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'distance', vertexIdx1: v1, vertexIdx2: v2,
-        value: mmVal, labelPos, driving: true, label,
-      } as Constraint))
-    }
+    s.execute(dimensionEditCommand(c, result.points, circularPatch(c, result), { ...existing, id: existing?.id ?? newConsId(), type: 'distance', vertexIdx1: v1, vertexIdx2: v2, value: mmVal, labelPos, driving: true, label }, existing?.id))
     checkState(contourId)
   }
 
@@ -2684,8 +3728,24 @@ export function useSketchTool() {
       if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
       const c2 = contourId2 ? findContour(contourId2) : c
       if (!c2) { setHint('找不到第二条轮廓'); return }
+      if (!contourId2 && isRegularPolygonContour(c)
+          && ((v1 === -2 && v2 >= 0) || (v2 === -2 && v1 >= 0))) {
+        const targetPx = mmVal / s.project.config.pixelToMM
+        const referenceRadius = polygonReferenceRadiusForVertexDistance(c, v1, v2, targetPx)
+        if (!referenceRadius) { setHint('规则多边形中心距无效，几何未变化'); return }
+        const existing = c.constraints.find(x => x.id === replaceId)
+          ?? c.constraints.find(x => x.type === 'distance' && x.vertexIdx1 === v1 && x.vertexIdx2 === v2)
+        const a = v1 === -2 ? c.center! : c.points[v1]
+        const b = v2 === -2 ? c.center! : c.points[v2]
+        commitRegularPolygonResize(c, contourId, referenceRadius, existing, {
+          id: newConsId(), type: 'distance', vertexIdx1: v1, vertexIdx2: v2,
+          value: mmVal, labelPos: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+          driving: true, label: `中心距 ${mmVal.toFixed(1)} mm`,
+        })
+        return
+      }
       const resolve = (contour: Contour, idx: number): Point2D | null =>
-        idx === -3 ? { x: 0, y: 0 } : idx === -2 ? contourCenter(contour) : contour.points[idx] ?? null
+        idx === -3 ? { x: 0, y: 0 } : idx === -2 ? contourDimensionCenter(contour) : contour.points[idx] ?? null
       const a = resolve(c, v1)
       const b = resolve(c2, v2)
       if (!a || !b) { setHint('无法解析标注点'); return }
@@ -2696,7 +3756,6 @@ export function useSketchTool() {
       const scale = target / cur
       const offsetX = dx * (scale - 1)
       const offsetY = dy * (scale - 1)
-      const old2 = c2.points.map(p => ({ ...p }))
       let newPts2: Point2D[]
       let patch2: Partial<Contour> = {}
       if (v1 === -3 || v2 === -2) {
@@ -2707,7 +3766,6 @@ export function useSketchTool() {
       } else {
         newPts2 = c2.points.map((p, i) => i === v2 ? { x: p.x + offsetX, y: p.y + offsetY } : p)
       }
-      s.execute(new UpdateContourPointsCommand(c2.id, old2, newPts2, patch2))
 
       const label = (v1 === -3 || v2 === -3)
         ? `基准距 ${mmVal.toFixed(1)} mm`
@@ -2716,14 +3774,7 @@ export function useSketchTool() {
       const labelPos = { x: (a.x + bNew.x) / 2, y: (a.y + bNew.y) / 2 }
       const existing = c.constraints.find(x => x.id === replaceId)
         ?? c.constraints.find(x => x.type === 'distance' && x.vertexIdx1 === v1 && x.vertexIdx2 === v2 && x.contourId2 === contourId2)
-      if (existing) {
-        s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-      } else {
-        s.execute(new AddConstraintCommand(contourId, {
-          id: newConsId(), type: 'distance', vertexIdx1: v1, vertexIdx2: v2, contourId2,
-          value: mmVal, labelPos, driving: true, label,
-        } as Constraint))
-      }
+      s.execute(dimensionEditCommand(c,newPts2,patch2,{...existing,id:existing?.id??newConsId(),type:'distance',vertexIdx1:v1,vertexIdx2:v2,contourId2,value:mmVal,labelPos,driving:true,label},existing?.id,c2))
       checkState(contourId)
       if (c2.id !== contourId) checkState(c2.id)
     }
@@ -2736,6 +3787,27 @@ export function useSketchTool() {
     if (!Number.isFinite(mmVal) || mmVal <= 0) { setHint('尺寸必须为正数 (Esc 关闭提示)'); return }
     const c2 = contourId2 ? findContour(contourId2) : c
     if (!c2) { setHint('找不到第二条轮廓'); return }
+    if (!contourId2 && isRegularPolygonContour(c)) {
+      const targetPx = mmVal / s.project.config.pixelToMM
+      const referenceRadius = polygonReferenceRadiusForParallelGap(c, e1, e2, targetPx)
+      if (!referenceRadius) { setHint('所选多边形边不构成有效平行间距'); return }
+      const existing = c.constraints.find(x => x.id === replaceId)
+        ?? c.constraints.find(x => x.type === 'distance' && x.edgeIndex === e1 && x.edgeIndex2 === e2 && !x.contourId2)
+      const mid1 = {
+        x: (c.points[e1].x + c.points[(e1 + 1) % c.points.length].x) / 2,
+        y: (c.points[e1].y + c.points[(e1 + 1) % c.points.length].y) / 2,
+      }
+      const mid2 = {
+        x: (c.points[e2].x + c.points[(e2 + 1) % c.points.length].x) / 2,
+        y: (c.points[e2].y + c.points[(e2 + 1) % c.points.length].y) / 2,
+      }
+      commitRegularPolygonResize(c, contourId, referenceRadius, existing, {
+        id: newConsId(), type: 'distance', edgeIndex: e1, edgeIndex2: e2,
+        value: mmVal, labelPos: { x: (mid1.x + mid2.x) / 2, y: (mid1.y + mid2.y) / 2 },
+        driving: true, label: `间距 ${mmVal.toFixed(1)} mm`,
+      })
+      return
+    }
     const n = c.points.length
     const n2 = c2.points.length
     const a1 = c.points[e1], b1 = c.points[(e1 + 1) % n]
@@ -2749,14 +3821,12 @@ export function useSketchTool() {
     // 间距取绝对值, 平移方向按当前相对位置保持
     const delta = Math.abs(target) - Math.abs(curD)
     const dir = curD >= 0 ? 1 : -1
-    const old2 = c2.points.map(p => ({ ...p }))
     const moveWholeContour = c2.id !== contourId
     const translated = moveWholeContour
       ? translateContourGeometry(c2, nx * delta * dir, ny * delta * dir)
       : null
     const newPts2 = translated?.points ?? c2.points.map((p, i) =>
       (i === e2 || i === (e2 + 1) % n2) ? { x: p.x + nx * delta * dir, y: p.y + ny * delta * dir } : p)
-    s.execute(new UpdateContourPointsCommand(c2.id, old2, newPts2, translated?.patch))
 
     const label = `间距 ${mmVal.toFixed(1)} mm`
     const mid2New = { x: mid2.x + nx * delta * dir, y: mid2.y + ny * delta * dir }
@@ -2766,14 +3836,7 @@ export function useSketchTool() {
     const labelPos = { x: (q1.x + q2.x) / 2, y: (q1.y + q2.y) / 2 }
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'distance' && x.edgeIndex === e1 && x.edgeIndex2 === e2 && x.contourId2 === contourId2)
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'distance', edgeIndex: e1, edgeIndex2: e2, contourId2,
-        value: mmVal, labelPos, driving: true, label,
-      } as Constraint))
-    }
+    s.execute(dimensionEditCommand(c,newPts2,translated?.patch??{},{...existing,id:existing?.id??newConsId(),type:'distance',edgeIndex:e1,edgeIndex2:e2,contourId2,value:mmVal,labelPos,driving:true,label},existing?.id,c2))
     checkState(contourId)
     if (c2.id !== contourId) checkState(c2.id)
   }
@@ -2787,39 +3850,53 @@ export function useSketchTool() {
     const a = c.points[edgeIndex % n], b = c.points[(edgeIndex + 1) % n]
     const pointContour = contourId2 ? findContour(contourId2) : c
     if (!pointContour) { setHint('找不到点所在轮廓'); return }
-    const v = vertexIdx === -2 ? contourCenter(pointContour) : pointContour.points[vertexIdx]
+    if (!contourId2 && vertexIdx === -2 && isRegularPolygonContour(c)) {
+      const targetPx = mmVal / s.project.config.pixelToMM
+      const referenceRadius = polygonReferenceRadiusForCenterEdgeDistance(c, edgeIndex, targetPx)
+      if (!referenceRadius) { setHint('规则多边形内切距无效，几何未变化'); return }
+      const existing = c.constraints.find(x => x.id === replaceId)
+        ?? c.constraints.find(x => x.type === 'distance' && x.edgeIndex === edgeIndex && x.vertexIdx1 === -2 && !x.contourId2)
+      const midpoint = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }
+      commitRegularPolygonResize(c, contourId, referenceRadius, existing, {
+        id: newConsId(), type: 'distance', edgeIndex, vertexIdx1: -2,
+        value: mmVal,
+        labelPos: { x: (c.center!.x + midpoint.x) / 2, y: (c.center!.y + midpoint.y) / 2 },
+        driving: true, label: `内切距 ${mmVal.toFixed(1)} mm`,
+      })
+      return
+    }
+    const v = vertexIdx === -2 ? contourDimensionCenter(pointContour) : pointContour.points[vertexIdx]
     if (!v) { setHint('找不到标注点'); return }
     const dx = b.x - a.x, dy = b.y - a.y
-    const len = Math.hypot(dx, dy) || 1
+    const len = Math.hypot(dx, dy)
+    if (len < 1e-9) { setHint('基准边长度为零，无法创建定位尺寸'); return }
     const nx = -dy / len, ny = dx / len
     const curD = (v.x - a.x) * nx + (v.y - a.y) * ny
     const target = mmVal / s.project.config.pixelToMM
     const delta = target - Math.abs(curD)
     const dir = curD >= 0 ? 1 : -1
-    const old = pointContour.points.map(p => ({ ...p }))
     const moveWholeContour = pointContour.id !== contourId || vertexIdx === -2
-    const translated = moveWholeContour
-      ? translateContourGeometry(pointContour, nx * delta * dir, ny * delta * dir)
+    // 中心→外轮廓直边是“孔定位”而不是拉顶点：统一走纯几何整体平移，
+    // 圆/槽口/规则多边形/普通闭合内孔均保持自身尺寸与旋转不变。
+    const centerPlacement = vertexIdx === -2 && pointContour.id !== contourId
+      ? translateContourCenterToLineDistance(pointContour, a, b, target)
       : null
+    const translated = centerPlacement ?? (moveWholeContour
+      ? translateContourGeometry(pointContour, nx * delta * dir, ny * delta * dir)
+      : null)
     const newPts = translated?.points ?? pointContour.points.map((p, i) =>
       i === vertexIdx ? { x: p.x + nx * delta * dir, y: p.y + ny * delta * dir } : p)
-    s.execute(new UpdateContourPointsCommand(pointContour.id, old, newPts, translated?.patch))
 
     const label = `${vertexIdx === -2 ? '中心距' : '距离'} ${mmVal.toFixed(1)} mm`
-    const vNew = { x: v.x + nx * delta * dir, y: v.y + ny * delta * dir }
+    const vNew = centerPlacement?.centerAfter
+      ?? { x: v.x + nx * delta * dir, y: v.y + ny * delta * dir }
     const proj = (v.x - a.x) * dx / len + (v.y - a.y) * dy / len
-    const q = { x: a.x + (dx / len) * proj, y: a.y + (dy / len) * proj }
+    const q = centerPlacement?.foot
+      ?? { x: a.x + (dx / len) * proj, y: a.y + (dy / len) * proj }
     const labelPos = { x: (vNew.x + q.x) / 2, y: (vNew.y + q.y) / 2 }
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'distance' && x.edgeIndex === edgeIndex && x.vertexIdx1 === vertexIdx && x.contourId2 === contourId2)
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, { value: mmVal, label, labelPos }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'distance', edgeIndex, vertexIdx1: vertexIdx, contourId2,
-        value: mmVal, labelPos, driving: true, label,
-      } as Constraint))
-    }
+    s.execute(dimensionEditCommand(c,newPts,translated?.patch??{},{...existing,id:existing?.id??newConsId(),type:'distance',edgeIndex,vertexIdx1:vertexIdx,contourId2,value:mmVal,labelPos,driving:true,label},existing?.id,pointContour))
     checkState(contourId)
     if (pointContour.id !== contourId) checkState(pointContour.id)
   }
@@ -2845,6 +3922,7 @@ export function useSketchTool() {
 
   async function applyAngle(c: Contour, contourId: string, edge1: number, edge2: number, degVal: number, replaceId?: string, contourId2?: string) {
     const s = useAppStore.getState()
+    const isCurrent = dimensionTicket()
     if (!Number.isFinite(degVal) || degVal <= 0 || degVal >= 180) { setHint('角度必须在 0~180 之间'); return }
       if (contourId2) {
         const c2 = findContour(contourId2)
@@ -2881,33 +3959,22 @@ export function useSketchTool() {
     } else {
       const fixed = Array.from({ length: n }, (_, i) => i)
         .filter(i => i !== edge1 && i !== e1b && i !== edge2 && i !== e2b)
-      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), angle(edge1, e1b, edge2, e2b, degVal)], { fixedIndices: withStableAnchor(c, fixed), closed: isClosedGeo(c) })
+      result = await solveSketch(c.points, [...existingConstraintsToSolver(c, s.project.config.pixelToMM, replaceId), angle(edge1, e1b, edge2, e2b, degVal)], contourSolveOptions(c, withStableAnchor(c, fixed)))
     }
 
-    if (!result.success) {
+    if (!isCurrent()) { setHint('草图已变化，已忽略过期尺寸结果，请重新编辑'); return }
+    if (!result.success || result.conflict) {
       upsertDriven(c, contourId, {
         type: 'angle', edgeIndex: edge1, edgeIndex2: edge2, value: degVal,
         labelPos: edgePos(c, edge1, edge2),
       }, replaceId, `角度 ${degVal.toFixed(1)}°`)
       return
     }
-    const old = c.points.map(p => ({ ...p }))
-    c.points = result.points
-    s.execute(new UpdateContourPointsCommand(contourId, old, result.points))
 
     const label = `角度 ${degVal.toFixed(1)}°`
     const existing = c.constraints.find(x => x.id === replaceId)
       ?? c.constraints.find(x => x.type === 'angle' && x.edgeIndex === edge1 && x.edgeIndex2 === edge2 && !x.contourId2)
-    if (existing) {
-      s.execute(new UpdateConstraintCommand(contourId, existing.id, {
-        value: degVal, label, labelPos: edgePos(c, edge1, edge2),
-      }))
-    } else {
-      s.execute(new AddConstraintCommand(contourId, {
-        id: newConsId(), type: 'angle', edgeIndex: edge1, edgeIndex2: edge2,
-        value: degVal, labelPos: edgePos(c, edge1, edge2), driving: true, label,
-      } as Constraint))
-    }
+    s.execute(dimensionEditCommand(c,result.points,circularPatch(c,result),{...existing,id:existing?.id??newConsId(),type:'angle',edgeIndex:edge1,edgeIndex2:edge2,value:degVal,labelPos:edgePos({...c,points:result.points},edge1,edge2),driving:true,label},existing?.id))
     checkState(contourId)
   }
 

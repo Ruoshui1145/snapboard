@@ -1,0 +1,38 @@
+{
+  "id": "wall-screw-anchor",
+  "schemaVersion": 1,
+  "label": "墙面螺钉/锚栓底座",
+  "kind": "surface-pad",
+  "summary": "以离散孔位、底座贴面和具体墙材锚固系统描述螺钉安装；不提供脱离产品数据的通用承载结论。",
+  "status": "experimental",
+  "family": "wall",
+  "connectorKind": "surface-plane",
+  "compatibilityKey": "surface-pad:screw-anchor:qualified-system:v1",
+  "systemKey": "wall-screw-anchor",
+  "standard": "Product- and substrate-specific anchor system",
+  "nominalGeometryMm": {"defaultEdgeClearance": 10},
+  "supportedMatingKeys": ["surface-pad:screw-anchor:product-and-substrate-verified"],
+  "assemblyAxis": "host-normal",
+  "occupancy": {"kind": "surface-footprint", "clearanceMm": 5, "collisionPolicy": "reject-overlap"},
+  "recipe": [
+    {"id": "select-anchor-points", "action": "select-target", "label": "选择底座 footprint 与全部锚固点", "automaticByDefault": false, "stopCondition": "孔位、边距、间距与背后禁区已定义", "manualFallback": "移动或旋转底座"},
+    {"id": "qualify-base-material", "action": "verify", "label": "确认基层材料和具体锚固产品", "automaticByDefault": false, "stopCondition": "墙材、锚栓/膨胀管、螺钉和审批数据对应", "manualFallback": "保持待工程确认"},
+    {"id": "align-base-plate", "action": "align", "label": "底座贴面并对准孔位", "automaticByDefault": true, "stopCondition": "底座面平行且孔轴与墙面法线一致", "manualFallback": "平移、旋转和法向微调"},
+    {"id": "drill-or-prepare-holes", "action": "insert", "label": "按具体锚固系统准备孔并安装锚件", "automaticByDefault": false, "stopCondition": "用户确认孔径、孔深、清孔和锚件安装符合说明", "manualFallback": "保存为仅规划"},
+    {"id": "clamp-base", "action": "clamp", "label": "使用匹配螺钉紧固底座", "automaticByDefault": false, "stopCondition": "用户确认达到产品规定安装状态", "manualFallback": "保留未锁紧状态"},
+    {"id": "verify-screw-anchor", "action": "verify", "label": "检查孔位、边距、间距、深度和元数据", "automaticByDefault": true, "stopCondition": "几何无冲突且产品/基层数据完整", "manualFallback": "要求结构或现场复核"}
+  ],
+  "validation": {
+    "geometryChecks": ["孔位轴线和底座面有效", "锚固点不进入墙边、接缝、管线和禁区", "边距与锚栓间距按具体审批数据校验", "钻孔深度和锚固深度不超过可用墙体", "螺钉与锚件规格匹配"],
+    "requiredMetadata": ["baseMaterial", "baseMaterialThickness", "anchorManufacturer", "anchorPartNumber", "screwPartNumber", "holeDiameter", "holeDepth", "embedmentDepth", "anchorPoints", "edgeDistances", "spacing", "approvalDocument", "loadCase"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["同一膨胀管在混凝土、实心砖、空心砖、加气混凝土和石膏板中的工作机制及数据不同。", "软件必须按具体料号和审批文件校验，不能依据直径相同自动替换锚件。", "当前资源包提供工艺与数据槽位，不提供结构安全签字或通用承重保证。"]
+  },
+  "sources": [
+    {"label": "fischer DuoPower official product catalogue", "url": "https://www.fischer-international.com/en/products/standard-fixings/plastic-fixings/duopower", "supports": ["不同基层材料使用展开、折叠或打结等不同机制", "孔径、孔深、板厚、锚长和螺钉范围需按具体变体记录", "承载数据随基层和料号变化"]},
+    {"label": "Hilti Anchor Fastening Technology Manual 2023", "url": "https://www.hilti.group/content/dam/documents/pdf/e4/engineering/manuals/ANCHOR-FASTENING-TECHNOLOGY-MANUAL_2023.pdf", "supports": ["锚固设计需要基层、边距、间距、锚深和载荷数据", "机械和化学锚固必须按具体系统设计"]}
+  ]
+}

@@ -1,6 +1,7 @@
 import type { PartMountAnchor, MountHoleKind } from '../partLibrary/types'
 import type { SplitConfig, SplitPanel } from '../types/geometry'
 import { stabilizeSlotAxis } from './mountAxis.js'
+import { originalPanelHoles, holeCoordinateKey } from './holeEditingState.js'
 
 export interface AssemblyTarget {
   id: string
@@ -74,8 +75,13 @@ export function splitPanelTargets(
   const targets: AssemblyTarget[] = []
   const key = (value: number) => Math.round(value * 1000)
   for (const panel of panels) {
+    const original = originalPanelHoles(panel)
+    const indices = original === panel ? null : Object.fromEntries(['slots', 'round_holes', 'edge_holes'].map(group =>
+      [group, new Map(original[group as 'slots'].map((hole, index) => [holeCoordinateKey(hole.x, hole.y), index]))]))
+    const stableIndex = (group: string, hole: { x: number; y: number }, index: number) =>
+      indices?.[group]?.get(holeCoordinateKey(hole.x, hole.y)) ?? index
     panel.slots.forEach((hole, index) => targets.push({
-      id: `${panel.id}:slot:${index}:${key(hole.x)}:${key(hole.y)}`,
+      id: `${panel.id}:slot:${stableIndex('slots', hole, index)}:${key(hole.x)}:${key(hole.y)}`,
       panelId: panel.id,
       kind: 'slot',
       x: hole.x - frame.centerX,
@@ -85,7 +91,7 @@ export function splitPanelTargets(
       axis: [0, 1],
     }))
     panel.round_holes.forEach((hole, index) => targets.push({
-      id: `${panel.id}:round:${index}:${key(hole.x)}:${key(hole.y)}`,
+      id: `${panel.id}:round:${stableIndex('round_holes', hole, index)}:${key(hole.x)}:${key(hole.y)}`,
       panelId: panel.id,
       kind: 'round',
       x: hole.x - frame.centerX,
@@ -98,7 +104,7 @@ export function splitPanelTargets(
         Math.abs(hole.y - panel.y) < 0.5 || Math.abs(hole.y - (panel.y + panel.h)) < 0.5
       if (onBoundary) return
       targets.push({
-        id: `${panel.id}:round-edge:${index}:${key(hole.x)}:${key(hole.y)}`,
+        id: `${panel.id}:round-edge:${stableIndex('edge_holes', hole, index)}:${key(hole.x)}:${key(hole.y)}`,
         panelId: panel.id,
         kind: 'round',
         x: hole.x - frame.centerX,

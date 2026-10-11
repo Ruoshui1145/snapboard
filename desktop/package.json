@@ -1,0 +1,69 @@
+{
+  "name": "snapboard-desktop",
+  "version": "1.3.2-diy.1",
+  "description": "SnapBoard offline desktop designer",
+  "author": "SnapBoard",
+  "license": "GPL-3.0-only",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "prepare:app": "node build.mjs",
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --x64"
+  },
+  "build": {
+    "appId": "cn.snapboard.diy",
+    "productName": "SnapBoard DIY",
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "../output/release/diy"
+    },
+    "files": [
+      "main.cjs",
+      "windows.cjs",
+      "server.cjs",
+      "seed.cjs",
+      "generated/api.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "payload",
+        "to": "payload"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "SnapBoard-DIY-Setup-${version}-${arch}.${ext}",
+      "icon": "icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": false,
+      "shortcutName": "SnapBoard 个人玩家版"
+    },
+    "asar": true,
+    "electronFuses": {
+      "runAsNode": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true
+    }
+  },
+  "devDependencies": {
+    "electron": "44.2.0",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.2"
+  },
+  "snapboardEdition": "diy",
+  "dependencies": {
+    "sharp": "0.35.4"
+  }
+}

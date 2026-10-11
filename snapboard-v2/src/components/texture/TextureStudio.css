@@ -1,0 +1,69 @@
+/* Fields use the width of their dock, rather than the width of the window. */
+.designer-shell.workbench-v1 :is(.texture-studio.is-docked,.texture-properties),
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) :is(.texture-section,.texture-source-picker,.texture-layer-inspector,.texture-shared-settings,.texture-advanced-settings,.texture-control-grid,.texture-material-grid,.texture-layout-choice,.texture-lut-select) {
+  box-sizing:border-box;
+  min-width:0;
+  max-width:100%;
+}
+.designer-shell.workbench-v1 .workbench-library>.rsb:has(.texture-studio.is-docked),
+.designer-shell.workbench-v1 #workbench-properties:has(.texture-properties) {scrollbar-gutter:stable;}
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) :is(.texture-pattern-style,.texture-layer-arrangements,.texture-composition-actions) {flex-wrap:wrap;}
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) :is(.texture-pattern-style,.texture-layer-arrangements,.texture-composition-actions)>button {flex:1 1 60px;min-width:0;min-height:32px;padding:5px 6px;white-space:normal;}
+.designer-shell.workbench-v1 .texture-properties :is(.texture-fit-options,.texture-color-modes) {grid-template-columns:repeat(auto-fit,minmax(min(100%,58px),1fr));}
+.designer-shell.workbench-v1 .texture-properties :is(.texture-fit-options,.texture-color-modes)>button {min-width:0;white-space:normal;}
+.designer-shell.workbench-v1 .texture-properties .texture-layout-choice,
+.designer-shell.workbench-v1 .texture-properties .texture-lut-select {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:6px;
+  min-width:0;
+}
+.designer-shell.workbench-v1 .texture-properties :is(select,input:not([type=checkbox],[type=range])) {
+  box-sizing:border-box;
+  max-width:100%;
+}
+.designer-shell.workbench-v1 .texture-properties select {width:100%;min-width:0;min-height:34px;font-size:12px;}
+.designer-shell.workbench-v1 .texture-properties .texture-control-grid {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,136px),1fr));
+}
+.designer-shell.workbench-v1 .texture-properties .texture-range-heading {flex-wrap:wrap;color:#a8b7ca;font-size:12px;}
+.designer-shell.workbench-v1 .texture-properties .texture-range-heading label {flex:1 1 64px;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-range-value {margin-left:auto;}
+.designer-shell.workbench-v1 .texture-properties .texture-material-grid {grid-template-columns:minmax(0,1fr) 58px;}
+.designer-shell.workbench-v1 .texture-properties .texture-calibration-grid {grid-template-columns:minmax(0,1fr);}
+.designer-shell.workbench-v1 .texture-properties .texture-material-grid label {font-size:11px;}
+.designer-shell.workbench-v1 .texture-properties .texture-material-grid input {font-size:12px;}
+.designer-shell.workbench-v1 .texture-properties :is(.texture-layout-choice,.texture-lut-select,.texture-enable,.texture-print-note) {line-height:1.5;}
+.designer-shell.workbench-v1 .texture-properties .texture-enable {white-space:normal;}
+.designer-shell.workbench-v1 .texture-properties .texture-enable input {flex:none;}
+.designer-shell.workbench-v1 .texture-properties .texture-enable span {white-space:normal;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-layer-bar {height:auto;flex-wrap:wrap;}
+.designer-shell.workbench-v1 .texture-properties .texture-layer-bar span {min-width:min(100%,72px);padding:7px 8px;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-layer-bar small {font-size:10px;line-height:1.5;}
+.designer-shell.workbench-v1 .texture-properties .texture-finish-options {grid-template-columns:repeat(auto-fit,minmax(min(100%,116px),1fr));}
+.designer-shell.workbench-v1 .texture-properties .texture-print-goals {grid-template-columns:minmax(0,1fr);}
+.designer-shell.workbench-v1 .texture-properties .texture-finish-options button {min-width:0;white-space:normal;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-finish-options button small {font-size:11px;color:#a6b5c9;}
+.designer-shell.workbench-v1 .texture-properties :is(.texture-inline-note,.texture-lut-description,.texture-layer-plan p,.texture-lut-select small) {font-size:11px;overflow-wrap:anywhere;color:#a6b5c9;}
+.designer-shell.workbench-v1 .texture-properties .texture-print-note {font-size:11px;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-print-note b {font-size:11px;}
+.designer-shell.workbench-v1 .texture-properties .texture-woodgrain-panel label {display:grid;gap:6px;margin:9px 0;font-size:12px;}
+.designer-shell.workbench-v1 .texture-properties .texture-woodgrain-panel .texture-material-grid {grid-template-columns:repeat(auto-fit,minmax(min(100%,116px),1fr));}
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) .texture-section-title {flex-wrap:wrap;align-items:center;}
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) .texture-section-title>span {display:grid;gap:3px;min-width:0;text-align:left;}
+.designer-shell.workbench-v1 :is(.texture-studio,.texture-properties) :is(summary,.texture-active-target small) {white-space:normal;overflow-wrap:anywhere;line-height:1.5;}
+.designer-shell.workbench-v1 .texture-studio .texture-preset-grid>button {grid-template-rows:auto auto;}
+.designer-shell.workbench-v1 .texture-studio :is(.texture-preset-grid button b,.texture-preset-grid button small,.texture-current-image span,.texture-layer-list article b) {white-space:normal;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-studio .texture-pattern-grid {grid-template-columns:repeat(auto-fit,minmax(min(100%,116px),1fr));}
+.designer-shell.workbench-v1 .texture-studio .texture-pattern-grid button {min-width:0;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families {display:grid;grid-template-columns:minmax(0,1fr);gap:7px;margin:7px 0 12px;}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families button {display:flex;align-items:center;gap:9px;min-width:0;min-height:56px;padding:9px;text-align:left;border:1px solid var(--border);border-radius:9px;cursor:pointer;}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families button[aria-pressed=true] {border-color:var(--accent);background:var(--accent-soft);}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families button>span:last-child {display:grid;gap:4px;min-width:0;overflow-wrap:anywhere;}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families b {font-size:12px;color:var(--text);}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-families small {font-size:11px;line-height:1.5;color:var(--text-dim);}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-swatch {flex:none;width:26px;height:30px;border:1px solid #ffffff36;border-radius:6px;background:linear-gradient(135deg,#a8cdba,#c9d8cc 47%,#758b84 50%,#a8cdba 57%);}
+.designer-shell.workbench-v1 .texture-properties [data-family=transparent] .texture-veneer-swatch {background:linear-gradient(135deg,#e2e8e140,#ffffff14);box-shadow:inset 0 0 0 3px #ffffff16;}
+.designer-shell.workbench-v1 .texture-properties [data-family=wood] .texture-veneer-swatch {background:repeating-linear-gradient(100deg,#a57b4b 0 4px,#674725 5px 6px,#c39760 8px 10px);}
+.designer-shell.workbench-v1 .texture-properties .texture-veneer-parameters {margin-bottom:12px;}
+.designer-shell.workbench-v1 .texture-properties .texture-woodgrain-panel.is-compact {border:0;background:transparent;padding:0;margin-bottom:12px;}

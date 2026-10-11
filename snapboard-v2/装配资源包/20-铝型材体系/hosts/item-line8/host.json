@@ -1,0 +1,49 @@
+{
+  "id": "item-line8",
+  "schemaVersion": 1,
+  "label": "item Line 8 铝型材槽",
+  "kind": "t-slot",
+  "summary": "item Line 8 厂商体系内的槽螺母定位与夹紧装配。",
+  "status": "planned",
+  "family": "aluminium-profile",
+  "connectorKind": "t-slot",
+  "compatibilityKey": "item:line8:slot-profile:v1",
+  "systemKey": "item-line8",
+  "standard": "item Line 8 manufacturer system",
+  "nominalGeometryMm": { "nominalSlotOpening": 8, "typicalModule": 40 },
+  "grooveSignature": {
+    "system": "item",
+    "series": "Line 8",
+    "openingWidthMm": 8,
+    "cavityWidthMm": 20,
+    "cavityDepthMm": 12.25,
+    "compatibleThreads": ["M3", "M4", "M5", "M6", "M8"],
+    "signatureStatus": "verified-2d",
+    "automaticGeometryMatch": true,
+    "manufacturerDimensionsMm": { "a": 8, "b": 20, "c": 12.25, "d": 4.5, "e": 0.2 }
+  },
+  "supportedInsertModes": ["end-feed", "swivel-in"],
+  "fastenerThreads": ["M3", "M4", "M5", "M6", "M8"],
+  "supportedMatingKeys": ["item:line8:t-nut:verified", "item:line8:fastener:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": { "kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-groove", "action": "select-target", "label": "选择 item Line 8 槽与具体型材料号", "automaticByDefault": false, "stopCondition": "体系键和料号已确认", "manualFallback": "手动录入型材与紧固件料号" },
+    { "id": "insert-nut", "action": "insert", "label": "按料号从端部送入或原位旋入螺母", "automaticByDefault": true, "stopCondition": "螺母进入槽腔且姿态有效", "manualFallback": "切换插入方式并旋转微调" },
+    { "id": "slide-position", "action": "slide-until-stop", "label": "沿槽轴移动到目标位置", "automaticByDefault": true, "stopCondition": "目标轴向坐标满足且区间无冲突", "manualFallback": "沿轴拖动" },
+    { "id": "clamp", "action": "clamp", "label": "支架贴面并夹紧", "automaticByDefault": true, "stopCondition": "贴合与螺纹组合通过检查", "manualFallback": "手动选择螺母、螺钉和扭矩" }
+  ],
+  "validation": {
+    "geometryChecks": ["item Line 8 体系键完全匹配", "完整槽签名匹配", "螺母料号支持所选插入方式", "轴向占用区间无冲突"],
+    "requiredMetadata": ["vendorPartNumber", "fastenerPartNumber", "slotAxis", "insertMode"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["不得自动匹配 Bosch Slot 8 或 MISUMI HFS6。", "同为 8 mm 开口不构成兼容证明。"]
+  },
+  "sources": [
+    { "label": "item Technical Data for Profiles", "url": "https://cdn.item24.com/product-assets/DOK_DATA_profil-tech-daten_%23SEN_%23AIN_%23V3.pdf", "supports": ["Line 8 的 a/b/c/d/e 槽尺寸", "槽翼名义载荷"] },
+    { "label": "item T-Slot Nut St", "url": "https://www.item24.com/en-us/t-slot-nut-5-st-m4-stainless-42510", "supports": ["item 各 Line 使用对应紧固件", "原位旋入动作原理"] }
+  ]
+}

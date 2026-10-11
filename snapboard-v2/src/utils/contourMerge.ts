@@ -19,10 +19,13 @@
 //   - 已闭合: 直接保留
 // ============================================================================
 
-import type { Point2D } from '../types/geometry'
+import type { ArcEntity, Point2D } from '../types/geometry'
 
-/** 闭合判定阈值 (px): 与草图绘制"靠近起点闭合"的吸附半径一致 */
-export const CLOSE_RADIUS = 15
+/**
+ * 几何闭合容差（世界像素）。交互层可以用更大的屏幕吸附半径寻找候选，
+ * 但拓扑层只吸收浮点噪声，不能静默吞掉数毫米缺口。
+ */
+export const CLOSE_RADIUS = 0.1
 
 const dist = (a: Point2D, b: Point2D) => Math.hypot(b.x - a.x, b.y - a.y)
 
@@ -48,6 +51,114 @@ export interface MergedChainGroup {
   chain: ContourChain
   /** 参与合并的源轮廓 id (单条自闭合时只有它自己) */
   sourceIds: string[]
+}
+
+export interface MixedArcClosure {
+  points: Point2D[]
+  arc: ArcEntity
+}
+
+export interface OpenContourGeometry {
+  points: Point2D[]
+  arcs?: ArcEntity[]
+}
+
+export interface MergedContourGeometry {
+  points: Point2D[]
+  arcs: ArcEntity[]
+  closed: true
+}
+
+const reverseOpenGeometry = (geometry: OpenContourGeometry): OpenContourGeometry => {
+  const count = geometry.points.length
+  return {
+    points: [...geometry.points].reverse().map(point => ({ ...point })),
+    arcs: (geometry.arcs ?? []).map(arc => ({
+      ...arc,
+      p1: count - 1 - arc.p2,
+      p2: count - 1 - arc.p1,
+      sweep: arc.sweep === 'cw' ? 'ccw' : 'cw',
+      center: { ...arc.center },
+    })),
+  }
+}
+
+/**
+ * 把“开放混合轮廓 + 补上的开放直线/混合链”合并为一个有序闭合轮廓。
+ * 分割器能跨多条轮廓提取面，但2D编辑必须回写同一条拓扑链，否则选中高亮、
+ * 尺寸和顶点顺序会与制造结果不一致。
+ */
+export function mergeOpenContourGeometries(
+  first: OpenContourGeometry,
+  second: OpenContourGeometry,
+  tolerance = CLOSE_RADIUS,
+): MergedContourGeometry | null {
+  if (first.points.length < 2 || second.points.length < 2) return null
+  const variants = [
+    [first, second],
+    [first, reverseOpenGeometry(second)],
+    [reverseOpenGeometry(first), second],
+    [reverseOpenGeometry(first), reverseOpenGeometry(second)],
+  ] as const
+  for (const [a, b] of variants) {
+    const aEnd = a.points[a.points.length - 1]
+    const bStart = b.points[0]
+    if (dist(aEnd, bStart) > tolerance) continue
+    const points = [...a.points.map(point => ({ ...point })), ...b.points.slice(1).map(point => ({ ...point }))]
+    if (dist(points[0], points[points.length - 1]) > tolerance) continue
+    const bOffset = a.points.length - 1
+    const arcs = [
+      ...(a.arcs ?? []).map(arc => ({ ...arc, center: { ...arc.center } })),
+      ...(b.arcs ?? []).map(arc => ({ ...arc, p1: arc.p1 + bOffset, p2: arc.p2 + bOffset, center: { ...arc.center } })),
+    ]
+    const closingIndex = points.length - 1
+    points.pop()
+    const remapped = arcs.map(arc => ({
+      ...arc,
+      p1: arc.p1 === closingIndex ? 0 : arc.p1,
+      p2: arc.p2 === closingIndex ? 0 : arc.p2,
+    }))
+    if (points.length < 3 || remapped.some(arc => arc.p2 !== (arc.p1 + 1) % points.length)) continue
+    return { points, arcs: remapped, closed: true }
+  }
+  return null
+}
+
+/**
+ * 用一条独立圆弧闭合一条开放直线链。直线链按“弧终点 → … → 弧起点”排序，
+ * 闭合边再由圆弧“弧起点 → 弧终点”补齐，因此不会复制端点或增加伪直线。
+ */
+export function closeOpenChainWithStandaloneArc(
+  chainPoints: Point2D[],
+  arcPoints: Point2D[],
+  sourceArc: ArcEntity,
+  tolerance = CLOSE_RADIUS,
+): MixedArcClosure | null {
+  if (chainPoints.length < 2 || arcPoints.length < 2) return null
+  const arcStart = arcPoints[sourceArc.p1]
+  const arcEnd = arcPoints[sourceArc.p2]
+  if (!arcStart || !arcEnd) return null
+  const first = chainPoints[0]
+  const last = chainPoints[chainPoints.length - 1]
+  let ordered: Point2D[]
+  if (dist(first, arcEnd) <= tolerance && dist(last, arcStart) <= tolerance) {
+    ordered = chainPoints.map(point => ({ ...point }))
+  } else if (dist(first, arcStart) <= tolerance && dist(last, arcEnd) <= tolerance) {
+    ordered = [...chainPoints].reverse().map(point => ({ ...point }))
+  } else {
+    return null
+  }
+  ordered[0] = { ...arcEnd }
+  ordered[ordered.length - 1] = { ...arcStart }
+  return {
+    points: ordered,
+    arc: {
+      ...sourceArc,
+      p1: ordered.length - 1,
+      p2: 0,
+      center: { ...sourceArc.center },
+    },
+  }
 }
 
 /** 去掉环上"共线同向"的冗余顶点 (180° 直点), 使 L 型等结果更干净 */

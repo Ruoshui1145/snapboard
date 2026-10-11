@@ -1,0 +1,16 @@
+.merchant-license-status>button{padding:6px 10px;border-radius:7px;border:1px solid #657b78;background:#213330;color:#a6dbcf;font:12px inherit;cursor:pointer}
+.merchant-license-status>button.restricted{background:#3c302c;color:#ecc092;border-color:#907053}
+.merchant-license-dialog{width:min(580px,94vw);max-height:90dvh;overflow:auto;background:#24292e;color:#dbe6e8;border:1px solid #788a8c;border-radius:12px;padding:22px}
+.merchant-license-dialog::backdrop{background:#0c1019bb}
+.merchant-license-dialog header{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.merchant-license-dialog h2{margin:0;font-size:20px}
+.merchant-license-dialog p{font-size:12px;line-height:1.7;color:#b1c5ca}
+.merchant-license-dialog .licensing-note{border:1px solid #8b7450;background:#3a3226;padding:10px;border-radius:8px;color:#e7cca1}
+.merchant-license-dialog label{display:block;font-size:12px;margin-top:15px}
+.merchant-license-dialog button{font:inherit;font-size:12px;color:#bfded6;background:#293e39;border:1px solid #587970;border-radius:7px;padding:7px 12px;cursor:pointer}
+.merchant-license-dialog button:disabled{opacity:.45;cursor:not-allowed}
+.merchant-license-dialog footer{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.farm-account-login{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;margin:16px 0;padding:14px;background:#182623;border:1px solid #496c62;border-radius:9px}
+.farm-account-login label{margin:0}.farm-account-login input{width:100%;box-sizing:border-box;padding:10px;margin-top:6px;border:1px solid #647878;border-radius:6px;color:#e0e9ee;background:#171e25;font:inherit}.farm-account-login>button{grid-column:1/-1}
+.farm-account-connected{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px;background:#182623;border:1px solid #496c62;border-radius:9px}.farm-account-connected span{font-size:12px;color:#a9c0b7}.farm-account-connected button{margin-left:auto}
+@media(max-width:500px){.farm-account-login{grid-template-columns:1fr}}

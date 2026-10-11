@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "kind": "assembly-host-pack",
+  "id": "snapboard.hosts.din-rail",
+  "name": "DIN 与 IEC 安装导轨宿主",
+  "version": "1.0.0",
+  "author": "SnapBoard Team",
+  "license": "Project-Internal",
+  "description": "按截面隔离的 TH35-7.5、TH35-15、G32 与 15 mm 微型导轨宿主；同属 EN/IEC 60715 家族不代表连接器可互换。",
+  "hosts": [
+    "hosts/en60715-th35-7.5/host.json",
+    "hosts/en60715-th35-15/host.json",
+    "hosts/en60715-g32/host.json",
+    "hosts/en60715-th15/host.json"
+  ]
+}

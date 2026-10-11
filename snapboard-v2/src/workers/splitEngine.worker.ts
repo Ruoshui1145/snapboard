@@ -9,13 +9,17 @@ const send = (message: SplitWorkerResponse) => self.postMessage(message)
 self.addEventListener('message', (event: MessageEvent<SplitWorkerRequest>) => {
   const request = event.data
   try {
+    // Existing clients already understand progress; acknowledge startup before doing geometry.
+    send({ type: 'progress', jobId: request.jobId, completed: 0, total: request.targets.length })
     const sources: SplitSourceResult[] = []
     for (let index = 0; index < request.targets.length; index++) {
       const target = request.targets[index]
       const result = splitOrthogonalPolygon({
         points: target.points,
-        holes: request.holes.length ? request.holes : undefined,
-      }, request.config)
+        holes: (target.holes ?? request.holes).length ? target.holes ?? request.holes : undefined,
+        passiveHoles: request.passiveHoles,
+        cornerPolicy: target.cornerPolicy,
+      }, target.config ?? request.config)
       sources.push({
         contourId: target.contourId,
         name: target.name || '未命名轮廓',

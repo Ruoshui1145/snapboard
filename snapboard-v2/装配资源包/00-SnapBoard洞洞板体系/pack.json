@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "kind": "assembly-host-pack",
+  "id": "snapboard.hosts.pegboard",
+  "name": "SnapBoard 洞洞板宿主",
+  "version": "1.0.0",
+  "author": "SnapBoard Team",
+  "license": "Project-Internal",
+  "description": "SnapBoard 5×15 长圆孔与可选圆孔的内置宿主规格。",
+  "hosts": ["hosts/snapboard-pegboard-v1/host.json"]
+}

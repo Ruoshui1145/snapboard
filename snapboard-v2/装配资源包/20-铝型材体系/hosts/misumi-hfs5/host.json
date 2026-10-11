@@ -1,0 +1,49 @@
+{
+  "id": "misumi-hfs5",
+  "schemaVersion": 1,
+  "label": "MISUMI HFS5（6 mm 槽）",
+  "kind": "t-slot",
+  "summary": "MISUMI HFS5 小型框架体系；系列数字 5 对应 6 mm 名义槽口。",
+  "status": "planned",
+  "family": "aluminium-profile",
+  "connectorKind": "t-slot",
+  "compatibilityKey": "misumi:hfs5:slot-profile:v1",
+  "systemKey": "misumi-hfs5",
+  "standard": "MISUMI HFS5 manufacturer system",
+  "nominalGeometryMm": { "nominalSlotOpening": 6, "typicalModules": [20, 25, 40] },
+  "grooveSignature": {
+    "system": "misumi",
+    "series": "HFS5",
+    "openingWidthMm": 6,
+    "cavityWidthMm": 12,
+    "cavityDepthMm": 4,
+    "compatibleThreads": ["M3", "M4", "M5"],
+    "signatureStatus": "verified-2d",
+    "automaticGeometryMatch": true,
+    "manufacturerDimensionsMm": { "slotOpening": 6, "cavityWidth": 12, "cavityDepth": 4, "lipReference": 2 }
+  },
+  "supportedInsertModes": ["end-feed", "swivel-in"],
+  "fastenerThreads": ["M3", "M4", "M5"],
+  "supportedMatingKeys": ["misumi:hfs5:pre-assembly-nut:verified", "misumi:hfs5:post-assembly-nut:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": { "kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-groove", "action": "select-target", "label": "选择 MISUMI HFS5 槽与具体型材料号", "automaticByDefault": false, "stopCondition": "HFS5 体系键和料号已确认", "manualFallback": "手动录入型材与螺母料号" },
+    { "id": "insert-nut", "action": "insert", "label": "按前装/后装类型装入螺母", "automaticByDefault": true, "stopCondition": "螺母进入槽腔且姿态有效", "manualFallback": "切换端部送入或后装旋入" },
+    { "id": "slide-position", "action": "slide-until-stop", "label": "沿槽轴移动到目标位置", "automaticByDefault": true, "stopCondition": "目标轴向坐标满足且区间无冲突", "manualFallback": "沿轴拖动" },
+    { "id": "clamp", "action": "clamp", "label": "支架贴面并夹紧", "automaticByDefault": true, "stopCondition": "贴合与螺纹组合通过检查", "manualFallback": "人工选择螺钉长度与扭矩" }
+  ],
+  "validation": {
+    "geometryChecks": ["MISUMI HFS5 体系键完全匹配", "6/12/4 mm 截面签名匹配", "前装或后装螺母料号正确", "轴向占用区间无冲突"],
+    "requiredMetadata": ["vendorPartNumber", "fastenerPartNumber", "slotAxis", "insertMode"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["MISUMI HFS5 的系列数字不是槽宽；其名义槽宽为 6 mm。", "不得自动匹配 item Line 6 或 Bosch Slot 6。"]
+  },
+  "sources": [
+    { "label": "MISUMI HFS5 official section drawing", "url": "https://us.misumi-ec.com/pdf/fa/2019/2019_US_2688.pdf", "supports": ["HFS5 6/12/4 mm 槽截面", "20/25/40 mm 模数组"] },
+    { "label": "MISUMI HFS5 pre/post assembly nuts", "url": "https://us.misumi-ec.com/vona2/detail/110311087829/?Tab=codeList", "supports": ["M3/M4/M5", "前装与后装螺母的差异"] }
+  ]
+}

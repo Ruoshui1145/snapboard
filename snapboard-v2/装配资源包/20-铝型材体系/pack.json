@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "assembly-host-pack",
+  "id": "snapboard.hosts.aluminium-profile-systems",
+  "name": "铝型材安装体系（厂商隔离）",
+  "version": "1.0.0",
+  "author": "SnapBoard Team",
+  "license": "Project-Internal",
+  "description": "item、Bosch Rexroth 与 MISUMI 铝型材宿主规格。相同名义槽宽不代表跨厂商可互换。",
+  "hosts": [
+    "hosts/item-line5/host.json",
+    "hosts/item-line6/host.json",
+    "hosts/item-line8/host.json",
+    "hosts/item-line10/host.json",
+    "hosts/bosch-rexroth-slot6/host.json",
+    "hosts/bosch-rexroth-slot8/host.json",
+    "hosts/bosch-rexroth-slot10/host.json",
+    "hosts/misumi-hfs5/host.json",
+    "hosts/misumi-hfs6/host.json",
+    "hosts/misumi-hfs8/host.json"
+  ]
+}

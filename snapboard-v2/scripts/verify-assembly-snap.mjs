@@ -1,27 +1,7 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { pathToFileURL } from 'node:url'
 import * as THREE from 'three'
-
-const root = process.cwd()
-const outDir = path.join(root, '.tmp-3d-test', 'compiled-assembly-regression')
-const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc')
-execFileSync(process.execPath, [
-  tscPath,
-  '--ignoreConfig',
-  'src/utils/assemblySnap.ts', 'src/utils/assemblySide.ts', 'src/utils/slotAxisProbe.ts', 'src/utils/mountAxis.ts', 'src/utils/mountCalibrationRepair.ts', 'src/partLibrary/types.ts',
-  '--outDir', outDir, '--module', 'esnext', '--moduleResolution', 'bundler',
-  '--target', 'es2023', '--skipLibCheck', 'true', '--esModuleInterop', 'true',
-], { cwd: root, stdio: 'inherit' })
-
-const snap = await import(`${pathToFileURL(path.join(outDir, 'utils', 'assemblySnap.js')).href}?t=${Date.now()}`)
-const probe = await import(`${pathToFileURL(path.join(outDir, 'utils', 'slotAxisProbe.js')).href}?t=${Date.now()}`)
-const partTypes = await import(`${pathToFileURL(path.join(outDir, 'partLibrary', 'types.js')).href}?t=${Date.now()}`)
-const repair = await import(`${pathToFileURL(path.join(outDir, 'utils', 'mountCalibrationRepair.js')).href}?t=${Date.now()}`)
-const mountAxis = await import(`${pathToFileURL(path.join(outDir, 'utils', 'mountAxis.js')).href}?t=${Date.now()}`)
-const assemblySide = await import(`${pathToFileURL(path.join(outDir, 'utils', 'assemblySide.js')).href}?t=${Date.now()}`)
+import { checkModule } from './check-module.mjs'
+const [snap,probe,partTypes,repair,mountAxis,assemblySide] = await Promise.all(["src/utils/assemblySnap.ts","src/utils/slotAxisProbe.ts","src/partLibrary/types.ts","src/utils/mountCalibrationRepair.ts","src/utils/mountAxis.ts","src/utils/assemblySide.ts"].map(checkModule))
 
 const slotAnchor = { id: 'a1', accepts: ['slot'], position: [0, 0, -2], axis: [0, 1], required: true }
 const slotTarget = { id: 'p1:slot:0', panelId: 'p1', kind: 'slot', x: 0, y: 0, z: 4, axis: [0, 1] }

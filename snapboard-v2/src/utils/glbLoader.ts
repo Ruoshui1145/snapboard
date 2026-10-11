@@ -53,13 +53,22 @@ async function loadRawModel(url: string): Promise<THREE.Object3D> {
   throw new Error(`暂不支持的零件预览格式: ${url}`)
 }
 
+function cachedModel(url:string):Promise<THREE.Object3D>{
+  let pending=cache.get(url)
+  if(!pending){
+    pending=loadRawModel(url);cache.set(url,pending)
+    const failed=pending
+    void pending.catch(()=>{if(cache.get(url)===failed)cache.delete(url)})
+  }
+  return pending
+}
+
 /**
  * 加载 GLB 零件 (带缓存)
  * @param url public/partLibrary/models/ 下的相对路径
  */
 export async function loadPartModel(url: string, model: PartModelAssets = {}): Promise<THREE.Object3D> {
-  if (!cache.has(url)) cache.set(url, loadRawModel(url))
-  let raw = cloneObject(await cache.get(url)!)
+  let raw = cloneObject(await cachedModel(url))
   raw = selectRenderNode(raw, model.renderNode)
   const scale = unitToMM(model.unit) * (model.scale ?? 1)
   raw.scale.multiplyScalar(scale)
@@ -102,8 +111,7 @@ export async function loadPartModel(url: string, model: PartModelAssets = {}): P
  * Y/X 向上则只转换到 Z 向上，不应用装配标定朝向。
  */
 export async function loadPrintablePartModel(url: string, model: PartModelAssets = {}): Promise<THREE.Object3D> {
-  if (!cache.has(url)) cache.set(url, loadRawModel(url))
-  let raw = cloneObject(await cache.get(url)!)
+  let raw = cloneObject(await cachedModel(url))
   raw = selectRenderNode(raw, model.renderNode)
   raw.scale.multiplyScalar(unitToMM(model.unit) * (model.scale ?? 1))
   if (model.upAxis === 'y') raw.rotation.x = Math.PI / 2

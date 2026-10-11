@@ -1,7 +1,10 @@
 // ============ 3D 板子生成 — 薄板 + 孔阵列 ============
 import * as THREE from 'three'
+import { createMarkingGeometry, markingShapes } from './markingShapes'
+import polygonClipping, { type Ring } from 'polygon-clipping'
 import { generateHolePattern, type HolePatternParamsEx } from './holePattern'
-import type { Point2D, SplitPanel, SplitConfig } from '../types/geometry'
+import type { Point2D, SplitPanel, SplitConfig, HolePos } from '../types/geometry'
+import type { AssemblySeamPlan } from './assemblyMarking'
 
 export interface BoardMeshOptions {
   contourPts: Point2D[]      // 轮廓顶点 (像素坐标)
@@ -93,17 +96,23 @@ export interface SplitPanelMeshOptions {
   color: number
   /** 圆/圆弧离散精度：实时预览默认 24，制造导出建议 48。 */
   curveSegments?: number
+  /** 制造导出的胶囊端部段数（见 slotCapSegments）；缺省 0 = 保留 three 的细端部，仅供预览。 */
+  slotCapSegments?: number
   /** 导出制造模型时关闭虚线孔位提示。 */
   includeGuides?: boolean
   /** 制造导出的孔口/外缘倒角尺寸 mm；实时预览默认关闭。 */
   manufacturingChamfer?: number
+  /** 复合板层只在暴露的一面倒角，内部贴合面保持完整截面。 */
+  manufacturingBevelSide?: 'bottom' | 'top'
+  /** 仅供浅层基材切片使用：这些多边形在本次挤出深度内作为盲刻槽扣除。 */
+  blindEngraving?: Point2D[][]
 }
 
 /**
  * 面板外轮廓: 圆角矩形 (每角可独立圆角/直角) + 四边上的半圆拼接孔缺口 (显式四边四角构造)。
  *
- * 关键: 拼接孔孔心位于板边缘 (X=0/X=W/Y=0/Y=H)。若把整圆作为内环, 圆与外环
- * 相切会导致 earcut 挖孔失败 (垃圾三角化, 板退化为实体)。正确建模 = 边缘孔是
+ * 拼接孔孔心位于板边缘 (X=0/X=W/Y=0/Y=H)。若把整圆作为内环，圆与外环
+ * 相切会导致 earcut 三角化失败、孔洞丢失。因此将边缘孔建模为
  * 半圆缺口，作为外环的一部分（两板拼接后两个半圆合成默认 5mm 整圆）。
  * 圆角弧与孔缺口重叠时做截断合并 + 微小过渡段, 保证外环是简单多边形。
  *
@@ -278,22 +287,50 @@ function addPanelOutline(
 }
 
 /**
+ * 胶囊端部半圆的制造弦高预算 (mm)。5 mm 长孔的**关键宽度由两段直边给出**，端部圆弧只影响
+ * 收口圆润度，所以它跟装饰性圆弧同档，而不是跟紧固件圆孔一样按 0.025 mm 加密。
+ * 方案 §3.2：孔数量、孔心、关键宽度、装配净空一律不变，只在端部圆弧上减点。
+ */
+const SLOT_CAP_SAGITTA_MM = 0.1
+
+/**
+ * 端部半圆在给定弦高下的段数 n = π / (2·acos(1 − s/R))。
+ * 下限 4 是方案要求的"外观最少分段"，保证近看不发方；直线段不参与，永远只有两个端点。
+ */
+export function slotCapSegments(widthMm: number): number {
+  const radius = widthMm / 2
+  if (!(radius > SLOT_CAP_SAGITTA_MM)) return 4
+  return Math.max(4, Math.ceil(Math.PI / (2 * Math.acos(1 - SLOT_CAP_SAGITTA_MM / radius))))
+}
+
+/**
  * 竖向长圆孔(胶囊)路径: 短轴宽 width × 长轴长 length, 端部半圆 R = width/2。
  * 孔心 (cx, cy) 为胶囊中心 (mm, y 向上), 上/下端半圆圆心在 cy ± (length/2 - R)。
  * 注意: 独立 Path 加入 shape.holes 才能被 earcut 识别为孔; 绝不能追加到主轮廓上。
  * 端部半圆用 clockwise=true 保证在两段直线之间正确收尾 (与工程图胶囊一致)。
+ *
+ * capSegments > 0 时端部显式出点：three 对椭圆曲线会把 extractPoints 的段数再翻一倍，
+ * 制造路径要按自己的弦高预算控制端部密度，不能顺手跟着紧固件孔一起加密。
+ * 缺省 0 = 交给 three 细分，供 2D/3D 预览保留细端部。
  */
-function makeSlotHolePath(cx: number, cy: number, length: number, width: number): THREE.Path {
+function makeSlotHolePath(cx: number, cy: number, length: number, width: number, capSegments = 0): THREE.Path {
   const p = new THREE.Path()
   const r = width / 2
   const halfL = length / 2
   const topY = cy + halfL - r   // 上端半圆圆心 (y 向上)
   const botY = cy - halfL + r   // 下端半圆圆心
+  const cap = (centerY: number, from: number, to: number) => {
+    if (capSegments <= 0) { p.absarc(cx, centerY, r, from, to, true); return }
+    for (let i = 1; i <= capSegments; i++) {
+      const th = from + (to - from) * (i / capSegments)
+      p.lineTo(cx + r * Math.cos(th), centerY + r * Math.sin(th))
+    }
+  }
   p.moveTo(cx - r, botY)        // 左直边下端
   p.lineTo(cx - r, topY)        // 左直边上端
-  p.absarc(cx, topY, r, Math.PI, 0, true)   // 上端半圆 (经顶部)
+  cap(topY, Math.PI, 0)         // 上端半圆 (经顶部)
   p.lineTo(cx + r, botY)        // 右直边下端
-  p.absarc(cx, botY, r, 0, Math.PI, true)   // 下端半圆 (经底部)
+  cap(botY, 0, -Math.PI)        // 下端半圆 (经底部)
   p.closePath()
   return p
 }
@@ -344,6 +381,7 @@ function addOrthoOutline(
       const aEnd = Math.atan2(ey - cy, ex - cx)
       let sweep = aEnd - a0
       while (sweep < 0) sweep += Math.PI * 2
+      push(sx, sy)
       arc(cx, cy, a0, a0 + sweep)
     } else {
       push(cur.x, cur.y)
@@ -372,16 +410,16 @@ function splitPanelHoleGroups(panel: SplitPanel) {
     Math.abs(h.x - panel.x) < 0.5 || Math.abs(h.x - (panel.x + panel.w)) < 0.5 ||
     Math.abs(h.y - panel.y) < 0.5 || Math.abs(h.y - (panel.y + panel.h)) < 0.5
   const boundaryHoles = panel.edge_holes.filter(onEdge)
-  const plannedHoles = panel.edge_holes.filter(h => !onEdge(h) && !h.knocked) // 仅虚线预览，实体板面保持完整
+  const plannedHoles = [...panel.edge_holes.filter(h => !onEdge(h) && !h.knocked), ...(panel.closed_holes ?? [])] // 仅虚线预览，实体板面保持完整
   const knockHoles = panel.edge_holes.filter(h => !onEdge(h) && !!h.knocked) // 已启用打孔: 真正贯通
   return { oc, boundaryHoles, plannedHoles, knockHoles }
 }
 
 /**
- * 单块板件的制造截面。3D 预览、4mm 基层切片和顶部 Lumina 模具必须共用这一
+ * 单块板件的制造截面。3D 预览、4mm 基层切片和顶部 SnapColor 模具必须共用这一
  * 个 Shape，避免分别近似外圆角、孔口和内轮廓后在切片软件中露出基层。
  */
-export function createSplitPanelShape(panel: SplitPanel, cfg: SplitConfig): THREE.Shape {
+export function createSplitPanelShape(panel: SplitPanel, cfg: SplitConfig, capSegments = 0): THREE.Shape {
   const { oc, boundaryHoles, knockHoles } = splitPanelHoleGroups(panel)
   const rr = {
     bl: oc[0] ? cfg.cornerRadius : 0,
@@ -390,14 +428,14 @@ export function createSplitPanelShape(panel: SplitPanel, cfg: SplitConfig): THRE
     tl: oc[3] ? cfg.cornerRadius : 0,
   }
 
-  // 通孔路径：用户内轮廓 + 槽 + 通圆孔 + 当前启用的候选圆孔。
+  // 通孔路径：用户内轮廓 + 独立制造镂空 + 槽 + 当前启用的圆孔。
   const throughPaths: THREE.Path[] = []
-  for (const cutout of panel.cutouts ?? []) {
+  for (const cutout of [...(panel.cutouts ?? []), ...(panel.latticeCutouts ?? [])]) {
     const path = makePolygonHolePath(cutout)
     if (path) throughPaths.push(path)
   }
   for (const s of panel.slots) {
-    throughPaths.push(makeSlotHolePath(s.x, s.y, cfg.slotLength, cfg.slotWidth))
+    throughPaths.push(makeSlotHolePath(s.x, s.y, cfg.slotLength, cfg.slotWidth, capSegments))
   }
   for (const rh of panel.round_holes) {
     throughPaths.push(makeCircleHolePath(rh.x, rh.y, cfg.jointDiameter))
@@ -406,7 +444,7 @@ export function createSplitPanelShape(panel: SplitPanel, cfg: SplitConfig): THRE
     throughPaths.push(makeCircleHolePath(k.x, k.y, cfg.jointDiameter))
   }
   const shape = new THREE.Shape()
-  if (panel.contour && panel.contour.length >= 4) {
+  if (panel.contour && panel.contour.length >= 3) {
     addOrthoOutline(shape, panel.contour, panel.roundIdx ?? [], cfg.cornerRadius)
   } else {
     addPanelOutline(shape, panel.x, panel.y, panel.w, panel.h, rr, boundaryHoles, cfg.jointDiameter)
@@ -416,7 +454,7 @@ export function createSplitPanelShape(panel: SplitPanel, cfg: SplitConfig): THRE
 }
 
 export function generateSplitPanelMesh(opts: SplitPanelMeshOptions): THREE.Object3D {
-  const { panel, cfg, color, curveSegments = 24, includeGuides = true, manufacturingChamfer = 0 } = opts
+  const { panel, cfg, color, curveSegments = 24, slotCapSegments: capSegments = 0, includeGuides = true, manufacturingChamfer = 0, manufacturingBevelSide, blindEngraving = [] } = opts
 
   const material = new THREE.MeshStandardMaterial({
     color,
@@ -426,13 +464,32 @@ export function generateSplitPanelMesh(opts: SplitPanelMeshOptions): THREE.Objec
   })
   const { plannedHoles } = splitPanelHoleGroups(panel)
   const meshFrom = (depth: number) => {
-    const shape = createSplitPanelShape(panel, cfg)
+    const shape = createSplitPanelShape(panel, cfg, capSegments)
+    // 字形凹框可能与已有孔相交；earcut 的独立 holes 不允许重叠。
+    // 先做平面差集，把相交孔/触边孔归一化为真实外环与内环。
+    let extrusionShapes: THREE.Shape | THREE.Shape[] = shape
+    let clippedRings: Point2D[][] | null = null
+    if (blindEngraving.length) {
+      const ring = (points: Point2D[]): Ring => points.map(p => [p.x, p.y])
+      const holes = [...shape.holes.map(hole => ring(hole.getPoints(curveSegments))), ...blindEngraving.filter(p => p.length >= 3).map(ring)]
+      const regions = polygonClipping.difference([ring(shape.getPoints(curveSegments))], ...holes.map(hole => [hole]))
+      clippedRings = regions.flatMap(region => region.map(points => points.map(([x, y]) => ({ x, y }))))
+      extrusionShapes = regions.map(([outer, ...inner]) => {
+        const result = new THREE.Shape(outer.map(([x, y]) => new THREE.Vector2(x, y)))
+        result.holes = inner.map(hole => new THREE.Path(hole.map(([x, y]) => new THREE.Vector2(x, y))))
+        return result
+      })
+    }
     const targetDepth = Math.max(0.05, depth)
     const chamfer = Math.max(0, Math.min(manufacturingChamfer, targetDepth / 3, cfg.slotWidth / 4))
     // ExtrudeGeometry 的倒角默认向 z 两端各外扩 bevelThickness；缩短中段并整体平移，
     // 使最终实体仍严格落在 z=0..targetDepth，避免导出板厚比参数多 2×倒角。
-    const coreDepth = chamfer > 0.001 ? targetDepth - 2 * chamfer : targetDepth
-    const geometry = new THREE.ExtrudeGeometry(shape, {
+    const oneSided = chamfer > 0.001 && manufacturingBevelSide !== undefined
+    const extrusionDepth = oneSided ? targetDepth + chamfer : targetDepth
+    const coreDepth = chamfer > 0.001 ? extrusionDepth - 2 * chamfer : targetDepth
+    let geometry: THREE.BufferGeometry = clippedRings && chamfer <= 0.001
+      ? createMarkingGeometry(clippedRings, targetDepth)
+      : new THREE.ExtrudeGeometry(extrusionShapes, {
       depth: coreDepth,
       bevelEnabled: chamfer > 0.001,
       bevelSize: chamfer,
@@ -444,6 +501,39 @@ export function generateSplitPanelMesh(opts: SplitPanelMeshOptions): THREE.Objec
       curveSegments,
     })
     if (chamfer > 0.001) geometry.translate(0, 0, chamfer)
+    if (oneSided) {
+      // Crop the second bevel at its straight-wall ring, then close that ring
+      // with the original Shape. The resulting layer is one solid, with no
+      // overlapping bevel/core shells for slicers to repair.
+      const side = geometry.getAttribute('position') as THREE.BufferAttribute
+      const cap = new THREE.ExtrudeGeometry(extrusionShapes, { depth: 1, bevelEnabled: false, curveSegments })
+      const capPositions = cap.getAttribute('position') as THREE.BufferAttribute
+      const points: number[] = []
+      const addTriangle = (a: THREE.BufferAttribute, start: number) => {
+        for (let j = 0; j < 3; j++) points.push(a.getX(start + j), a.getY(start + j), a.getZ(start + j))
+      }
+      for (let i = 0; i < side.count; i += 3) {
+        if (side.getZ(i) <= targetDepth + 1e-5 && side.getZ(i + 1) <= targetDepth + 1e-5 && side.getZ(i + 2) <= targetDepth + 1e-5) addTriangle(side, i)
+      }
+      for (let i = 0; i < capPositions.count; i += 3) {
+        if (capPositions.getZ(i) === 1 && capPositions.getZ(i + 1) === 1 && capPositions.getZ(i + 2) === 1) {
+          for (let j = 0; j < 3; j++) points.push(capPositions.getX(i + j), capPositions.getY(i + j), targetDepth)
+        }
+      }
+      geometry.dispose()
+      cap.dispose()
+      geometry = new THREE.BufferGeometry()
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+      if (manufacturingBevelSide === 'top') {
+        const pos = geometry.getAttribute('position') as THREE.BufferAttribute
+        for (let i = 0; i < pos.count; i += 3) {
+          for (let j = 0; j < 3; j++) pos.setZ(i + j, targetDepth - pos.getZ(i + j))
+          const bx = pos.getX(i + 1), by = pos.getY(i + 1), bz = pos.getZ(i + 1)
+          pos.setXYZ(i + 1, pos.getX(i + 2), pos.getY(i + 2), pos.getZ(i + 2))
+          pos.setXYZ(i + 2, bx, by, bz)
+        }
+      }
+    }
     geometry.computeVertexNormals()
     return new THREE.Mesh(geometry, material)
   }
@@ -455,15 +545,15 @@ export function generateSplitPanelMesh(opts: SplitPanelMeshOptions): THREE.Objec
   // 虚线只用于 3D 位置确认，不是 Mesh，因此制造导出器会自然忽略。
   if (includeGuides) {
     for (const h of plannedHoles) {
-      group.add(makeHoleGuide(h.x, h.y, cfg.jointDiameter / 2, cfg.thickness + 0.035, curveSegments))
-      group.add(makeHoleGuide(h.x, h.y, cfg.jointDiameter / 2, -0.035, curveSegments))
+      group.add(makeClosedHoleGuide(h, cfg, cfg.thickness + 0.035, curveSegments))
+      group.add(makeClosedHoleGuide(h, cfg, -0.035, curveSegments))
     }
   }
   return group
 }
 
 /** 未打孔位置的 3D 虚线圆，仅作交互提示，不参与 3MF。 */
-function makeHoleGuide(cx: number, cy: number, radius: number, z: number, segments: number): THREE.LineLoop {
+export function makeHoleGuide(cx: number, cy: number, radius: number, z: number, segments: number): THREE.LineLoop {
   const count = Math.max(24, segments)
   const points: THREE.Vector3[] = []
   for (let i = 0; i < count; i++) {
@@ -487,6 +577,17 @@ function makeHoleGuide(cx: number, cy: number, radius: number, z: number, segmen
   return guide
 }
 
+export function makeClosedHoleGuide(hole: HolePos, cfg: SplitConfig, z: number, segments = 24): THREE.LineLoop {
+  const guide = makeHoleGuide(hole.x, hole.y, cfg.jointDiameter / 2, z, segments)
+  if (hole.editOrigin?.group === 'slots') {
+    guide.geometry.dispose()
+    guide.geometry = new THREE.BufferGeometry().setFromPoints(makeSlotHolePath(hole.x, hole.y, cfg.slotLength, cfg.slotWidth)
+      .getPoints(segments).map(point => new THREE.Vector3(point.x, point.y, z)))
+    guide.computeLineDistances()
+  }
+  return guide
+}
+
 /** 面板文字标签 (CanvasTexture Sprite, 显示 p1/p2... 编号) */
 export function makePanelLabel(text: string, color: string): THREE.Sprite {
   const canvas = document.createElement('canvas')
@@ -501,13 +602,65 @@ export function makePanelLabel(text: string, color: string): THREE.Sprite {
     ctx.fillText(text, 128, 64)
   }
   const texture = new THREE.CanvasTexture(canvas)
+  texture.userData.snapboardTexture = true
   texture.needsUpdate = true
   const material = new THREE.SpriteMaterial({
     map: texture,
     transparent: true,
-    depthTest: false,
+    // 自由视角转到板后时必须由板体遮挡正面编号，不能像 HUD 一样穿透。
+    depthTest: true,
+    depthWrite: false,
   })
   const sprite = new THREE.Sprite(material)
   sprite.scale.set(60, 30, 1)
   return sprite
+}
+
+/**
+ * 背面凹刻的轻量预览层。制造导出仍会把同一批多边形做成真实盲槽；这里使用
+ * 单个 ShapeGeometry 提高交互帧率，并用 depthTest 保证标识不会透过板件正面。
+ */
+export function makeBackEngravingPreview(polygons: Point2D[][], color = 0xe8c56b): THREE.Mesh | null {
+  const shapes = markingShapes(polygons)
+  if (!shapes.length) return null
+  const geometry = new THREE.ShapeGeometry(shapes, 1)
+  const material = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true, opacity: 0.92, depthTest: true, depthWrite: false })
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.position.z = -0.025
+  mesh.name = 'back-engraving-preview'
+  mesh.userData.previewOnly = true
+  mesh.renderOrder = 24
+  return mesh
+}
+
+/**
+ * 背面安装专用黄色接缝高亮。使用窄色带避免 WebGL 的 1px Line 在高 DPI
+ * 或缩放视图中消失；只存在于实时场景，不进入制造导出。
+ */
+export function makeBackSeamGuide(seams: readonly AssemblySeamPlan[]): THREE.Group | null {
+  if (!seams.length) return null
+  const group = new THREE.Group()
+  group.name = 'back-seam-guides'
+  group.userData.previewOnly = true
+  const addRibbon = (seam: AssemblySeamPlan, thickness: number, color: number, z: number, order: number) => {
+    const length = Math.max(0.01, seam.end - seam.start)
+    const horizontal = seam.axis === 'horizontal'
+    const geometry = new THREE.PlaneGeometry(horizontal ? length : thickness, horizontal ? thickness : length)
+    const material = new THREE.MeshBasicMaterial({
+      color, side: THREE.DoubleSide, transparent: true, opacity: 0.96,
+      depthTest: true, depthWrite: false,
+    })
+    const ribbon = new THREE.Mesh(geometry, material)
+    ribbon.position.set(
+      horizontal ? (seam.start + seam.end) / 2 : seam.coordinate,
+      horizontal ? seam.coordinate : (seam.start + seam.end) / 2,
+      z,
+    )
+    ribbon.name = `back-seam-guide-${seam.id}`
+    ribbon.renderOrder = order
+    ribbon.userData.previewOnly = true
+    group.add(ribbon)
+  }
+  for (const seam of seams) addRibbon(seam, 1.35, 0xffd166, -0.055, 29)
+  return group
 }

@@ -8,6 +8,7 @@
 - 上游仓库：<https://github.com/lumina-layer-studio/Lumina-Layers>
 - 上游许可证：GNU General Public License v3.0
 - 本地许可证副本：`vendor/lumina-studio/source/LICENSE`
+- 本地归档版本：Lumina Studio v1.6.9（见 `vendor/lumina-studio/source/CHANGELOG_CN.md`）；记录的上游提交见 `vendor/lumina-studio/UPSTREAM_COMMIT`。农场校色适配修改见 `snapboard-v2/patches/lumina-farm-calibration.patch`。
 - 本项目发行许可证：GPL-3.0-only
 
 SnapBoard 1.0 Public Beta的彩色工作流当前包含或调用以下Lumina相关内容：
@@ -15,12 +16,16 @@ SnapBoard 1.0 Public Beta的彩色工作流当前包含或调用以下Lumina相�
 - `vendor/lumina-studio/source/`：上游来源与审计副本；
 - `vendor/lumina-studio/runtime-template/bambu_config_template.json`：第三方原始3MF/Bambu模板归档；
 - `snapboard-v2/src/assets/snapcolor-bambu-config-template.json`：当前运行时模板副本；
-- `snapboard-v2/public/snapcolor/luts/*.npy`：以SnapColor产品路径随运行版本使用的颜色查找表；
+- `snapboard-v2/public/snapcolor/luts/*.npy`：以SnapColor产品路径随运行版本使用的颜色查找表；其中含按耗材品牌区分的PETG实测预设（Aliz、魔创、CooBeen、KYNIX、三绿、天瑞、必应）及一份通用RYBW预设，品牌名称归各自所有者所有；
 - `snapboard-v2/src/utils/snapColorLut.ts`及其调用：SnapColor命名的LUT读取、匹配、旧ID迁移与层配方适配；
 - `snapboard-v2/src/utils/export3mf.ts`：使用上述校准数据与模板的组合导出路径；
 - `snapboard-v2/src/components/texture/TextureStudio.tsx`与`src/utils/boardTexture.ts`：前端选择和颜色映射接线。
 
 Lumina Studio版权所有者保留其原有权利。SnapBoard对上述内容所做的适配、界面接线、板件几何整合和3MF组合修改随本项目源码一同按GPLv3提供；该声明不把Lumina商标、社区名称、用户作品或Wiki素材转让给SnapBoard。
+
+功能来源边界：SnapColor 的农场校准板、照片取色、校色档案合并复用并修改上述 Lumina v1.6.9 源码；内置 PETG 校色表及 Bambu 配置模板保留其来源。SnapBoard 的 SVG 路径解析、板件轮廓与孔边几何为本项目实现，不把这些功能标作 Lumina 提供。各耗材厂牌和 HF 等型号名称只说明材料或档案，不表示相应厂商参与软件开发或为软件背书。
+
+产品研究参考过 HueForge 关于薄层透光叠色与材料批次测量的公开说明（<https://shop.thehueforge.com/pages/about-hueforge>）。这一参考不代表使用 HueForge 的源码、校色库或商标资源；SnapColor 当前的校准代码与数据来源以上述 Lumina 声明及本项目改造记录为准。
 
 Lumina Wiki原创材料默认采用CC BY-NC-SA 4.0，除非页面另有说明。Wiki正文、截图和教程图片不作为SnapBoard商业宣传素材直接复制；引用时只链接来源或取得额外授权。
 
@@ -43,3 +48,12 @@ Lumina Wiki原创材料默认采用CC BY-NC-SA 4.0，除非页面另有说明。
 - `snapboard-v2/docs/` 和 `apps/wiki/` 中的截图/示例：仅作产品与回归展示。
 
 后续新增资源必须在 `part.json` 或资源包 README 中记录来源、作者、原始页面和授权状态；未记录来源的模型不得进入商业资源包。
+# Clipper geometry dependency (2026-09-23)
+
+Complex texture cap fallback also uses `libtess` 1.2.2, Brendan Kenny's JavaScript port of the SGI GLU tessellator, originally written by Eric Veach. Source: https://github.com/brendankenny/libtess.js . License: SGI Free Software License B v2.0, retained verbatim in `vendor/libtess/LICENSE`. `@types/libtess` is a development-only dependency.
+
+`snapboard-v2` uses `clipper-lib` 6.4.2 (JavaScript port by Timo of Angus Johnson's Clipper) for SVG winding-rule Boolean operations and physical texture edge offsets. Source: https://github.com/junmer/clipper-lib . Clipper is distributed under Boost Software License 1.0; the bundled JSBN component credits Tom Wu and its BSD-style license. Upstream notices and the Boost license are retained in `vendor/clipper-lib/`. `@types/clipper-lib` is a development-only typing dependency. This does not replace Lumina/SnapColor attribution.
+
+## Manifold 3D（立体版面制造，2026-09-28）
+
+立体版面一体成型和定角 M3 连接件的闭合实体使用 `manifold-3d` 3.5.1（Apache-2.0），上游为 <https://github.com/elalish/manifold>。它现为 `snapboard-v2` 的运行依赖，由立体制造入口按需加载；不再保留重复的独立研究运行时。尚未重新封装 Windows 安装包，也未使用第三方模型素材。授权文本随 npm 包的 `LICENSE` 保留；以后封装时须将运行时 WASM 与许可证一并核对。

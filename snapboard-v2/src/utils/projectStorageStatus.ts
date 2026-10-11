@@ -8,7 +8,7 @@ export interface ProjectStorageStatus {
 
 let snapshot: ProjectStorageStatus = {
   mode: 'project-library',
-  label: '项目内“已保存项目”',
+  label: '默认项目库“已保存项目”',
   projectCount: 0,
   recentProjects: [],
 }

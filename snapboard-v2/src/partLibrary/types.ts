@@ -1,4 +1,5 @@
 // ============ 零件库类型定义 ============
+import type { MountConnectorDefinition } from '../assembly/mountInterfaces'
 
 /**
  * 配件大类 (参考 IKEA SKÅDIS 配件系列与常见洞洞板配件清单划分):
@@ -113,6 +114,23 @@ export interface PartModelAssets {
   stl?: string
 }
 
+/** 配件在板面上的遮挡形态。用于布局建议与遮挡估算，不替代真实网格。 */
+export type PartOcclusionClass =
+  | 'slim-hook'
+  | 'vented-tray'
+  | 'floating-shelf'
+  | 'narrow-bracket'
+  | 'standard'
+
+export interface PartOcclusionMetadata {
+  /** 低遮挡结构分类。 */
+  class: PartOcclusionClass
+  /** 通透系数 0~1；1 表示板面投影完全可见。 */
+  voidRatio: number
+  /** 从安装锚点派生的连接点数量。 */
+  mountPoints: number
+}
+
 /** 零件定义 (固定网格或参数化生成器 + 装配锚点) */
 export interface PartDefinition {
   /** 运行时全局 ID：packageId:localId */
@@ -132,8 +150,12 @@ export interface PartDefinition {
   kind?: 'fixed' | 'parametric'
   params: PartParamDef[]
   model: PartModelAssets
+  /** 遮挡估算元数据；旧资源包缺省时按实心配件处理。 */
+  occlusion?: PartOcclusionMetadata
   /** 安装方式 */
   mount: PartMountDefinition | 'hole' | 'edge' | 'free'
+  /** 多场景连接器。旧配件可继续只提供 mount，由适配器提升为 hole-pattern。 */
+  mountConnectors?: MountConnectorDefinition[]
   /** 默认朝向 (在板上的旋转) */
   defaultRotation: number
   /** 缩略图 */

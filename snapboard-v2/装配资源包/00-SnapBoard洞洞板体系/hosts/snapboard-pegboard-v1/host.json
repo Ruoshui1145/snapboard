@@ -1,0 +1,40 @@
+{
+  "id": "snapboard-pegboard-v1",
+  "schemaVersion": 1,
+  "label": "SnapBoard 洞洞板（现有 5×15 长圆孔体系）",
+  "kind": "hole-pattern",
+  "summary": "现有圆孔/长圆孔锚点、贴面插入与下滑锁止装配。",
+  "status": "available",
+  "family": "pegboard",
+  "connectorKind": "hole-pattern",
+  "compatibilityKey": "snapboard:hole-pattern:slot-5x15-grid40:v1",
+  "systemKey": "snapboard-pegboard",
+  "standard": null,
+  "nominalGeometryMm": {
+    "slotWidth": 5,
+    "slotLength": 15,
+    "primaryGridPitch": 40,
+    "phaseOffset": 20,
+    "optionalRoundHoleDiameter": 5
+  },
+  "supportedMatingKeys": ["snapboard:anchor:slot-5x15:v1", "snapboard:anchor:round-d5:v1"],
+  "assemblyAxis": "host-y",
+  "occupancy": { "kind": "discrete-targets", "clearanceMm": 0.2, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-holes", "action": "select-target", "label": "选择圆孔或长圆孔目标", "automaticByDefault": false, "stopCondition": "用户完成全部孔位选择", "manualFallback": "逐个撤销或清空孔位" },
+    { "id": "align-hole-pattern", "action": "align", "label": "按锚点刚体配准", "automaticByDefault": true, "stopCondition": "锚点残差进入允许误差", "manualFallback": "上下翻转、旋转与平移微调" },
+    { "id": "insert-to-board", "action": "translate-until-contact", "label": "沿板面法向插入至贴面", "automaticByDefault": true, "stopCondition": "接触面与板面代理碰撞", "manualFallback": "手动覆盖接触面" },
+    { "id": "slide-to-slot-bottom", "action": "slide-until-stop", "label": "沿长孔方向下滑锁止", "automaticByDefault": true, "stopCondition": "安装柱与长孔底部代理接触", "manualFallback": "手动覆盖锁止距离" },
+    { "id": "verify-pegboard-fit", "action": "verify", "label": "检查占孔与碰撞", "automaticByDefault": true, "stopCondition": "目标未占用且无不可接受穿插", "manualFallback": "显示冲突并取消放置" }
+  ],
+  "validation": {
+    "geometryChecks": ["锚点数量与类型匹配", "长孔轴向有效", "接触面贴合", "下滑路径无碰撞"],
+    "requiredMetadata": ["anchors", "contactPlane", "handedness", "lockDistance"],
+    "loadRatingPolicy": "geometry-only"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["项目内部参数体系，不对外宣称兼容任意洞洞板品牌。"]
+  },
+  "sources": []
+}

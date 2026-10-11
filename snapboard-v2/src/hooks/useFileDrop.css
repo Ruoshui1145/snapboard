@@ -1,0 +1,13 @@
+[data-file-drop="active"] {
+  outline: 2px dashed #7cdccd;
+  outline-offset: 3px;
+  background-color: #7cdccd18 !important;
+}
+
+.file-drop-prompt { display:flex; align-items:center; gap:8px; min-width:0; font-size:12px; line-height:1.5; }
+.file-drop-plus,
+.file-drop-prompt > .file-drop-plus[aria-hidden="true"] { display:inline-grid; place-items:center; width:30px; height:30px; flex:0 0 30px; border-radius:7px; background:#74d7c61a; color:var(--accent,#278875); font-size:25px; font-weight:400; line-height:1; }
+.file-drop-field { position:relative; padding:10px; border:1px dashed var(--accent,#278875); border-radius:9px; cursor:pointer; }
+.file-drop-field:focus-within { outline:2px solid var(--accent,#278875); outline-offset:2px; }
+.file-drop-field input[type="file"] { position:absolute; width:1px; height:1px; padding:0; opacity:0; }
+.file-drop-field .file-drop-prompt { margin-top:5px; }

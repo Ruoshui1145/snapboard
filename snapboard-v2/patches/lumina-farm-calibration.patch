@@ -1,0 +1,492 @@
+diff --git a/core/__init__.py b/core/__init__.py
+index b1aed77..ccc3233 100644
+--- a/core/__init__.py
++++ b/core/__init__.py
+@@ -19,22 +19,21 @@ from .extractor import (
+     generate_simulated_reference
+ )
+ 
+-# Converter module (refactored)
+-from .converter import (
+-    convert_image_to_3d,
+-    generate_preview_cached,
+-    render_preview,
+-    on_preview_click,
+-    update_preview_with_loop,
+-    on_remove_loop,
+-    generate_final_model,
+-    update_preview_with_backing_color
+-)
+-
+-# New refactored modules
+-from .image_processing import LuminaImageProcessor
+-from .mesh_generators import get_mesher, VoxelMesher, HighFidelityMesher
+-from .geometry_utils import create_keychain_loop
++# Keep optional converter/GUI dependencies out of calibration imports.
++def __getattr__(name):
++    modules = {
++        'converter': {'convert_image_to_3d', 'generate_preview_cached', 'render_preview',
++                      'on_preview_click', 'update_preview_with_loop', 'on_remove_loop',
++                      'generate_final_model', 'update_preview_with_backing_color'},
++        'image_processing': {'LuminaImageProcessor'},
++        'mesh_generators': {'get_mesher', 'VoxelMesher', 'HighFidelityMesher'},
++        'geometry_utils': {'create_keychain_loop'},
++    }
++    for module, names in modules.items():
++        if name in names:
++            from importlib import import_module
++            return getattr(import_module(f'.{module}', __name__), name)
++    raise AttributeError(name)
+ 
+ __all__ = [
+     # Calibration
+diff --git a/core/extractor.py b/core/extractor.py
+index 6c9ff3c..b1c8d6d 100644
+--- a/core/extractor.py
++++ b/core/extractor.py
+@@ -4,10 +4,9 @@ Lumina Studio - Color Extractor Module
+ Extracts color data from printed calibration boards.
+ """
+ 
+-import os
+-import numpy as np
+-import cv2
+-import gradio as gr
++import os
++import numpy as np
++import cv2
+ 
+ from config import (
+     ColorSystem,
+@@ -160,7 +159,7 @@ def apply_brightness_correction(img):
+     return cv2.cvtColor(cv2.merge([l_new, a, b]), cv2.COLOR_LAB2RGB)
+ 
+ 
+-def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, color_mode="CMYW", page_choice="Page 1"):
++def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, color_mode="CMYW", page_choice="Page 1", output_path=None):
+     """
+     Main extraction pipeline with dynamic grid size support.
+     
+@@ -180,8 +179,10 @@ def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, co
+     """
+     if img is None:
+         return None, None, None, "[ERROR] 请先上传图片"
+-    if len(points) != 4:
+-        return None, None, None, "[ERROR] 请点击4个角点"
++    if len(points) != 4:
++        return None, None, None, "[ERROR] 请点击4个角点"
++    if not np.isfinite(points).all() or not np.isfinite([offset_x, offset_y, zoom, barrel]).all() or zoom <= 0:
++        raise ValueError("Invalid corner points or sampling parameters")
+     
+     # 动态确定网格大小
+     if color_mode == "BW (Black & White)" or color_mode == "BW":
+@@ -216,8 +217,12 @@ def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, co
+     print(f"[EXTRACTOR] Mode: {color_mode}, Logic: {grid_size}x{grid_size} inside {physical_grid}x{physical_grid}")
+ 
+     # Perspective transform
+-    half = DST_SIZE / physical_grid / 2.0
+-    src = np.float32(points)
++    half = DST_SIZE / physical_grid / 2.0
++    src = np.float32(points)
++    if (np.any(src[:, 0] < 0) or np.any(src[:, 0] >= img.shape[1])
++            or np.any(src[:, 1] < 0) or np.any(src[:, 1] >= img.shape[0])
++            or not cv2.isContourConvex(src) or cv2.contourArea(src) < 64):
++        raise ValueError("Four ordered corner points must form a valid area inside the photo")
+     dst = np.float32([
+         [half, half], [DST_SIZE - half, half],
+         [DST_SIZE - half, DST_SIZE - half], [half, DST_SIZE - half]
+@@ -264,14 +269,15 @@ def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, co
+             cx = (dx + 1) / 2 * DST_SIZE + offset_x
+             cy = (dy + 1) / 2 * DST_SIZE + offset_y
+ 
+-            if 0 <= cx < DST_SIZE and 0 <= cy < DST_SIZE:
+-                x0, y0 = int(max(0, cx - 4)), int(max(0, cy - 4))
+-                x1, y1 = int(min(DST_SIZE, cx + 4)), int(min(DST_SIZE, cy + 4))
+-                reg = warped[y0:y1, x0:x1]
+-                avg = reg.mean(axis=(0, 1)).astype(int) if reg.size > 0 else [0, 0, 0]
+-                cv2.drawMarker(vis, (int(cx), int(cy)), (0, 255, 0), cv2.MARKER_CROSS, 8, 1)
+-            else:
+-                avg = [0, 0, 0]
++            x0, y0 = int(cx - 4), int(cy - 4)
++            x1, y1 = int(cx + 4), int(cy + 4)
++            if x0 < 0 or y0 < 0 or x1 > DST_SIZE or y1 > DST_SIZE or x1 <= x0 or y1 <= y0:
++                raise ValueError(f"Sampling cell ({r + 1}, {c + 1}) is outside the image; adjust corners or sampling offset")
++            reg = warped[y0:y1, x0:x1]
++            if reg.size == 0:
++                raise ValueError(f"Sampling cell ({r + 1}, {c + 1}) has no pixels")
++            avg = reg.mean(axis=(0, 1)).astype(int)
++            cv2.drawMarker(vis, (int(cx), int(cy)), (0, 255, 0), cv2.MARKER_CROSS, 8, 1)
+             extracted[r, c] = avg
+             extracted_count += 1
+         
+@@ -279,15 +285,16 @@ def run_extraction(img, points, offset_x, offset_y, zoom, barrel, wb, bright, co
+         if extracted_count >= cells_to_extract:
+             break
+ 
+-    np.save(LUT_FILE_PATH, extracted)
++    actual_path = output_path or LUT_FILE_PATH
++    np.save(actual_path, extracted)
+     prev = cv2.resize(extracted, (512, 512), interpolation=cv2.INTER_NEAREST)
+ 
+     Stats.increment("extractions")
+ 
+-    return vis, prev, LUT_FILE_PATH, f"[OK] 提取完成！({grid_size}x{grid_size}, {total_cells}色) LUT已保存"
++    return vis, prev, actual_path, f"[OK] 提取完成！({grid_size}x{grid_size}, {total_cells}色) LUT已保存"
+ 
+ 
+-def probe_lut_cell(lut_path, evt: gr.SelectData):
++def probe_lut_cell(lut_path, evt):
+     """Probe a specific cell in the LUT for manual inspection."""
+     actual_path = LUT_FILE_PATH
+     if isinstance(lut_path, str) and lut_path:
+@@ -324,7 +331,7 @@ def probe_lut_cell(lut_path, evt: gr.SelectData):
+     return html, hex_c, (r, c)
+ 
+ 
+-def manual_fix_cell(coord, color_input, lut_path=None):
++def manual_fix_cell(coord, color_input, lut_path=None, output_path=None):
+     """Manually fix a specific cell color in the LUT."""
+     actual_path = LUT_FILE_PATH
+     if isinstance(lut_path, str) and lut_path:
+@@ -340,7 +347,9 @@ def manual_fix_cell(coord, color_input, lut_path=None):
+         print(f"[MANUAL_FIX] Loading LUT from: {actual_path}")
+         lut = np.load(actual_path)
+         print(f"[MANUAL_FIX] LUT shape: {lut.shape}")
+-        r, c = coord
++        r, c = coord
++        if not (0 <= r < lut.shape[0] and 0 <= c < lut.shape[1]):
++            raise ValueError("Cell coordinate is outside the LUT")
+         print(f"[MANUAL_FIX] Fixing cell ({r}, {c})")
+         new_color = [0, 0, 0]
+ 
+@@ -360,12 +369,12 @@ def manual_fix_cell(coord, color_input, lut_path=None):
+         lut[r, c] = new_color
+         
+         # Save to the actual path
+-        np.save(actual_path, lut)
+-        print(f"[MANUAL_FIX] Saved to: {actual_path}")
++        np.save(output_path or actual_path, lut)
++        print(f"[MANUAL_FIX] Saved to: {output_path or actual_path}")
+         
+         # For 8-color mode: also ensure we save to the correct assets path
+         # Check if the path is a temp_8c_page file
+-        if "temp_8c_page_" in actual_path:
++        if output_path is None and "temp_8c_page_" in actual_path:
+             # Extract page number and ensure it's saved to assets/
+             import re
+             import sys
+@@ -387,7 +396,7 @@ def manual_fix_cell(coord, color_input, lut_path=None):
+                     print(f"[MANUAL_FIX] Also saved to assets: {assets_path}")
+         
+         # 5-Color Extended dual-page: same as 8-Color — merge reads assets/temp_5c_ext_page_*.npy
+-        if "temp_5c_ext_page_" in actual_path:
++        if output_path is None and "temp_5c_ext_page_" in actual_path:
+             import re
+             import sys
+             match = re.search(r"temp_5c_ext_page_(\d+)\.npy", actual_path)
+diff --git a/core/calibration.py b/core/calibration.py
+index 6267ec6..3db36b8 100644
+--- a/core/calibration.py
++++ b/core/calibration.py
+@@ -1109,12 +1109,18 @@ def merge_5color_extended(base_lut_path, extended_lut_path, output_path=None):
+     
+     # Load base LUT (1024 colors, 5-layer)
+     print(f"  Loading base LUT: {base_lut_path}")
+-    base_rgb = np.load(base_lut_path).reshape(-1, 3)
++    base_rgb = np.load(base_lut_path, allow_pickle=False)
++    if base_rgb.shape != (32, 32, 3) or base_rgb.dtype != np.uint8:
++        raise ValueError("5-Color Page 1 must be a 32x32 uint8 RGB LUT")
++    base_rgb = base_rgb.reshape(-1, 3)
+     print(f"    Base RGB: {len(base_rgb)} colors")
+     
+     # Load extended LUT (1444 colors, 6-layer)
+     print(f"  Loading extended LUT: {extended_lut_path}")
+-    extended_rgb = np.load(extended_lut_path).reshape(-1, 3)
++    extended_rgb = np.load(extended_lut_path, allow_pickle=False)
++    if extended_rgb.shape != (38, 38, 3) or extended_rgb.dtype != np.uint8:
++        raise ValueError("5-Color Page 2 must be a 38x38 uint8 RGB LUT")
++    extended_rgb = extended_rgb.reshape(-1, 3)
+     print(f"    Extended RGB: {len(extended_rgb)} colors")
+     
+     # Merge RGB arrays
+diff --git a/api/routers/extractor.py b/api/routers/extractor.py
+index 0289ed8..ab5a450 100644
+--- a/api/routers/extractor.py
++++ b/api/routers/extractor.py
+@@ -4,12 +4,13 @@ Extractor 领域 API 路由模块。
+ 
+ from __future__ import annotations
+ 
+-import json
+-import os
++import json
++import os
++import tempfile
+ from typing import List, Tuple
+ 
+ import numpy as np
+-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
++from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, UploadFile
+ from PIL import Image
+ 
+ from api.dependencies import get_file_registry, get_session_store
+@@ -19,7 +20,8 @@ from config import normalize_4color_mode
+ from api.schemas.extractor import ExtractorManualFixRequest
+ from api.schemas.responses import ExtractResponse, ManualFixResponse
+ from api.session_store import SessionStore
+-from core.extractor import manual_fix_cell, run_extraction
++from core.extractor import manual_fix_cell, run_extraction
++from core.calibration import merge_5color_extended
+ 
+ router = APIRouter(prefix="/api/extractor", tags=["Extractor"])
+ 
+@@ -78,7 +80,11 @@ async def extractor_extract(
+     except ValueError as e:
+         raise HTTPException(status_code=422, detail=str(e))
+ 
+-    # Call core extraction (field name mapping: distortion->barrel, white_balance->wb, vignette_correction->bright)
++    if page not in ("Page 1", "Page 2"):
++        raise HTTPException(status_code=422, detail="Invalid page")
++    session_id = store.create()
++    output_path = os.path.join(tempfile.mkdtemp(prefix="lumina-extract-"), f"page-{page[-1]}.npy")
++    # Call core extraction (field name mapping: distortion->barrel, white_balance->wb, vignette_correction->bright)
+     try:
+         vis_img, preview_img, lut_path, status_msg = run_extraction(
+             img=img_arr,
+@@ -88,55 +94,22 @@ async def extractor_extract(
+             zoom=zoom,
+             barrel=distortion,
+             wb=white_balance,
+-            bright=vignette_correction,
+-            color_mode=color_mode,
+-        )
++            bright=vignette_correction,
++            color_mode=color_mode,
++            page_choice=page,
++            output_path=output_path,
++        )
++    except ValueError as e:
++        raise HTTPException(status_code=422, detail=str(e))
+     except Exception as e:
+         _handle_core_error(e, "Color extraction")
+ 
+     if lut_path is None:
+         raise HTTPException(status_code=500, detail=status_msg or "Extraction failed")
+ 
+-    # Create session and store state
+-    session_id = store.create()
+-    store.put(session_id, "lut_path", lut_path)
+-    store.put(session_id, "color_mode", color_mode)
+-
+-    # For 8-Color mode: save page-specific temp file
+-    if "8-Color" in color_mode and lut_path:
+-        import sys
+-        if getattr(sys, "frozen", False):
+-            assets_dir = os.path.join(os.getcwd(), "assets")
+-        else:
+-            assets_dir = "assets"
+-        os.makedirs(assets_dir, exist_ok=True)
+-        page_idx = 1 if "1" in str(page) else 2
+-        temp_path = os.path.join(assets_dir, f"temp_8c_page_{page_idx}.npy")
+-        try:
+-            lut = np.load(lut_path)
+-            np.save(temp_path, lut)
+-            store.put(session_id, "lut_path", temp_path)
+-            lut_path = temp_path
+-        except Exception as e:
+-            print(f"[8-COLOR] Error saving page {page_idx}: {e}")
+-
+-    # For 5-Color Extended mode: save page-specific temp file
+-    if "5-Color" in color_mode and lut_path:
+-        import sys
+-        if getattr(sys, "frozen", False):
+-            assets_dir = os.path.join(os.getcwd(), "assets")
+-        else:
+-            assets_dir = "assets"
+-        os.makedirs(assets_dir, exist_ok=True)
+-        page_idx: int = 1 if "1" in str(page) else 2
+-        temp_path = os.path.join(assets_dir, f"temp_5c_ext_page_{page_idx}.npy")
+-        try:
+-            lut = np.load(lut_path)
+-            np.save(temp_path, lut)
+-            store.put(session_id, "lut_path", temp_path)
+-            lut_path = temp_path
+-        except Exception as e:
+-            print(f"[5-COLOR-EXT] Error saving page {page_idx}: {e}")
++    store.put(session_id, "lut_path", lut_path)
++    store.put(session_id, "color_mode", color_mode)
++    store.put(session_id, "page", page)
+ 
+     # Register LUT file
+     lut_download_id = registry.register_path(session_id, lut_path)
+@@ -174,12 +147,10 @@ def extractor_manual_fix(
+     """Manually override a single LUT cell color value.
+     手动覆盖单个 LUT 单元格的颜色值。
+     """
+-    # Resolve lut_path: prefer session lookup, fallback to direct path
+-    lut_path = request.lut_path
+-    if request.session_id:
+-        session_data = store.get(request.session_id)
+-        if session_data and "lut_path" in session_data:
+-            lut_path = session_data["lut_path"]
++    session_data = store.get(request.session_id) if request.session_id else None
++    if not session_data or "lut_path" not in session_data:
++        raise HTTPException(status_code=400, detail="A valid extraction session is required")
++    lut_path = session_data["lut_path"]
+ 
+     try:
+         preview_result, status_msg = manual_fix_cell(
+@@ -195,8 +166,7 @@ def extractor_manual_fix(
+ 
+     # Register updated preview
+     preview_bytes = _image_to_png_bytes(preview_result)
+-    sid = "extractor-fix"
+-    preview_id = registry.register_bytes(sid, preview_bytes, "lut_preview.png")
++    preview_id = registry.register_bytes(request.session_id, preview_bytes, "lut_preview.png")
+ 
+     return ManualFixResponse(
+         status="ok",
+@@ -205,45 +175,36 @@ def extractor_manual_fix(
+     )
+ 
+ 
+-@router.post("/merge-5color-extended")
+-def extractor_merge_5color_extended(
+-    store: SessionStore = Depends(get_session_store),
++@router.post("/merge-5color-extended")
++def extractor_merge_5color_extended(
++    page1_session_id: str = Body(...),
++    page2_session_id: str = Body(...),
++    store: SessionStore = Depends(get_session_store),
+     registry: FileRegistry = Depends(get_file_registry),
+ ) -> ExtractResponse:
+     """Merge two 5-Color Extended pages into a single LUT.
+     合并两页 5 色扩展 LUT 为一个完整 LUT。
+     """
+-    import sys
+-    from config import LUT_FILE_PATH
+-
+-    if getattr(sys, "frozen", False):
+-        assets_dir = os.path.join(os.getcwd(), "assets")
+-    else:
+-        assets_dir = "assets"
+-
+-    path1 = os.path.join(assets_dir, "temp_5c_ext_page_1.npy")
+-    path2 = os.path.join(assets_dir, "temp_5c_ext_page_2.npy")
+-
+-    if not os.path.exists(path1) or not os.path.exists(path2):
+-        raise HTTPException(
+-            status_code=400,
+-            detail="Missing temp pages. Please extract Page 1 and Page 2 first.",
+-        )
++    page1 = store.get(page1_session_id)
++    page2 = store.get(page2_session_id)
++    if (not page1 or not page2 or page1.get("page") != "Page 1" or page2.get("page") != "Page 2"
++            or "5-Color" not in page1.get("color_mode", "")
++            or page1.get("color_mode") != page2.get("color_mode")):
++        raise HTTPException(status_code=400, detail="Two matching 5-Color page sessions are required")
++    output_path = os.path.join(tempfile.mkdtemp(prefix="lumina-merge-"), "merged-5color.npz")
+ 
+     try:
+-        lut1 = np.load(path1).reshape(-1, 3)
+-        lut2 = np.load(path2).reshape(-1, 3)
+-        merged = np.vstack([lut1, lut2])
+-        np.save(LUT_FILE_PATH, merged)
++        merged, _stacks, _ = merge_5color_extended(page1["lut_path"], page2["lut_path"], output_path)
++    except ValueError as e:
++        raise HTTPException(status_code=422, detail=str(e))
+     except Exception as e:
+         _handle_core_error(e, "5-Color Extended merge")
+ 
+-    # Create session for merged result
+-    session_id = store.create()
+-    store.put(session_id, "lut_path", LUT_FILE_PATH)
++    session_id = store.create()
++    store.put(session_id, "lut_path", output_path)
+     store.put(session_id, "color_mode", "5-Color Extended")
+ 
+-    lut_download_id = registry.register_path(session_id, LUT_FILE_PATH)
++    lut_download_id = registry.register_path(session_id, output_path)
+ 
+     return ExtractResponse(
+         session_id=session_id,
+@@ -256,44 +217,40 @@ def extractor_merge_5color_extended(
+ 
+ 
+ @router.post("/merge-8color")
+-def extractor_merge_8color(
+-    store: SessionStore = Depends(get_session_store),
++def extractor_merge_8color(
++    page1_session_id: str = Body(...),
++    page2_session_id: str = Body(...),
++    store: SessionStore = Depends(get_session_store),
+     registry: FileRegistry = Depends(get_file_registry),
+ ) -> ExtractResponse:
+     """Merge two 8-Color pages into a single LUT.
+     合并两页 8 色 LUT 为一个完整 LUT。
+     """
+-    import sys
+-    from config import LUT_FILE_PATH
+-
+-    if getattr(sys, "frozen", False):
+-        assets_dir = os.path.join(os.getcwd(), "assets")
+-    else:
+-        assets_dir = "assets"
+-
+-    path1 = os.path.join(assets_dir, "temp_8c_page_1.npy")
+-    path2 = os.path.join(assets_dir, "temp_8c_page_2.npy")
+-
+-    if not os.path.exists(path1) or not os.path.exists(path2):
+-        raise HTTPException(
+-            status_code=400,
+-            detail="Missing temp pages. Please extract Page 1 and Page 2 first.",
+-        )
++    page1 = store.get(page1_session_id)
++    page2 = store.get(page2_session_id)
++    if (not page1 or not page2 or page1.get("page") != "Page 1" or page2.get("page") != "Page 2"
++            or "8-Color" not in page1.get("color_mode", "")
++            or page1.get("color_mode") != page2.get("color_mode")):
++        raise HTTPException(status_code=400, detail="Two matching 8-Color page sessions are required")
++    output_path = os.path.join(tempfile.mkdtemp(prefix="lumina-merge-"), "merged-8color.npy")
+ 
+     try:
+-        lut1 = np.load(path1)
+-        lut2 = np.load(path2)
+-        merged = np.concatenate([lut1, lut2], axis=0)
+-        np.save(LUT_FILE_PATH, merged)
++        lut1 = np.load(page1["lut_path"], allow_pickle=False)
++        lut2 = np.load(page2["lut_path"], allow_pickle=False)
++        if lut1.shape != (37, 37, 3) or lut2.shape != (37, 37, 3):
++            raise ValueError("Both 8-Color pages must be 37x37 RGB")
++        merged = np.concatenate([lut1.reshape(-1, 3), lut2.reshape(-1, 3)], axis=0)
++        np.save(output_path, merged)
++    except ValueError as e:
++        raise HTTPException(status_code=422, detail=str(e))
+     except Exception as e:
+         _handle_core_error(e, "8-Color merge")
+ 
+-    # Create session for merged result
+-    session_id = store.create()
+-    store.put(session_id, "lut_path", LUT_FILE_PATH)
++    session_id = store.create()
++    store.put(session_id, "lut_path", output_path)
+     store.put(session_id, "color_mode", "8-Color Max")
+ 
+-    lut_download_id = registry.register_path(session_id, LUT_FILE_PATH)
++    lut_download_id = registry.register_path(session_id, output_path)
+ 
+     return ExtractResponse(
+         session_id=session_id,
+diff --git a/utils/bambu_3mf_writer.py b/utils/bambu_3mf_writer.py
+index dace051..f6eeeaf 100644
+--- a/utils/bambu_3mf_writer.py
++++ b/utils/bambu_3mf_writer.py
+@@ -447,7 +447,7 @@ class BambuStudio3MFWriter:
+         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+             template_path = os.path.join(sys._MEIPASS, 'bambu_config_template.json')
+         else:
+-            template_path = os.path.join(os.path.dirname(__file__), '..', 'bambu_config_template.json')
++            template_path = os.path.join(os.path.dirname(__file__), '..', '..', 'bambu_config_template.json')
+         
+         global _CONFIG_TEMPLATE_CACHE
+         if os.path.exists(template_path):

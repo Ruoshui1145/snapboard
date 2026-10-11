@@ -1,0 +1,48 @@
+{
+  "id": "bosch-rexroth-slot6",
+  "schemaVersion": 1,
+  "label": "Bosch Rexroth Slot 6 铝型材槽",
+  "kind": "t-slot",
+  "summary": "Bosch Rexroth Slot 6 体系的槽螺母装配；横截面证据未补全前只允许料号级人工确认。",
+  "status": "planned",
+  "family": "aluminium-profile",
+  "connectorKind": "t-slot",
+  "compatibilityKey": "bosch-rexroth:slot6:profile:v1",
+  "systemKey": "bosch-rexroth-slot6",
+  "standard": "Bosch Rexroth Aluminum Framing manufacturer system",
+  "nominalGeometryMm": { "nominalSlotOpening": 6 },
+  "grooveSignature": {
+    "system": "bosch-rexroth",
+    "series": "Slot 6",
+    "openingWidthMm": 6,
+    "cavityWidthMm": null,
+    "cavityDepthMm": null,
+    "compatibleThreads": ["M4"],
+    "signatureStatus": "partial-opening-only",
+    "automaticGeometryMatch": false,
+    "missingEvidence": ["cavityWidthMm", "cavityDepthMm", "undercut geometry"]
+  },
+  "supportedInsertModes": ["end-feed", "swivel-in"],
+  "fastenerThreads": ["M4"],
+  "supportedMatingKeys": ["bosch-rexroth:slot6:t-nut:verified", "bosch-rexroth:slot6:fastener:verified"],
+  "assemblyAxis": "host-x",
+  "occupancy": { "kind": "axis-interval", "clearanceMm": 0.5, "collisionPolicy": "reject-overlap" },
+  "recipe": [
+    { "id": "select-groove", "action": "select-target", "label": "选择 Bosch Slot 6 与具体型材料号", "automaticByDefault": false, "stopCondition": "厂商型材和螺母料号已确认", "manualFallback": "录入料号并附截面/CAD" },
+    { "id": "verify-profile", "action": "verify", "label": "确认完整横截面与螺母包络", "automaticByDefault": false, "stopCondition": "料号或 CAD 验证通过", "manualFallback": "禁止自动匹配，仅允许工程师确认" },
+    { "id": "insert-nut", "action": "insert", "label": "端部送入或旋入滑块", "automaticByDefault": true, "stopCondition": "滑块进入槽腔且姿态有效", "manualFallback": "切换插入方式并旋转微调" },
+    { "id": "slide-and-clamp", "action": "clamp", "label": "沿槽定位并夹紧", "automaticByDefault": true, "stopCondition": "区间无冲突且贴合完成", "manualFallback": "沿轴拖动后人工夹紧" }
+  ],
+  "validation": {
+    "geometryChecks": ["Bosch Slot 6 体系键完全匹配", "完整截面或厂商料号已复核", "旋入包络不碰撞", "轴向占用区间无冲突"],
+    "requiredMetadata": ["vendorPartNumber", "fastenerPartNumber", "slotAxis", "insertMode", "crossSectionEvidence"],
+    "loadRatingPolicy": "manufacturer-data-required"
+  },
+  "interchangeability": {
+    "crossSystemAutomaticMatch": false,
+    "notes": ["不得自动匹配 item Line 6 或任何其他 6 mm 名义槽。", "横截面未知字段为 null 时禁止自动几何匹配。"]
+  },
+  "sources": [
+    { "label": "Bosch Rexroth Aluminum Structural Framing System 9.0", "url": "https://apps.boschrexroth.com/DCUS/2023/08.25.AT_Uploads/R999001283_2020-09_media-1.pdf", "supports": ["Slot 6 厂商系列", "M4 旋入滑块", "弹簧定位与旋入装配"] }
+  ]
+}

@@ -1,6 +1,8 @@
 // ============ 左侧栏 (属性栏): 项目信息 + 特征树 + 属性面板(按图形类型) + 约束 ============
 // 分割引擎与配件库已移到右侧栏 (RightSidebar), 本栏专注"选中对象的详细属性"
 import { useAppStore } from '../../store/useAppStore'
+import { CompositeCommand } from '../../commands/Command'
+import { useI18n } from '../../i18n/I18nProvider'
 import { RemoveConstraintCommand, UpdateConstraintCommand, UpdateContourPointsCommand } from '../../commands/SketchCommands'
 import { standaloneArc } from '../../utils/entities'
 import { arcSpan } from '../../utils/arc'
@@ -9,13 +11,19 @@ import type { ConstraintType, Contour, Feature, Point2D } from '../../types/geom
 const CONS_ICONS: Record<ConstraintType, string> = {
   length: '↔', distance: '↔', angle: '∠', diameter: '⌀', radius: 'R', arcLength: '⌒',
   horizontal: '—', vertical: '│', parallel: '∥', perpendicular: '⊥', equal: '＝',
+  slotWidth: '⊐', arcAngle: '⌒', concentric: '◎', coradial: '◍',
+  tangent: '◠', symmetric: '⇹', midpoint: '◐', fix: '⚲',
 }
 
 export function Sidebar() {
+  const { locale } = useI18n()
   const project = useAppStore(s => s.project)
   const ui = useAppStore(s => s.ui)
   const setUI = useAppStore(s => s.setUI)
   const mm = project.config.pixelToMM
+  const cadSelected = project.parts.flatMap(p => p.features).flatMap(f => f.type === 'sketch' ? f.contours : [])
+    .filter(c => c.geometryLocked && (ui.selectedContourIds.length ? ui.selectedContourIds.includes(c.id) : c.id === ui.selectedContourId))
+  const cadRole = (role: 'outer' | 'inner' | 'construction') => useAppStore.getState().execute(new CompositeCommand('CAD contour roles', cadSelected.map(c => new UpdateContourPointsCommand(c.id, c.points, c.points, { type: role === 'inner' ? 'inner' : 'outer', construction: role === 'construction' || c.source?.params?.cadValid === false }))))
 
   // 当前选中的轮廓 (供属性面板/约束面板)
   const selectedContour: Contour | undefined = project.parts
@@ -128,11 +136,11 @@ export function Sidebar() {
     <div className="sb">
       {/* 项目信息 */}
       <div className="sb-section">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 16 }}>📦</span>
+        <div className="sb-project-row">
+          <span className="sb-project-icon">📦</span>
           <div>
-            <div style={{ fontSize: 13, color: 'var(--text)' }}>{project.metadata.name}</div>
-            <div style={{ fontSize: 10.5, color: 'var(--text-dim)' }}>v{project.metadata.version} · 像素比 {project.config.pixelToMM} mm/px</div>
+            <div className="sb-project-name" data-i18n-ignore="true">{project.metadata.name}</div>
+            <details className="sb-project-meta"><summary>项目详情</summary>v{project.metadata.version} · 像素比 {project.config.pixelToMM} mm/px</details>
           </div>
         </div>
       </div>
@@ -141,7 +149,7 @@ export function Sidebar() {
       <div className="sb-section">
         <h4 className="sb-title">特征</h4>
         {project.parts.flatMap(p => p.features).length === 0 && (
-          <div className="sb-empty">暂无特征。切换到 2D 草图模式开始绘制。</div>
+          <div className="sb-empty">暂无特征。可从板型库、导入添加轮廓，或进入自由绘图。</div>
         )}
         {project.parts.flatMap(p => p.features).map(f => (
           <div
@@ -149,9 +157,9 @@ export function Sidebar() {
             className={'sb-row' + (ui.selectedFeatureId === f.id ? ' active' : '')}
             onClick={() => setUI({ selectedFeatureId: f.id, activeSketchId: f.type === 'sketch' ? f.id : ui.activeSketchId })}
           >
-            <span>{f.type === 'sketch' ? '📐' : f.type === 'extrude' ? '🧊' : f.type === 'hole' ? '🕳' : '🔲'} {f.name}</span>
+            <span data-i18n-ignore="true">{f.type === 'sketch' ? '📐' : f.type === 'extrude' ? '🧊' : f.type === 'hole' ? '🕳' : '🔲'} {f.name}</span>
             {f.type === 'sketch' && (
-              <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+              <span className="sb-feature-meta">
                 {f.contours.length} 轮廓 · {f.contours.reduce((n, c) => n + c.constraints.length, 0)} 约束
               </span>
             )}
@@ -159,19 +167,29 @@ export function Sidebar() {
         ))}
       </div>
 
+      {!selectedContour && cadSelected.length === 0 && <div className="sb-empty">选择草图中的轮廓，可查看属性与约束。</div>}
+
       {/* 属性面板 (选中轮廓, 按图形类型显示) */}
-      <div className="sb-section">
+      {(selectedContour || cadSelected.length > 0) && <div className="sb-section">
         <h4 className="sb-title">属性 (选中轮廓)</h4>
-        {selectedContour ? (
-          <div style={{ animation: 'fadeIn 0.15s ease' }}>
-            <div style={{ fontSize: 12, marginBottom: 6, color: 'var(--text)' }}>
+        {cadSelected.length > 0 ? <div data-i18n-ignore="true">
+          <p>{locale === 'en-US' ? `CAD · ${cadSelected.length} selected · Geometry locked` : `CAD · 已选 ${cadSelected.length} 个 · 几何锁定`}</p>
+          <div className="tb-seg">
+            <button disabled={cadSelected.some(c => c.source?.params?.cadValid === false)} onClick={() => cadRole('outer')}>{locale === 'en-US' ? 'Outer' : '外轮廓'}</button>
+            <button disabled={cadSelected.some(c => c.source?.params?.cadValid === false)} onClick={() => cadRole('inner')}>{locale === 'en-US' ? 'Cutout' : '内孔'}</button>
+            <button onClick={() => cadRole('construction')}>{locale === 'en-US' ? 'Auxiliary' : '辅助线'}</button>
+          </div>
+          {cadSelected.map(c => <p key={c.id}>{c.name} · {c.construction ? (locale === 'en-US' ? 'Auxiliary' : '辅助线') : c.type === 'inner' ? (locale === 'en-US' ? 'Cutout' : '内孔') : (locale === 'en-US' ? 'Outer' : '外轮廓')}{c.radius !== undefined ? ` · R ${(c.radius * mm).toFixed(3)} mm` : ''}</p>)}
+        </div> : selectedContour ? (
+          <div className="sb-property-content">
+            <div className="sb-selected-summary">
               {selectedContour.construction ? '📏 辅助线'
                 : selectedContour.shape === 'circle' ? '◯ 圆'
                 : selectedContour.shape === 'polygon' ? '⬡ 多边形'
                 : selectedContour.slotWidth !== undefined ? '💊 槽口'
                 : arc ? '◠ 圆弧'
                 : '▭ ' + (selectedContour.closed ? '闭合' : '开放') + '折线'}
-              <span style={{ color: 'var(--text-dim)', fontSize: 10.5 }}> · {selectedContour.points.length} 点</span>
+              <span className="sb-selected-count"> · {selectedContour.points.length} 点</span>
             </div>
 
             {/* 内外轮廓 */}
@@ -363,12 +381,12 @@ export function Sidebar() {
         ) : (
           <div className="sb-empty">用 🖱 选择工具点击轮廓后, 可在此切换 构造线 / 无限长度 / 内外轮廓, 并查看图形属性。</div>
         )}
-      </div>
+      </div>}
 
       {/* 约束面板 (选中轮廓的约束列表) */}
-      <div className="sb-section">
-        <h4 className="sb-title">约束 (选中轮廓)</h4>
-        {selectedContour ? (
+      {(selectedContour || cadSelected.length > 0) && <details className="sb-section">
+        <summary className="sb-title">约束 (选中轮廓)</summary>
+        {cadSelected.length > 0 ? <div data-i18n-ignore="true" className="sb-empty">{locale === 'en-US' ? 'CAD dimensions are preserved. Parametric constraints are not imported.' : '保留 CAD 原始几何尺寸，不导入参数约束。'}</div> : selectedContour ? (
           selectedContour.constraints.length === 0 ? (
             <div className="sb-empty">该轮廓无约束。用 ↔ 智能尺寸标注, 或点击图形上的 R 数字调整。</div>
           ) : (
@@ -396,7 +414,7 @@ export function Sidebar() {
         ) : (
           <div className="sb-empty">先选中一个轮廓。</div>
         )}
-      </div>
+      </details>}
     </div>
   )
 }

@@ -1,10 +1,11 @@
 {
   "name": "snapboard-workspace",
-  "version": "0.1.0",
+  "version": "1.3.2-diy.1",
   "private": true,
   "workspaces": [
     "snapboard-v2",
-    "apps/*"
+    "apps/wiki",
+    "desktop"
   ],
   "scripts": {
     "dev": "npm --workspace snapboard-v2 run dev",
@@ -15,6 +16,9 @@
     "wiki:serve": "npm --workspace apps-wiki run serve",
     "site:build": "node scripts/build-public-site.mjs",
     "site:build:public": "node scripts/build-public-site.mjs --public-only",
-    "build:all": "npm run build && npm run wiki:build"
-  }
+    "build:all": "npm run build && npm run wiki:build",
+    "build:diy": "npm --workspace snapboard-v2 run build:diy",
+    "verify:diy": "node scripts/verify-diy-release.mjs"
+  },
+  "license": "GPL-3.0-only"
 }

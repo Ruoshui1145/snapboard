@@ -1,0 +1,83 @@
+.open-lattice-panel.lattice-choices {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  align-content: start;
+  padding: 10px;
+  gap: 16px;
+}
+
+.open-lattice-panel.lattice-choices > section {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.open-lattice-panel.lattice-choices :is(.lattice-effect-list, .lattice-bone-list) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: max-content;
+  align-content: start;
+  max-width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #647b82 #ffffff08;
+  padding: 3px;
+  border: 1px solid #ffffff12;
+  border-radius: 10px;
+}
+
+.open-lattice-panel.lattice-choices .lattice-effect-list { max-height: clamp(165px, 27vh, 240px); }
+.open-lattice-panel.lattice-choices .lattice-bone-list { max-height: clamp(210px, 35vh, 330px); }
+
+.open-lattice-panel.lattice-choices :is(.lattice-effect-list, .lattice-bone-list) > button {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 58px;
+  height: auto;
+  grid-template-columns: 12px minmax(0, 1fr);
+  padding: 8px;
+  gap: 8px;
+  white-space: normal;
+  scroll-margin-block: 3px;
+}
+
+.open-lattice-panel.lattice-choices .lattice-bone-list > button { grid-template-columns: 48px minmax(0, 1fr); }
+.open-lattice-panel.lattice-choices .lattice-bone-list img { width: 48px; height: 48px; }
+.open-lattice-panel.lattice-choices :is(strong, small) { overflow-wrap: anywhere; white-space: normal; }
+.open-lattice-panel.lattice-choices :is(.lattice-effect-list, .lattice-bone-list) > button:focus-visible {
+  outline: 2px solid #7cdccd;
+  outline-offset: -2px;
+}
+.open-lattice-panel.lattice-choices :is(.lattice-effect-list, .lattice-bone-list) > button:disabled {
+  opacity: 1;
+  color: #8d99a6;
+  background: #ffffff02;
+  border-color: #ffffff0e;
+}
+.open-lattice-panel.lattice-choices .lattice-effect-list > button:disabled :is(strong, small) { color: #8493a5; }
+.open-lattice-panel.lattice-choices .lattice-effect-list > button:disabled .lattice-radio { border-color: #55616d; }
+
+.open-lattice-panel.lattice-inspector :is(.lattice-inspector-scroll, .lattice-card, .lattice-actions) {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+.open-lattice-panel.lattice-inspector .lattice-inspector-scroll { overflow-x: hidden; overscroll-behavior: contain; }
+.open-lattice-panel.lattice-inspector .lattice-card header { flex-wrap: wrap; }
+.open-lattice-panel.lattice-inspector .lattice-card header > span { white-space: normal; overflow-wrap: anywhere; }
+.open-lattice-panel.lattice-inspector :is(button, p, small, label, summary, li) { white-space: normal; overflow-wrap: anywhere; }
+.open-lattice-panel.lattice-inspector button { box-sizing: border-box; max-width: 100%; min-width: 0; }
+.open-lattice-panel.lattice-inspector :is(select, input:not([type=checkbox]):not([type=radio])) { box-sizing: border-box; max-width: 100%; }
+.open-lattice-panel.lattice-inspector .open-lattice-option input { flex: 0 0 auto; }

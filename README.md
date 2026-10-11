@@ -1,173 +1,90 @@
-# SnapBoard 2.0 项目交接说明
+<div align="center">
+<img src="snapboard-v2/public/favicon.svg" width="80" alt="SnapBoard logo" />
 
-更新时间：2026-08-28  
-当前应用本体：`D:\自动切片设计软件\snapboard-v2\`
+# SnapBoard
 
-SnapBoard 是面向 3D 打印洞洞板的浏览器设计、自动分割、3D 装配和制造导出工具。当前采用“双网页、单仓库”：官网负责宣传、校园方案、使用指南和项目资料；设计器负责实际建模和制造导出。两者都由 `snapboard-v2/` 维护，但可分别部署，官网的“开始设计”会在新标签页打开设计器。`apps/wiki/` 保留公开 Markdown 文档与开发日志源文件，供贡献者维护和 GitHub 查阅；历史原型和外围工具已归档到 `_archive/legacy/`。
+**把一张草图，变成可以打印的专属洞洞板。**
 
-## 文档入口
+2D 画板 · 参数化分板 · 图案叠色 · 镂空骨架 · 多盘 3MF
 
-GitHub 新仓库设置与发布流程：[`docs-internal/GITHUB_SETUP.md`](docs-internal/GITHUB_SETUP.md)
+[![Release](https://img.shields.io/github/v/release/Ruoshui1145/snapboard?include_prereleases&label=Windows)](https://github.com/Ruoshui1145/snapboard/releases)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
+[![Daily exports](https://img.shields.io/badge/个人版-每天10次导出-55c9bc)](docs/PERSONAL_EDITION.md)
 
-开发者当前实现、模块依赖、Worker 作用域、2D/3D/3MF 边界和提交前检查：[`docs-internal/architecture/DEVELOPMENT_GUIDE.md`](docs-internal/architecture/DEVELOPMENT_GUIDE.md)
+[**下载个人玩家版**](https://github.com/Ruoshui1145/snapboard/releases/tag/v1.3.2-diy.1) · [使用指南](docs/GETTING_STARTED.md) · [更新日志](CHANGELOG.md) · [问题反馈](https://github.com/Ruoshui1145/snapboard/issues) · [官网](https://snapboard.cn/)
+</div>
 
-详细实现、数据流、存储、3MF 兼容、排障和路线请先读：
+<p align="center"><img src="docs/assets/showcase/colored-board.png" width="760" alt="异形彩色洞洞板在SnapBoard中的三维预览" /></p>
+<p align="center"><sub>图案映射与分板效果的软件渲染。这里展示的是设计结果，不是实物打印照片。</sub></p>
 
-[`snapboard-v2/docs/PROJECT_DOCUMENTATION.md`](snapboard-v2/docs/PROJECT_DOCUMENTATION.md)
+## 从想法到制造文件
 
-开发、双网页构建、EdgeOne Pages 部署和线上能力边界请读：
+1. **画板型**：矩形、圆弧、槽口或自定义轮廓，标注尺寸，按热床范围自动分板。
+2. **放图案**：导入图片或 SVG，拖动、缩放、旋转、镜像，选择适合自己的纹理与材料档案。
+3. **选结构**：完整板、完全镂空、保留正面薄层或图案区托底；选择圆润连筋、Voronoi、斜撑、细分蜂窝或交叉高低筋。
+4. **检查并导出**：查看板厚、孔位与装配，保存可编辑的 .snapboard 工程，导出多对象、多盘或分板 3MF，再交给自己的切片软件。
 
-[`snapboard-v2/docs/DEVELOPMENT_GUIDE.md`](snapboard-v2/docs/DEVELOPMENT_GUIDE.md)
+工程、图片和几何计算优先留在本机。个人玩家版向服务器交换设备签名及导出额度凭据，**不上传图纸、原图或制造文件**。
 
-专题文档：
+## 设计效果展示
 
-- [`snapboard-v2/docs/TECH_SPEC.md`](snapboard-v2/docs/TECH_SPEC.md)：技术栈和模块边界；
-- [`snapboard-v2/docs/SPLIT_ENGINE_RESEARCH.md`](snapboard-v2/docs/SPLIT_ENGINE_RESEARCH.md)：分割、孔位安全域、模块化排布与科创验证路线；
-- [`snapboard-v2/docs/TECHNICAL_EVOLUTION.md`](snapboard-v2/docs/TECHNICAL_EVOLUTION.md)：分割算法、3D 引擎、装配与制造链的技术演进和创新证据边界；
-- [`snapboard-v2/docs/MECHANICAL_VALIDATION_PLAN.md`](snapboard-v2/docs/MECHANICAL_VALIDATION_PLAN.md)：PETG 材料、孔阵、接缝和长期装配耐久验证计划；
-- [`snapboard-v2/docs/PROJECT_FILE_FORMAT.md`](snapboard-v2/docs/PROJECT_FILE_FORMAT.md)：`.snapboard`、制造清单、3MF 和保存 API；
-- [`snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md`](snapboard-v2/docs/PART_LIBRARY_ASSEMBLY_ROADMAP.md)：配件包和装配路线。
+| 纹理工作室 | 交叉高低筋 |
+| :---: | :---: |
+| <img src="docs/assets/showcase/texture-studio.png" width="410" alt="纹理工作室截图" /> | <img src="docs/assets/showcase/cross-ribs.png" width="410" alt="带倒角的交叉高低筋模型渲染" /> |
+| 图片与板面映射、材料与颜色处理 | 正面承托、背面交叉筋、孔边与连接过渡 |
 
-商业运营、定价、校园社区、打印履约以及科创/商业路线决策资料在本地 `商业运营/`，该目录不进入公开 GitHub 仓库；工程图和孔位来源在 `assets/drawings/`，不要把商业资料当成运行时代码。公开文档、开发日志和部署说明的源文件由 `apps/wiki/` 管理，并通过主站的“项目资料”页统一介绍。路线决策入口是 [`商业运营/08-科创主线与商业验证决策指南.md`](商业运营/08-科创主线与商业验证决策指南.md)。
+| 圆润连接 | 不规则连接 |
+| :---: | :---: |
+| <img src="docs/assets/showcase/rounded-ribs.png" width="350" alt="圆润连接的二维结构审阅图" /> | <img src="docs/assets/showcase/organic-ribs.png" width="350" alt="不规则连接的二维结构审阅图" /> |
+| 连筋共同形成连续网架 | Voronoi 风格的大通窗与连续骨架 |
 
-部分配件模型和安装示例图来自 MakeWorld 等公开页面的测试抓取，仅用于软件回归，不用于商业化；来源、授权和下架边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+以上包含软件截图、结构平面图和模型渲染；具体效果以所选参数的预览、切片与实打为准。示例图案的权益归原权利人，不能因为软件开源而获得图片或第三方模型的再分发许可。[图片来源与说明](docs/assets/showcase/README.md)。
 
-## 当前产品链路
+## 个人玩家版怎么用
 
-```text
-2D 草图/尺寸约束
-        ↓
-正交轮廓自动分割、孔位和边缘融合
-        ↓
-Three.js 3D 板件/配件装配预览
-        ↓
-.snapboard 可编辑项目 + 多盘 3MF 制造文件
-```
+- 下载 Release 中的 **SnapBoard-DIY-Setup-1.3.2-diy.1-x64.exe**，适用于 Windows 10/11 x64；运行环境随安装包提供。
+- 首次使用需要联网取得设备绑定的签名额度；**每个设备每天 10 次完整制造导出，按北京时间零点更新**。多盘或分板任务合计一次，重复领取同一任务不会再扣一次。
+- 编辑、预览和保存工程不计次数。取消或保存失败释放预留次数；保存成功后记录完成，重启不会重置当天次数。
+- 每天取得新额度需要联网。当天已经签发的有效额度可继续使用，失效或校验失败时保留工程和历史文件。
+- 初始包不包含个人及第三方 Private 配件集合，可在设置中导入自己的 STL、3MF、GLB、GLTF 或 .sbpack。
 
-当前实现包括：
+[详细额度规则与隐私说明](docs/PERSONAL_EDITION.md) · [安装、迁移与排障](docs/GETTING_STARTED.md)。本仓库发布个人玩家版；农场订单后台与私有运维资料另行维护。
 
-- 直线、矩形、圆、弧、槽口、多边形、等距、擦除和智能尺寸；
-- Planegcs WASM 约束求解和 Zustand Command 撤销/重做；
-- 正交外轮廓、内孔、跨板孔、边缘融合、热床旋转和制造警告；
-- 2D/3D 统一孔位状态：候选孔显示虚线，`knocked=true` 才是贯通孔；
-- Three.js 实体板厚、孔、倒角、配件拖放、锚点吸附和选择高亮；
-- 资源包扫描、3MF/STL/GLB/GLTF 预览、参数配件和制造模型导出；
-- `.snapboard` 项目保存、默认本地项目库、用户自选文件夹和项目列表；
-- 多对象、多盘 3MF，导出前进行闭合网格和 Bambu 实例映射校验。
+## 这次更新
 
-## 目录结构
+- 整理板材设计、纹理工作室与镂空结构操作，加入 SVG 轮廓导入和图案区托底。
+- 保留正面与背部减材，加入交叉高低筋、细分蜂窝、连接过渡及孔口处理。
+- 修复切换骨架时旧任务干扰、贴图资源交接、重播迟到模型以及旧草图求解结果回写。
+- 加入界面品牌水印与制造文件来源编号，恢复本次个人版所需的每日 10 次导出规则。
 
-```text
-D:\自动切片设计软件\
-├── README.md                         # 本项目索引
-├── PROJECT_STRUCTURE.md              # 模块化结构和迁移规则
-├── start-wiki.bat                    # 兼容名称：启动本地官网+设计器开发服务
-├── apps/wiki/                        # 公开文档与开发日志源文件（非第二入口）
-├── modules/                          # 领域模块边界说明
-├── assets/drawings/                  # DXF/SVG 权威规格
-├── 商业运营/                          # 内部产品和运营资料
-├── vendor/lumina-studio/             # Lumina 源码与运行模板参考
-├── docs-internal/architecture/       # 历史/内部架构资料
-├── snapboard-v2/                     # ★ 当前 Studio 应用本体（迁移期保留路径）
-│   ├── src/App.tsx                   # 路由壳
-│   ├── src/components/designer/      # 设计器三栏布局
-│   ├── src/components/toolbar/      # 工具、文件、分割、视图
-│   ├── src/components/viewport/     # 2D/3D 视口
-│   ├── src/store/useAppStore.ts     # 唯一运行时工作区
-│   ├── src/types/geometry.ts        # 权威几何与工程类型
-│   ├── src/utils/pegboardSplit.ts   # 自动分割和孔位
-│   ├── src/utils/boardMesh.ts       # Three.js 板件网格
-│   ├── src/utils/export3mf.ts       # 排盘、3MF 和网格校验
-│   ├── src/utils/projectFile.ts     # 项目文件、目录授权和 API
-│   ├── 配件资源包/                    # 资源包源目录
-│   ├── public/partLibrary/           # 同步后的网页索引
-│   ├── 已保存项目/                    # 本地开发默认项目库
-│   ├── docs/                         # 当前项目详细文档
-│   └── .tmp-3d-test/                 # 几何/导出回归脚本
-└── _archive/legacy/                  # 历史 Python/Sketch/外围工具和旧快照
-```
+[完整公开更新日志](CHANGELOG.md)。精细倒角仍可能需要等待；几何检查通过不等于实物承重认证。
 
-## 技术栈
+## 源码与贡献
 
-| 层 | 实现 |
-|---|---|
-| 前端/构建 | React 19、TypeScript 6、Vite 8 |
-| 2D/约束 | Canvas 2D、Planegcs WASM、polygon-clipping |
-| 3D | Three.js r185、WebGL、OrbitControls、Raycaster |
-| 状态 | Zustand 5 + Command undo/redo |
-| 3MF | fflate + 自研 3MF Core/OPC 写出 |
-| 本地保存 | File System Access API + IndexedDB |
-| 开发期接口 | Vite middleware；生产云端接口尚未随仓库部署 |
+使用 Node.js 24，在仓库根目录执行：
 
-## 启动与验证
+~~~powershell
+npm ci
+npm run dev
+npm run build:diy
+npm run verify:diy
+~~~
 
-```bash
-cd snapboard-v2
-npm install
-npm run dev       # http://localhost:5173
-npm run build
-npm run lint
-node .tmp-3d-test/verify-manufacturing-export.mjs
-```
+日常设计使用安装版即可。源码自建需要自己提供与固定公钥匹配的可信额度服务；公开仓库没有服务器私钥或运营凭据。安装包的内部发行签名由维护者制作，未签名的发行资源不会作为可信安装版启动。
 
-从根目录也可以统一运行：
+| 目录 | 用途 |
+| --- | --- |
+| snapboard-v2/ | 草图、板件、纹理、镂空、装配与制造 |
+| desktop/ | 个人玩家版桌面壳与构建脚本 |
+| apps/merchant-license/ | 设备签名、每日额度和本地保护存储客户端 |
+| apps/wiki/ | 保留的公开使用资料与开发日志 |
+| docs/ | 当前使用说明、公开变更记录与展示素材 |
+| vendor/ | 固定第三方运行模板及来源声明 |
 
-```bash
-npm install
-npm run dev          # Studio
-npm run build        # Studio 生产构建
-npm run wiki:dev     # 兼容命令：启动本地官网+设计器开发服务（5173）
-npm run wiki:build   # 校验/构建文档源（贡献者使用）
-npm run build:all    # Studio + 文档源
-npm run site:build   # 构建包含设计器入口的本地整合产物
-npm run site:build:public # 官网部署产物（不包含设计器）
-npm --workspace snapboard-v2 run build:designer # 独立设计器部署产物
-```
+报告问题时请提供版本、Windows 版本、复现步骤和截图；有需要时提供已移除私密素材的最小工程。欢迎通过 Issue 和 Pull Request 改进项目。
 
-官网和设计器共用代码仓库，但由两个 EdgeOne Pages 项目分别发布：根目录项目执行 `npm run site:build:public`，`snapboard-v2` 子目录项目执行 `npm run build:designer`。官网需要配置 `VITE_DESIGNER_URL` 指向设计器部署地址，设计器需要配置 `VITE_WEBSITE_URL` 指向官网地址。仓库同时保留 `vercel.json` 作为可选的 Vercel 配置。
+## 许可与来源
 
-公开测试 Release：推送符合 `vX.Y.Z` 的标签会运行 `.github/workflows/release.yml`，先构建官网/设计器并执行分割、孔位、装配和 3MF 回归，再创建 GitHub Release；第三方测试资源边界见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
+SnapBoard 自有软件代码使用 [GPL-3.0-only](LICENSE)。组合版本中的 Lumina Layers 代码、LUT 和运行模板保留原 GPLv3 来源与修改说明，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。安装包附对应源码快照。
 
-统一公开站点的路径：
-
-- `/`：消费端官网首页；
-- `/community`：校园方案与母版展示；
-- `/guide`：官网中的测量、画板、自动分割、装配和导出指南；
-- `/project`：公开文档、开发日志、开源仓库和公开边界的统一入口；
-- 设计器：独立部署地址（官网通过新标签页打开），本地开发时仍可用 `http://127.0.0.1:5173/design`。
-
-Vite 的 `server.watch.ignored` 不能删除，否则 Windows 编辑器临时目录可能触发 EBUSY 并导致开发服务器退出。
-
-## 文件与保存规则
-
-- `.snapboard`：完整可编辑工作区，不保存撤销栈、相机和临时渲染对象；
-- 默认开发库：`snapboard-v2/已保存项目/`；
-- “保存位置”：授权任意本地目录，项目写入目录根，3MF 写入 `制造导出/`；句柄保存在 IndexedDB；
-- 排盘 3MF：同步生成项目快照；
-- “另存为”：使用系统文件选择器选择当前项目文件的位置；
-- 云端部署设置 `VITE_PROJECT_STORAGE_API_BASE`，实现同样的 `save/list/open/export` 接口即可接入服务器。
-
-浏览器不允许网页静默读取用户磁盘绝对路径，首次选择目录必须由用户主动授权。界面显示目录名和文件名是浏览器安全限制下的正确行为，不应伪造绝对路径。
-
-## 几何和制造事实
-
-- 所有制造尺寸使用毫米；
-- 长圆孔默认 5×15 mm；先在原始轮廓建立唯一 A/B 母阵，分板只能裁取，标准 200×200 拼接仍严格复现四板 DXF；
-- 边缘候选圆孔默认 φ5；
-- 未确认候选孔只有 2D/3D 虚线，不生成薄盖、凹槽或浮动圆片；
-- `knocked=true` 才生成贯通实体孔；
-- 制造网格使用 48 段曲线和约 0.35 mm 倒角；
-- 每条无向边必须恰好被两个三角形使用，否则阻止 3MF 导出；
-- Bambu `plater_id` 必须为从 1 开始的连续盘号，旧版 0-based 文件需要重新导出。
-
-## 重要维护边界
-
-不要把以下历史描述写回当前文档或代码：
-
-- “敲落孔由薄皮和可敲圆片组成”；当前是完整板面/真实贯通孔二态；
-- “3MF 一定下载到系统 Downloads”；现在默认项目库、自选目录和云端基址均可用；
-- “当前没有任何本地项目 API”；开发期 Vite 已提供受限文件 API；
-- “所有配件都能制造导出”；没有 `model.print` 的零件只能预览；
-- 指数级 L 型 DFS、旧版 22.26 错位和每块板四角敲孔等旧方案。
-
-后续优先级是云端项目服务、版本冲突和权限、项目缩略图/BOM、资源包校验与迁移、STEP/OpenCascade WASM；详见应用目录下的详细项目文档。
+软件许可证不覆盖用户图案、字体和第三方配件模型的独立权利。模型可打印性、颜色和配合尺寸需要结合自己的材料、喷嘴与打印方向检查。
